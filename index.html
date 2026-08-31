@@ -970,39 +970,48 @@
           bottom: 20px;
         }
       }
-      /* =========================================
-   手機直式螢幕 (Portrait) 專屬排版：將左右對手移至上方 2排4欄
-   ========================================= */
       @media (orientation: portrait) {
-        /* 1. 取消上方推擠，改在下方騰出 380px 空間 */
+        /* 1. 下方預留空間 */
         body.online-battle-mode #wrap {
           padding-top: 16px !important;
           padding-bottom: 380px !important;
         }
 
+        /* 2. 容器設定橫向排列與欄位間距 */
         .side-opponents {
           position: absolute !important;
           width: calc(100% - 32px) !important;
           left: 16px !important;
           right: 16px !important;
           flex-direction: row !important;
-          justify-content: space-between !important;
-          gap: 6px !important;
+          gap: 10px !important; /* 卡片之間的緊密間距 */
         }
 
-        /* 2. 解除 top 定位，第一排 (1~4 名) 改由底部往上推 */
         #online-opponents-left {
           top: auto !important;
           bottom: 196px !important;
         }
 
-        /* 3. 解除 top 定位，第二排 (5~8 名) 置於最底部 */
         #online-opponents-right {
           top: auto !important;
           bottom: 16px !important;
         }
 
-        /* 第 9 名之後的文字標籤依然放置於整個容器外側下方 */
+        /* 3. 卡片自動伸展填滿整排 (消除大間隙並拉寬) */
+        .online-opponent {
+          flex: 1 1 0px !important; /* 自動平分剩餘空間並拉寬 */
+          width: auto !important; /* 解除固定寬度限制 */
+          padding: 6px !important;
+          margin: 0 !important;
+        }
+
+        /* 4. 畫布隨寬度自動等比放大 */
+        .online-mini {
+          width: 100% !important;
+          height: auto !important;
+          aspect-ratio: 4 / 3 !important;
+        }
+
         .bottom-opponents {
           top: calc(100% + 16px) !important;
         }
