@@ -878,6 +878,8 @@
       #player-list {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr);
+        /* 加入這行，讓網格項目強制靠上方緊密排列 */
+        align-content: start !important;
         gap: 8px;
         background: rgba(0, 0, 0, 0.65) !important;
         padding: 16px !important;
@@ -935,19 +937,6 @@
         }
       }
       @media (max-width: 1000px) {
-        /* 取消左右絕對定位，改為相對佈局置底 */
-        .side-opponents {
-          position: relative !important;
-          top: auto !important;
-          left: auto !important;
-          right: auto !important;
-          width: 100% !important;
-          flex-direction: row !important;
-          flex-wrap: wrap;
-          justify-content: center;
-          margin-top: 10px;
-        }
-
         /* 縮小手機版的對手畫布尺寸以節省空間 */
         .online-opponent {
           width: 110px !important;
@@ -3593,8 +3582,11 @@
         // 偵測是否為直式螢幕 (高度大於寬度)
         const isPortrait = h > w;
 
-        // 設定基礎需要計算的空間
-        const baseW = 840;
+        // 判斷目前是否處於連線對戰模式
+        const isOnline = document.body.classList.contains("online-battle-mode");
+
+        // 橫向且為連線模式時，加寬基準寬度到 1200 (包容左右面板)，否則維持 840
+        const baseW = !isPortrait && isOnline ? 1200 : 840;
 
         // 判斷目前是否處於連線對戰模式
         const isOnline = document.body.classList.contains("online-battle-mode");
