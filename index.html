@@ -582,7 +582,6 @@
 
       /* Online Battle UI */
       body.online-battle-mode #game {
-
       }
       #game-wrap.online-battle-layout {
         width: min(1060px, 96vw);
@@ -986,43 +985,35 @@
    手機直式螢幕 (Portrait) 專屬排版：將左右對手移至上方 2排4欄
    ========================================= */
       @media (orientation: portrait) {
-        /* 只有在「線上對戰模式」時，才推開上方 380px 空間，單機模式則保持置中 */
+        /* 1. 取消上方推擠，改在下方騰出 380px 空間 */
         body.online-battle-mode #wrap {
-          padding-top: 380px !important;
+          padding-top: 5px !important;
+          padding-bottom: 380px !important;
         }
 
         .side-opponents {
           position: absolute !important;
-          width: calc(100% - 32px) !important; /* 扣除左右預留的 16px */
+          width: calc(100% - 32px) !important;
           left: 16px !important;
           right: 16px !important;
-          flex-direction: row !important; /* 轉為橫向排列 */
+          flex-direction: row !important;
           justify-content: space-between !important;
           gap: 6px !important;
         }
 
-        /* 第一排 (1~4 名) 置於最上方 */
+        /* 2. 解除 top 定位，第一排 (1~4 名) 改由底部往上推 */
         #online-opponents-left {
-          top: 16px !important;
+          top: auto !important;
+          bottom: 196px !important;
         }
 
-        /* 第二排 (5~8 名) 置於第一排下方 */
+        /* 3. 解除 top 定位，第二排 (5~8 名) 置於最底部 */
         #online-opponents-right {
-          top: 196px !important;
+          top: auto !important;
+          bottom: 16px !important;
         }
 
-        .online-opponent {
-          width: 24% !important; /* 4 欄均分寬度 */
-          padding: 6px !important;
-          margin: 0 !important;
-        }
-
-        .online-opponent-head {
-          font-size: 11px !important;
-          margin-bottom: 4px !important;
-        }
-
-        /* 確保第 9 名之後的文字標籤不受影響，乖乖待在最下方 */
+        /* 第 9 名之後的文字標籤依然放置於整個容器外側下方 */
         .bottom-opponents {
           top: calc(100% + 16px) !important;
         }
