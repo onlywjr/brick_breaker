@@ -17,1015 +17,936 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap");
+            @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap");
 
-      body {
-        margin: 0;
-        background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
-        color: #f8fafc;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-family: "Noto Sans TC", sans-serif;
-        overflow: hidden;
+            body {
+              margin: 0;
+              background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
+              color: #f8fafc;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              font-family: "Noto Sans TC", sans-serif;
+              overflow: hidden;
 
-        /* 加入這三行防止文字選取與長按選單 */
-        -webkit-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-      }
+              /* 加入這三行防止文字選取與長按選單 */
+              -webkit-user-select: none;
+              user-select: none;
+              -webkit-touch-callout: none;
+            }
 
-      #wrap {
-        position: relative;
-        border-radius: 20px;
-        padding: 16px;
-        background: rgba(30, 27, 75, 0.65);
-        box-shadow:
-          0 25px 60px -15px rgba(0, 0, 0, 0.9),
-          0 0 50px rgba(236, 72, 153, 0.2);
-        border: 1px solid rgba(236, 72, 153, 0.2);
-        backdrop-filter: blur(16px);
-        flex-shrink: 0;
-      }
+            #wrap {
+              position: relative;
+              border-radius: 20px;
+              padding: 16px;
+              background: rgba(30, 27, 75, 0.65);
+              box-shadow:
+                0 25px 60px -15px rgba(0, 0, 0, 0.9),
+                0 0 50px rgba(236, 72, 153, 0.2);
+              border: 1px solid rgba(236, 72, 153, 0.2);
+              backdrop-filter: blur(16px);
+              flex-shrink: 0;
+            }
 
-      canvas {
-        background: linear-gradient(
-          135deg,
-          #ffeaea,
-          #fff4e6,
-          #e6f7ff,
-          #f0fff0,
-          #fff0f0
-        );
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
-        display: none;
-      }
+            canvas {
+              background: linear-gradient(
+                135deg,
+                #ffeaea,
+                #fff4e6,
+                #e6f7ff,
+                #f0fff0,
+                #fff0f0
+              );
+              border-radius: 12px;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+              display: none;
+            }
 
-      #status {
-        position: absolute;
-        top: -56px;
-        left: 16px;
-        right: 16px;
-        display: none;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: nowrap;
-        gap: 8px;
-        pointer-events: none;
-      }
-      /* =========================================
-   單人/連線模式專屬：水平狀態列佈局
-   ========================================= */
-      body.single-layout #status {
-        justify-content: center;
-        gap: 20px;
-      }
+            #status {
+              position: absolute;
+              top: -56px;
+              left: 16px;
+              right: 16px;
+              display: none;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: nowrap;
+              gap: 8px;
+              pointer-events: none;
+            }
+            /* =========================================
+         單人/連線模式專屬：水平狀態列佈局
+         ========================================= */
+            body.single-layout #status {
+              justify-content: center;
+              gap: 20px;
+            }
 
-      body.single-layout .stat-card {
-        flex-direction: row; /* 從垂直改為水平排列 */
-        border-radius: 40px; /* 圓角藥丸狀 */
-        padding: 8px 24px;
-        min-width: auto;
-        gap: 16px;
-        height: 48px; /* 固定較小的高度，防止往下擋住畫布 */
-      }
+            body.single-layout .stat-card {
+              flex-direction: row; /* 從垂直改為水平排列 */
+              border-radius: 40px; /* 圓角藥丸狀 */
+              padding: 8px 24px;
+              min-width: auto;
+              gap: 16px;
+              height: 48px; /* 固定較小的高度，防止往下擋住畫布 */
+            }
 
-      body.single-layout .score-bar,
-      body.single-layout .energy-bar {
-        margin-top: 0; /* 清除原本垂直排列用的邊距 */
-        width: 90px;
-        height: 10px;
-        border-radius: 5px;
-      }
+            body.single-layout .score-bar,
+            body.single-layout .energy-bar {
+              margin-top: 0; /* 清除原本垂直排列用的邊距 */
+              width: 90px;
+              height: 10px;
+              border-radius: 5px;
+            }
 
-      /* 將中央 Level 區塊的文字與數字改為水平 */
-      body.single-layout .center-card {
-        flex-direction: row;
-      }
+            /* 將中央 Level 區塊的文字與數字改為水平 */
+            body.single-layout .center-card {
+              flex-direction: row;
+            }
 
-      body.single-layout .center-card > div {
-        flex-direction: row !important;
-        align-items: center;
-        gap: 8px;
-      }
+            body.single-layout .center-card > div {
+              flex-direction: row !important;
+              align-items: center;
+              gap: 8px;
+            }
 
-      /* 隱藏原本用於垂直佈局的分隔線 */
-      body.single-layout .center-card > div:nth-child(2) {
-        display: none;
-      }
-      .stat-card {
-        background: linear-gradient(
-          135deg,
-          rgba(255, 245, 245, 0.15),
-          rgba(255, 240, 240, 0.1)
-        );
-        border: 1px solid #ffb3c6;
-        border-radius: 12px;
-        padding: 8px 18px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        min-width: 160px;
-        box-shadow:
-          0 8px 20px rgba(0, 0, 0, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
-      }
+            /* 隱藏原本用於垂直佈局的分隔線 */
+            body.single-layout .center-card > div:nth-child(2) {
+              display: none;
+            }
+            .stat-card {
+              background: linear-gradient(
+                135deg,
+                rgba(255, 245, 245, 0.15),
+                rgba(255, 240, 240, 0.1)
+              );
+              border: 1px solid #ffb3c6;
+              border-radius: 12px;
+              padding: 8px 18px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 8px;
+              min-width: 160px;
+              box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+              backdrop-filter: blur(8px);
+            }
 
-      .stat-label {
-        font-family: "Orbitron", sans-serif;
-        font-size: 15px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        color: #f472b6;
-        white-space: nowrap;
-      }
+            .stat-label {
+              font-family: "Orbitron", sans-serif;
+              font-size: 15px;
+              font-weight: 800;
+              letter-spacing: 1.5px;
+              color: #f472b6;
+              white-space: nowrap;
+            }
 
-      .stat-value {
-        font-family: "Orbitron", sans-serif;
-        font-size: 24px;
-        font-weight: 900;
-        color: #f8fafc;
-        text-shadow: 0 0 10px rgba(244, 114, 182, 0.6);
-        white-space: nowrap;
-      }
+            .stat-value {
+              font-family: "Orbitron", sans-serif;
+              font-size: 24px;
+              font-weight: 900;
+              color: #f8fafc;
+              text-shadow: 0 0 10px rgba(244, 114, 182, 0.6);
+              white-space: nowrap;
+            }
 
-      .center-card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 15px;
-        min-width: 200px;
-      }
+            .center-card {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 15px;
+              min-width: 200px;
+            }
 
-      .score-bar {
-        width: 120px;
-        height: 8px;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 4px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        flex-shrink: 0;
-      }
+            .score-bar {
+              width: 120px;
+              height: 8px;
+              background: rgba(0, 0, 0, 0.4);
+              border-radius: 4px;
+              overflow: hidden;
+              border: 1px solid rgba(255, 255, 255, 0.05);
+              flex-shrink: 0;
+            }
 
-      .energy-bar {
-        width: 120px;
-        height: 6px;
-        margin-top: 4px;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 3px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        flex-shrink: 0;
-      }
+            .energy-bar {
+              width: 120px;
+              height: 6px;
+              margin-top: 4px;
+              background: rgba(0, 0, 0, 0.4);
+              border-radius: 3px;
+              overflow: hidden;
+              border: 1px solid rgba(255, 255, 255, 0.05);
+              flex-shrink: 0;
+            }
 
-      .energy-fill,
-      .score-fill {
-        height: 100%;
-        transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 0 12px currentColor;
-      }
+            .energy-fill,
+            .score-fill {
+              height: 100%;
+              transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 0 12px currentColor;
+            }
 
-      .lives-display {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-        margin-top: 2px;
-      }
+            .lives-display {
+              display: flex;
+              gap: 6px;
+              align-items: center;
+              margin-top: 2px;
+            }
 
-      .life-heart {
-        width: 20px;
-        height: 20px;
-        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f472b6"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
-          center/contain no-repeat;
-        filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.7));
-      }
+            .life-heart {
+              width: 20px;
+              height: 20px;
+              background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f472b6"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
+                center/contain no-repeat;
+              filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.7));
+            }
 
-      #cheat-info {
-        position: absolute;
-        bottom: -44px;
-        left: 0;
-        width: 100%;
-        color: rgba(248, 250, 252, 0.45);
-        font-size: 13px;
-        text-align: center;
-        letter-spacing: 0.5px;
-        font-weight: 500;
-      }
+            #cheat-info {
+              position: absolute;
+              bottom: -44px;
+              left: 0;
+              width: 100%;
+              color: rgba(248, 250, 252, 0.45);
+              font-size: 13px;
+              text-align: center;
+              letter-spacing: 0.5px;
+              font-weight: 500;
+            }
 
-      #overlay {
-        position: absolute;
-        inset: 16px;
-        background:
-          linear-gradient(rgba(10, 5, 20, 0.6), rgba(25, 10, 35, 0.7)),
-          url("assets/babymonster/logo.png") center/cover no-repeat;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 100;
-        border-radius: 12px;
-        border: 1px solid rgba(236, 72, 153, 0.15);
-      }
+            #overlay {
+              position: absolute;
+              inset: 16px;
+              background:
+                linear-gradient(rgba(10, 5, 20, 0.6), rgba(25, 10, 35, 0.7)),
+                url("assets/babymonster/logo.png") center/cover no-repeat;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              z-index: 100;
+              border-radius: 12px;
+              border: 1px solid rgba(236, 72, 153, 0.15);
+            }
 
-      #overlay h1 {
-        font-family: "Orbitron", "Noto Sans TC", sans-serif;
-        font-size: 52px;
-        font-weight: 900;
-        margin-bottom: 36px;
-        background: linear-gradient(
-          135deg,
-          #f472b6 0%,
-          #c084fc 50%,
-          #818cf8 100%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.5));
-        letter-spacing: 5px;
-        max-width: 100%;
-        text-align: center;
-        box-sizing: border-box;
-      }
+            #overlay h1 {
+              font-family: "Orbitron", "Noto Sans TC", sans-serif;
+              font-size: 52px;
+              font-weight: 900;
+              margin-bottom: 36px;
+              background: linear-gradient(
+                135deg,
+                #f472b6 0%,
+                #c084fc 50%,
+                #818cf8 100%
+              );
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.5));
+              letter-spacing: 5px;
+              max-width: 100%;
+              text-align: center;
+              box-sizing: border-box;
+            }
 
-      .btn {
-        padding: 16px 40px;
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 19px;
-        font-weight: 900;
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(180, 210, 255, 0.4);
-        color: #ffffff;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-        border-radius: 14px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin: 10px;
+            .btn {
+              padding: 16px 40px;
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 19px;
+              font-weight: 900;
+              cursor: pointer;
+              background: rgba(255, 255, 255, 0.15);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+              border: 1px solid rgba(180, 210, 255, 0.4);
+              color: #ffffff;
+              text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+              border-radius: 14px;
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              margin: 10px;
 
-        /* [修改點 1]: 防止字體換行，設定為 max-content 並給定最小寬度 */
-        width: max-content;
-        min-width: 280px;
-        white-space: nowrap;
+              /* [修改點 1]: 防止字體換行，設定為 max-content 並給定最小寬度 */
+              width: max-content;
+              min-width: 280px;
+              white-space: nowrap;
 
-        box-shadow:
-          0 8px 32px 0 rgba(0, 0, 0, 0.3),
-          inset 0 0 10px rgba(255, 255, 255, 0.05);
-        letter-spacing: 1.5px;
-      }
+              box-shadow:
+                0 8px 32px 0 rgba(0, 0, 0, 0.3),
+                inset 0 0 10px rgba(255, 255, 255, 0.05);
+              letter-spacing: 1.5px;
+            }
 
-      .btn:hover {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(180, 210, 255, 0.8);
-        transform: translateY(-3px) scale(1.02);
-        box-shadow:
-          0 12px 40px 0 rgba(0, 0, 0, 0.4),
-          inset 0 0 15px rgba(255, 255, 255, 0.1);
-      }
+            .btn:hover {
+              background: rgba(255, 255, 255, 0.25);
+              border-color: rgba(180, 210, 255, 0.8);
+              transform: translateY(-3px) scale(1.02);
+              box-shadow:
+                0 12px 40px 0 rgba(0, 0, 0, 0.4),
+                inset 0 0 15px rgba(255, 255, 255, 0.1);
+            }
 
-      .input-level {
-        padding: 12px 20px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(180, 210, 255, 0.4);
-        color: #ffffff;
-        width: 100px;
-        text-align: center;
-        outline: none;
-        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
-      }
-      .input-level:focus {
-        border-color: rgba(180, 210, 255, 0.8);
-        background: rgba(255, 255, 255, 0.25);
-      }
+            .input-level {
+              padding: 12px 20px;
+              font-family: "Orbitron", sans-serif;
+              font-size: 18px;
+              font-weight: bold;
+              border-radius: 14px;
+              background: rgba(255, 255, 255, 0.15);
+              border: 1px solid rgba(180, 210, 255, 0.4);
+              color: #ffffff;
+              width: 100px;
+              text-align: center;
+              outline: none;
+              box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+            .input-level:focus {
+              border-color: rgba(180, 210, 255, 0.8);
+              background: rgba(255, 255, 255, 0.25);
+            }
 
-      /* 專屬馬卡龍選單按鈕 (底色與外框交換) */
-      .menu-item-macaron {
-        width: 320px;
-        height: 64px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 19px;
-        font-weight: 900;
-        cursor: pointer;
-        box-sizing: border-box;
+            /* 專屬馬卡龍選單按鈕 (底色與外框交換) */
+            .menu-item-macaron {
+              width: 320px;
+              height: 64px;
+              border-radius: 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 12px;
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 19px;
+              font-weight: 900;
+              cursor: pointer;
+              box-sizing: border-box;
 
-        /* 按鈕底色半透毛玻璃效果 */
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+              /* 按鈕底色半透毛玻璃效果 */
+              background: rgba(255, 255, 255, 0.1);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
 
-        /* 外框預設2px，顏色由下方 class 決定 */
-        border: 2px solid;
+              /* 外框預設2px，顏色由下方 class 決定 */
+              border: 2px solid;
 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #ffffff; /* 白字在暗色系毛玻璃中最清晰 */
-        margin: 0;
-        white-space: nowrap;
-      }
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              color: #ffffff; /* 白字在暗色系毛玻璃中最清晰 */
+              margin: 0;
+              white-space: nowrap;
+            }
 
-      .menu-item-macaron:hover {
-        transform: translateY(-4px) scale(1.02);
-        background: rgba(255, 255, 255, 0.2);
-      }
+            .menu-item-macaron:hover {
+              transform: translateY(-4px) scale(1.02);
+              background: rgba(255, 255, 255, 0.2);
+            }
 
-      /* 外框改為馬卡龍色系，並加上同色系內外發光 */
-      .macaron-yellow {
-        border-color: #fde047;
-        text-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 0 15px rgba(253, 224, 71, 0.2);
-      }
-      .macaron-yellow:hover {
-        box-shadow:
-          0 14px 28px rgba(0, 0, 0, 0.4),
-          inset 0 0 25px rgba(253, 224, 71, 0.5);
-      }
+            /* 外框改為馬卡龍色系，並加上同色系內外發光 */
+            .macaron-yellow {
+              border-color: #fde047;
+              text-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(253, 224, 71, 0.2);
+            }
+            .macaron-yellow:hover {
+              box-shadow:
+                0 14px 28px rgba(0, 0, 0, 0.4),
+                inset 0 0 25px rgba(253, 224, 71, 0.5);
+            }
 
-      .macaron-pink {
-        border-color: #f472b6;
-        text-shadow: 0 0 8px rgba(244, 114, 182, 0.6);
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 0 15px rgba(244, 114, 182, 0.2);
-      }
-      .macaron-pink:hover {
-        box-shadow:
-          0 14px 28px rgba(0, 0, 0, 0.4),
-          inset 0 0 25px rgba(244, 114, 182, 0.5);
-      }
+            .macaron-pink {
+              border-color: #f472b6;
+              text-shadow: 0 0 8px rgba(244, 114, 182, 0.6);
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(244, 114, 182, 0.2);
+            }
+            .macaron-pink:hover {
+              box-shadow:
+                0 14px 28px rgba(0, 0, 0, 0.4),
+                inset 0 0 25px rgba(244, 114, 182, 0.5);
+            }
 
-      .macaron-blue {
-        border-color: #7dd3fc;
-        text-shadow: 0 0 8px rgba(125, 211, 252, 0.6);
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 0 15px rgba(125, 211, 252, 0.2);
-      }
-      .macaron-blue:hover {
-        box-shadow:
-          0 14px 28px rgba(0, 0, 0, 0.4),
-          inset 0 0 25px rgba(125, 211, 252, 0.5);
-      }
+            .macaron-blue {
+              border-color: #7dd3fc;
+              text-shadow: 0 0 8px rgba(125, 211, 252, 0.6);
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(125, 211, 252, 0.2);
+            }
+            .macaron-blue:hover {
+              box-shadow:
+                0 14px 28px rgba(0, 0, 0, 0.4),
+                inset 0 0 25px rgba(125, 211, 252, 0.5);
+            }
 
-      /* 輸入框一併調整成半透底、馬卡龍黃色外框 */
-      .input-level-macaron {
-        padding: 6px 12px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid #fde047;
-        color: #ffffff;
-        width: 80px;
-        text-align: center;
-        outline: none;
-        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s;
-      }
-      .input-level-macaron:focus {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: #fef08a;
-        box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
-      }
+            /* 輸入框一併調整成半透底、馬卡龍黃色外框 */
+            .input-level-macaron {
+              padding: 6px 12px;
+              font-family: "Orbitron", sans-serif;
+              font-size: 18px;
+              font-weight: bold;
+              border-radius: 12px;
+              background: rgba(255, 255, 255, 0.1);
+              border: 2px solid #fde047;
+              color: #ffffff;
+              width: 80px;
+              text-align: center;
+              outline: none;
+              box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+              transition: all 0.2s;
+            }
+            .input-level-macaron:focus {
+              background: rgba(255, 255, 255, 0.25);
+              border-color: #fef08a;
+              box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+            }
 
-      #loading {
-        font-size: 18px;
-        color: #f8bbd0;
-        letter-spacing: 1px;
-      }
+            #loading {
+              font-size: 18px;
+              color: #f8bbd0;
+              letter-spacing: 1px;
+            }
 
-      /* 強制取消繼承 h1 的透明漸層與陰影，恢復正常文字顯示 */
-      .victory-screen,
-      .victory-screen * {
-        -webkit-text-fill-color: initial !important;
-        background-clip: border-box !important;
-        -webkit-background-clip: border-box !important;
-      }
+            /* 強制取消繼承 h1 的透明漸層與陰影，恢復正常文字顯示 */
+            .victory-screen,
+            .victory-screen * {
+              -webkit-text-fill-color: initial !important;
+              background-clip: border-box !important;
+              -webkit-background-clip: border-box !important;
+            }
 
-      .victory-screen {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-      }
-      .ranking-container {
-        background: rgba(0, 0, 0, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 12px 24px;
-        width: 320px;
-        max-height: 220px; /* 限制高度，超過可滾動 */
-        overflow-y: auto;
-        margin-top: 16px;
-        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
-      }
+            .victory-screen {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+              width: 100%;
+            }
+            .ranking-container {
+              background: rgba(0, 0, 0, 0.65);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 12px;
+              padding: 12px 24px;
+              width: 320px;
+              max-height: 220px; /* 限制高度，超過可滾動 */
+              overflow-y: auto;
+              margin-top: 16px;
+              box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+            }
 
-      /* 優化計分板配色，提高辨識度 */
-      .ranking-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 16px;
-        font-weight: 700;
-        color: #ffffff; /* 強制白字 */
-        background: rgba(255, 255, 255, 0.05); /* 加上微亮底色 */
-      }
-      .ranking-item:nth-child(even) {
-        background: rgba(255, 255, 255, 0.02);
-      }
+            /* 優化計分板配色，提高辨識度 */
+            .ranking-item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 10px 16px;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 16px;
+              font-weight: 700;
+              color: #ffffff; /* 強制白字 */
+              background: rgba(255, 255, 255, 0.05); /* 加上微亮底色 */
+            }
+            .ranking-item:nth-child(even) {
+              background: rgba(255, 255, 255, 0.02);
+            }
 
-      .ranking-item:last-child {
-        border-bottom: none;
-      }
-      .trophy {
-        font-size: 64px;
-        filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.6));
-        animation: bounce 1.5s infinite;
-      }
+            .ranking-item:last-child {
+              border-bottom: none;
+            }
+            .trophy {
+              font-size: 64px;
+              filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.6));
+              animation: bounce 1.5s infinite;
+            }
 
-      @keyframes bounce {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-8px);
-        }
-      }
+            @keyframes bounce {
+              0%,
+              100% {
+                transform: translateY(0);
+              }
+              50% {
+                transform: translateY(-8px);
+              }
+            }
 
-      .victory-title {
-        font-family: "Orbitron", "Noto Sans TC", sans-serif;
-        font-size: 42px;
-        font-weight: 800;
-        text-shadow: 0 0 15px currentColor;
-        letter-spacing: 3px;
-      }
+            .victory-title {
+              font-family: "Orbitron", "Noto Sans TC", sans-serif;
+              font-size: 42px;
+              font-weight: 800;
+              text-shadow: 0 0 15px currentColor;
+              letter-spacing: 3px;
+            }
 
-      .winner-score {
-        font-family: "Orbitron", sans-serif;
-        font-size: 36px;
-        font-weight: 800;
-        color: #fff;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-      }
+            .winner-score {
+              font-family: "Orbitron", sans-serif;
+              font-size: 36px;
+              font-weight: 800;
+              color: #fff;
+              text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
 
-      .vs-score {
-        font-family: "Orbitron", sans-serif;
-        font-size: 24px;
-        color: rgba(255, 255, 255, 0.7);
-      }
+            .vs-score {
+              font-family: "Orbitron", sans-serif;
+              font-size: 24px;
+              color: rgba(255, 255, 255, 0.7);
+            }
 
-      .vbtn-solo,
-      .vbtn-group {
-        position: absolute;
-        bottom: 48px;
-        display: none;
-        align-items: center;
-        gap: 16px;
-        z-index: 1000;
-        touch-action: none;
-        -webkit-user-select: none;
-        user-select: none;
-        pointer-events: none;
-      }
-      #vbtn-solo-left {
-        left: 20px;
-      }
-      #vbtn-solo-right {
-        right: 20px;
-      }
-      #vbtn-p1-group {
-        left: 20px;
-      }
-      #vbtn-p2-group {
-        right: 20px;
-      }
+            .vbtn-solo,
+            .vbtn-group {
+              position: absolute;
+              bottom: 48px;
+              display: none;
+              align-items: center;
+              gap: 16px;
+              z-index: 1000;
+              touch-action: none;
+              -webkit-user-select: none;
+              user-select: none;
+              pointer-events: none;
+            }
+            #vbtn-solo-left {
+              left: 20px;
+            }
+            #vbtn-solo-right {
+              right: 20px;
+            }
+            #vbtn-p1-group {
+              left: 20px;
+            }
+            #vbtn-p2-group {
+              right: 20px;
+            }
 
-      .vbtn-group-label {
-        position: absolute;
-        top: -26px;
-        left: 0;
-        right: 0;
-        text-align: center;
-        font-family: "Orbitron", sans-serif;
-        font-size: 14px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        text-shadow: 0 0 8px currentColor;
-        opacity: 0.9;
-      }
+            .vbtn-group-label {
+              position: absolute;
+              top: -26px;
+              left: 0;
+              right: 0;
+              text-align: center;
+              font-family: "Orbitron", sans-serif;
+              font-size: 14px;
+              font-weight: 800;
+              letter-spacing: 1.5px;
+              text-shadow: 0 0 8px currentColor;
+              opacity: 0.9;
+            }
 
-      .vbtn-solo .btn,
-      .vbtn-group .btn {
-        /* 加入這行，防止瀏覽器處理預設觸控手勢 (如雙擊放大) */
-        touch-action: none;
+            .vbtn-solo .btn,
+            .vbtn-group .btn {
+              /* 加入這行，防止瀏覽器處理預設觸控手勢 (如雙擊放大) */
+              touch-action: none;
 
-        pointer-events: auto;
-        box-sizing: border-box;
-        flex-shrink: 0;
-        padding: 0;
-        margin: 0;
-        color: #ffffff;
-        font-weight: 900;
-        font-size: 28px;
-        width: 70px;
-        height: 70px;
-        min-width: 70px;
-        min-height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        aspect-ratio: 1 / 1;
-        background: rgba(255, 255, 255, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-shadow:
-          0 6px 16px rgba(0, 0, 0, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        opacity: 0.8;
-        transition:
-          background 0.15s ease,
-          transform 0.1s ease,
-          opacity 0.15s ease,
-          border-color 0.15s ease;
-      }
-      .vbtn-solo .btn.pressed,
-      .vbtn-group .btn.pressed {
-        background: rgba(255, 255, 255, 0.4);
-        color: #fff;
-        border-color: rgba(255, 255, 255, 0.8);
-        opacity: 1;
-        transform: scale(0.92);
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-      }
+              pointer-events: auto;
+              box-sizing: border-box;
+              flex-shrink: 0;
+              padding: 0;
+              margin: 0;
+              color: #ffffff;
+              font-weight: 900;
+              font-size: 28px;
+              width: 70px;
+              height: 70px;
+              min-width: 70px;
+              min-height: 70px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              aspect-ratio: 1 / 1;
+              background: rgba(255, 255, 255, 0.15);
+              border: 2px solid rgba(255, 255, 255, 0.3);
+              backdrop-filter: blur(8px);
+              -webkit-backdrop-filter: blur(8px);
+              box-shadow:
+                0 6px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+              opacity: 0.8;
+              transition:
+                background 0.15s ease,
+                transform 0.1s ease,
+                opacity 0.15s ease,
+                border-color 0.15s ease;
+            }
+            .vbtn-solo .btn.pressed,
+            .vbtn-group .btn.pressed {
+              background: rgba(255, 255, 255, 0.4);
+              color: #fff;
+              border-color: rgba(255, 255, 255, 0.8);
+              opacity: 1;
+              transform: scale(0.92);
+              box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            }
 
-      /* Online Battle UI */
-      body.online-battle-mode #game {
-        width: min(800px, 78vw);
-        height: auto;
-      }
-      #game-wrap.online-battle-layout {
-        width: min(1060px, 96vw);
-      }
-      /* 新增左右與下方對手容器 */
-      /* 左右兩側對手容器 */
-      .side-opponents {
-        display: none;
-        position: absolute;
-        top: 0;
-        width: 160px; /* 稍微加寬以容納完整卡片 */
-        max-height: 600px;
-        flex-direction: column;
-        gap: 10px;
-        z-index: 50;
-      }
-      #online-opponents-left {
-        right: calc(100% + 16px);
-      }
-      #online-opponents-right {
-        left: calc(100% + 16px);
-      }
+            /* Online Battle UI */
+            body.online-battle-mode #game {
+              width: min(800px, 78vw);
+              height: auto;
+            }
+            #game-wrap.online-battle-layout {
+              width: min(1060px, 96vw);
+            }
+            /* 新增左右與下方對手容器 */
+            /* 左右兩側對手容器 */
+            .side-opponents {
+              display: none;
+              position: absolute;
+              top: 0;
+              width: 160px; /* 稍微加寬以容納完整卡片 */
+              max-height: 600px;
+              flex-direction: column;
+              gap: 10px;
+              z-index: 50;
+            }
+            #online-opponents-left {
+              right: calc(100% + 16px);
+            }
+            #online-opponents-right {
+              left: calc(100% + 16px);
+            }
 
-      /* 下方對手容器 */
-      .bottom-opponents {
-        display: none;
-        position: absolute;
-        top: calc(100% + 16px);
-        left: 0;
-        right: 0;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-      }
-      .bottom-opponent-tag {
-        background: rgba(9, 9, 11, 0.85);
-        border: 1px solid rgba(192, 132, 252, 0.5);
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-family: "Orbitron", "Noto Sans TC", sans-serif;
-        font-size: 14px;
-        font-weight: 900;
-        color: #fff;
-        white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      }
+            /* 下方對手容器 */
+            .bottom-opponents {
+              display: none;
+              position: absolute;
+              top: calc(100% + 16px);
+              left: 0;
+              right: 0;
+              flex-wrap: wrap;
+              justify-content: center;
+              gap: 10px;
+            }
+            .bottom-opponent-tag {
+              background: rgba(9, 9, 11, 0.85);
+              border: 1px solid rgba(192, 132, 252, 0.5);
+              border-radius: 8px;
+              padding: 8px 16px;
+              font-family: "Orbitron", "Noto Sans TC", sans-serif;
+              font-size: 14px;
+              font-weight: 900;
+              color: #fff;
+              white-space: nowrap;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            }
 
-      /* 確保縮圖卡片樣式正確套用 */
-      .online-opponent {
-        position: relative;
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-        border-radius: 10px;
-        background: rgba(9, 9, 11, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-      }
-      .online-opponent.eliminated {
-        opacity: 0.4;
-        filter: grayscale(1);
-      }
-      .online-opponent-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 6px;
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 12px;
-        font-weight: 900;
-        margin-bottom: 6px;
-        color: #fff;
-      }
-      .online-mini {
-        display: block;
-        width: 100%;
-        aspect-ratio: 4/3; /* 自動維持比例 */
-        height: auto;
-        background: #09090b;
-        border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      #online-attack-status {
-        display: none;
-        position: absolute;
-        left: 50%;
-        bottom: 12px;
-        transform: translateX(-50%);
-        z-index: 300;
-        padding: 8px 16px;
-        border-radius: 999px;
-        background: rgba(9, 9, 11, 0.8);
-        border: 1px solid rgba(253, 224, 71, 0.55);
-        color: #fde047;
-        font-weight: 900;
-        font-size: 14px;
-        pointer-events: none;
-        white-space: nowrap;
-      }
-      #online-blind {
-        display: none;
-        position: absolute;
-        inset: 16px;
-        z-index: 280;
-        border-radius: 12px;
-        background:
-          radial-gradient(
-            circle at center,
-            rgba(255, 255, 255, 0.16),
-            rgba(244, 114, 182, 0.5)
-          ),
-          url("assets/babymonster/logo.png") center/70% auto no-repeat;
-        opacity: 0.78;
-        pointer-events: none;
-        animation: onlineBlindPulse 0.45s infinite alternate;
-      }
-      @keyframes onlineBlindPulse {
-        from {
-          opacity: 0.62;
-          transform: scale(1);
-        }
-        to {
-          opacity: 0.82;
-          transform: scale(1.025);
-        }
-      }
-      #p1-energy-wrap.online-energy-ready {
-        cursor: pointer;
-        animation: onlineEnergyPulse 0.65s infinite alternate;
-      }
-      @keyframes onlineEnergyPulse {
-        from {
-          filter: drop-shadow(0 0 2px #fde047);
-        }
-        to {
-          filter: drop-shadow(0 0 14px #fde047);
-        }
-      }
-      @media (max-width: 1100px) {
-        #online-opponents {
+            /* 確保縮圖卡片樣式正確套用 */
+            .online-opponent {
+              position: relative;
+              width: 100%;
+              padding: 8px;
+              box-sizing: border-box;
+              border-radius: 10px;
+              background: rgba(9, 9, 11, 0.85);
+              border: 1px solid rgba(255, 255, 255, 0.15);
+              backdrop-filter: blur(8px);
+            }
+            .online-opponent.eliminated {
+              opacity: 0.4;
+              filter: grayscale(1);
+            }
+            .online-opponent-head {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 6px;
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 12px;
+              font-weight: 900;
+              margin-bottom: 6px;
+              color: #fff;
+            }
+            .online-mini {
+              display: block;
+              width: 100%;
+              aspect-ratio: 4/3; /* 自動維持比例 */
+              height: auto;
+              background: #09090b;
+              border-radius: 6px;
+              border: 1px solid rgba(255, 255, 255, 0.12);
+            }
+            #online-attack-status {
+              display: none;
+              position: absolute;
+              left: 50%;
+              bottom: 12px;
+              transform: translateX(-50%);
+              z-index: 300;
+              padding: 8px 16px;
+              border-radius: 999px;
+              background: rgba(9, 9, 11, 0.8);
+              border: 1px solid rgba(253, 224, 71, 0.55);
+              color: #fde047;
+              font-weight: 900;
+              font-size: 14px;
+              pointer-events: none;
+              white-space: nowrap;
+            }
+            #online-blind {
+              display: none;
+              position: absolute;
+              inset: 16px;
+              z-index: 280;
+              border-radius: 12px;
+              background:
+                radial-gradient(
+                  circle at center,
+                  rgba(255, 255, 255, 0.16),
+                  rgba(244, 114, 182, 0.5)
+                ),
+                url("assets/babymonster/logo.png") center/70% auto no-repeat;
+              opacity: 0.78;
+              pointer-events: none;
+              animation: onlineBlindPulse 0.45s infinite alternate;
+            }
+            @keyframes onlineBlindPulse {
+              from {
+                opacity: 0.62;
+                transform: scale(1);
+              }
+              to {
+                opacity: 0.82;
+                transform: scale(1.025);
+              }
+            }
+            #p1-energy-wrap.online-energy-ready {
+              cursor: pointer;
+              animation: onlineEnergyPulse 0.65s infinite alternate;
+            }
+            @keyframes onlineEnergyPulse {
+              from {
+                filter: drop-shadow(0 0 2px #fde047);
+              }
+              to {
+                filter: drop-shadow(0 0 14px #fde047);
+              }
+            }
+
+              .online-opponent {
+                width: 194px;
+                margin: 0;
+              }
+              .online-mini {
+                width: 180px;
+                height: 126px;
+              }
+            }
+            /* =========================================
+         1. 首頁選單群組化排版 (無間隙設計)
+         ========================================= */
+            .menu-group {
+              width: 320px;
+              display: flex;
+              flex-direction: column;
+              border-radius: 20px;
+              overflow: hidden;
+              border: 2px solid;
+              background: rgba(255, 255, 255, 0.1);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+            }
+            .menu-group-top {
+              border-color: #f472b6;
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(244, 114, 182, 0.2);
+            }
+            .menu-group-bottom {
+              border-color: #7dd3fc;
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(125, 211, 252, 0.2);
+            }
+            .menu-group-item {
+              width: 100%;
+              height: 60px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 12px;
+              background: transparent;
+              border: none;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+              color: #fff;
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 19px;
+              font-weight: 900;
+              cursor: pointer;
+              box-sizing: border-box;
+              transition: background 0.3s ease;
+              margin: 0;
+              padding: 0;
+            }
+            .menu-group-item:last-child {
+              border-bottom: none;
+            }
+            button.menu-group-item:hover {
+              background: rgba(255, 255, 255, 0.15);
+            }
+            div.menu-group-item {
+              cursor: default;
+            }
+
+            .menu-group-item input[type="number"],
+            .menu-group-item input[type="text"]:not(#room-code-input) {
+              background: rgba(0, 0, 0, 0.3);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              color: #fff;
+              font-family: "Orbitron", sans-serif;
+              font-size: 18px;
+              font-weight: bold;
+              text-align: center;
+              border-radius: 12px;
+              padding: 6px 10px;
+              width: 120px;
+              outline: none;
+              transition: all 0.3s;
+            }
+            .menu-group-item input:focus {
+              background: rgba(0, 0, 0, 0.5);
+              border-color: rgba(255, 255, 255, 0.6);
+              box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            }
+
+            /* 左右分割的輸入框與按鈕 */
+            .menu-group-item.split {
+              gap: 0;
+            }
+            .menu-group-item.split input {
+              flex: 1;
+              min-width: 0; /* 關鍵：解除 input 預設寬度限制，防止撐破外框 */
+              width: 100%;
+              height: 100%;
+              border-radius: 0;
+              border: none;
+              border-right: 1px solid rgba(255, 255, 255, 0.2);
+              background: transparent;
+              text-transform: uppercase;
+              font-family: "Orbitron", sans-serif;
+              font-size: 16px;
+              font-weight: bold;
+              color: #fff;
+              text-align: center;
+              outline: none;
+            }
+            .menu-group-item.split input::placeholder {
+              text-transform: none;
+              color: rgba(255, 255, 255, 0.5);
+            }
+            .menu-group-item.split input:focus {
+              background: rgba(255, 255, 255, 0.1);
+            }
+
+            .menu-group-item.split button {
+              flex: 0 0 110px; /* 固定按鈕寬度為 110px */
+              width: 110px;
+              height: 100%;
+              background: transparent;
+              border: none;
+              color: #fff;
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 17px;
+              font-weight: 900;
+              cursor: pointer;
+              transition: background 0.3s ease;
+              white-space: nowrap;
+
+              /* 確保文字絕對置中 */
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              padding: 0;
+              margin: 0;
+            }
+            .menu-group-item.split button:hover {
+              background: rgba(255, 255, 255, 0.15);
+            }
+
+            /* =========================================
+         2. 多人連線大廳網格排版 (支援 99 人與捲軸)
+         ========================================= */
+            #player-list {
+              display: grid !important;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 8px;
+              background: rgba(0, 0, 0, 0.65) !important;
+              padding: 16px !important;
+              border-radius: 12px;
+              width: 100%;
+              min-width: 540px; /* 確保有足夠寬度容納 3 欄 */
+              min-height: 215px; /* 預留 4 列空間 */
+              max-height: 215px; /* 超過 4 列觸發捲軸 */
+              overflow-y: auto;
+              margin-bottom: 20px;
+              border: 1px solid rgba(192, 132, 252, 0.5) !important;
+              box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+              box-sizing: border-box;
+            }
+
+            /* 美化捲軸 */
+            #player-list::-webkit-scrollbar {
+              width: 6px;
+            }
+            #player-list::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            #player-list::-webkit-scrollbar-thumb {
+              background: rgba(255, 255, 255, 0.3);
+              border-radius: 3px;
+            }
+
+            .lobby-player-item {
+              font-family: "Noto Sans TC", sans-serif;
+              font-size: 14px;
+              padding: 0 12px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-radius: 8px;
+              background: rgba(255, 255, 255, 0.06);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              color: #fff;
+              box-sizing: border-box;
+              height: 35px;
+            }
+            /* 1. 手機與平板的虛擬按鍵與大廳網格 (不分直橫向) */
+            @media (max-width: 1000px) {
+              .vbtn-solo .btn,
+              .vbtn-group .btn {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
+              }
+              #vbtn-solo-left,
+              #vbtn-p1-group {
+                left: 10px;
+                bottom: 20px;
+              }
+              #vbtn-solo-right,
+              #vbtn-p2-group {
+                right: 10px;
+                bottom: 20px;
+              }
+
+              #player-list {
+                min-width: 100% !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+              }
+            }
+
+        /* 新增：手機直向握持時強制旋轉為橫向全螢幕 */
+      @media screen and (orientation: portrait) {
+        body {
+          transform: rotate(90deg);
+          transform-origin: 50% 50%;
+          width: 100vh;
+          height: 100vw;
+          position: absolute;
+          top: 50%;
           left: 50%;
-          top: calc(100% + 12px);
-          transform: translateX(-50%);
-          width: min(90vw, 430px);
-          max-height: 190px;
-          display: none;
-          flex-wrap: wrap;
-          gap: 6px;
-          overflow-y: auto;
-        }
-        .online-opponent {
-          width: 194px;
-          margin: 0;
-        }
-        .online-mini {
-          width: 180px;
-          height: 126px;
-        }
-      }
-      /* =========================================
-   1. 首頁選單群組化排版 (無間隙設計)
-   ========================================= */
-      .menu-group {
-        width: 320px;
-        display: flex;
-        flex-direction: column;
-        border-radius: 20px;
-        overflow: hidden;
-        border: 2px solid;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-      }
-      .menu-group-top {
-        border-color: #f472b6;
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 0 15px rgba(244, 114, 182, 0.2);
-      }
-      .menu-group-bottom {
-        border-color: #7dd3fc;
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 0 15px rgba(125, 211, 252, 0.2);
-      }
-      .menu-group-item {
-        width: 100%;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 19px;
-        font-weight: 900;
-        cursor: pointer;
-        box-sizing: border-box;
-        transition: background 0.3s ease;
-        margin: 0;
-        padding: 0;
-      }
-      .menu-group-item:last-child {
-        border-bottom: none;
-      }
-      button.menu-group-item:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-      div.menu-group-item {
-        cursor: default;
-      }
-
-      .menu-group-item input[type="number"],
-      .menu-group-item input[type="text"]:not(#room-code-input) {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-family: "Orbitron", sans-serif;
-        font-size: 18px;
-        font-weight: bold;
-        text-align: center;
-        border-radius: 12px;
-        padding: 6px 10px;
-        width: 120px;
-        outline: none;
-        transition: all 0.3s;
-      }
-      .menu-group-item input:focus {
-        background: rgba(0, 0, 0, 0.5);
-        border-color: rgba(255, 255, 255, 0.6);
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-      }
-
-      /* 左右分割的輸入框與按鈕 */
-      .menu-group-item.split {
-        gap: 0;
-      }
-      .menu-group-item.split input {
-        flex: 1;
-        min-width: 0; /* 關鍵：解除 input 預設寬度限制，防止撐破外框 */
-        width: 100%;
-        height: 100%;
-        border-radius: 0;
-        border: none;
-        border-right: 1px solid rgba(255, 255, 255, 0.2);
-        background: transparent;
-        text-transform: uppercase;
-        font-family: "Orbitron", sans-serif;
-        font-size: 16px;
-        font-weight: bold;
-        color: #fff;
-        text-align: center;
-        outline: none;
-      }
-      .menu-group-item.split input::placeholder {
-        text-transform: none;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .menu-group-item.split input:focus {
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .menu-group-item.split button {
-        flex: 0 0 110px; /* 固定按鈕寬度為 110px */
-        width: 110px;
-        height: 100%;
-        background: transparent;
-        border: none;
-        color: #fff;
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 17px;
-        font-weight: 900;
-        cursor: pointer;
-        transition: background 0.3s ease;
-        white-space: nowrap;
-
-        /* 確保文字絕對置中 */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0;
-        margin: 0;
-      }
-      .menu-group-item.split button:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      /* =========================================
-   2. 多人連線大廳網格排版 (支援 99 人與捲軸)
-   ========================================= */
-      #player-list {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.65) !important;
-        padding: 16px !important;
-        border-radius: 12px;
-        width: 100%;
-        min-width: 540px; /* 確保有足夠寬度容納 3 欄 */
-        min-height: 215px; /* 預留 4 列空間 */
-        max-height: 215px; /* 超過 4 列觸發捲軸 */
-        overflow-y: auto;
-        margin-bottom: 20px;
-        border: 1px solid rgba(192, 132, 252, 0.5) !important;
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-        box-sizing: border-box;
-      }
-
-      /* 美化捲軸 */
-      #player-list::-webkit-scrollbar {
-        width: 6px;
-      }
-      #player-list::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      #player-list::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
-      }
-
-      .lobby-player-item {
-        font-family: "Noto Sans TC", sans-serif;
-        font-size: 14px;
-        padding: 0 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
-        box-sizing: border-box;
-        height: 35px;
-      }
-      /* 手機版 (寬度 768px 以下) 的專屬排版 */
-      @media (max-width: 768px) {
-        /* 大廳網格改為 2 欄，取消絕對寬度限制 */
-        #player-list {
-          min-width: 100% !important;
-          grid-template-columns: repeat(2, 1fr) !important;
-          padding: 12px !important;
-        }
-
-        /* 選單群組自動適應手機寬度 */
-        .menu-group {
-          width: 90vw;
-          max-width: 320px;
-        }
-      }
-      @media (max-width: 1000px) {
-        /* 取消左右絕對定位，改為相對佈局置底 */
-        .side-opponents {
-          position: relative !important;
-          top: auto !important;
-          left: auto !important;
-          right: auto !important;
-          width: 100% !important;
-          flex-direction: row !important;
-          flex-wrap: wrap;
-          justify-content: center;
-          margin-top: 10px;
-        }
-
-        /* 縮小手機版的對手畫布尺寸以節省空間 */
-        .online-opponent {
-          width: 110px !important;
-          padding: 4px !important;
-        }
-        .online-mini {
-          width: 100% !important;
-          border-radius: 4px !important;
-        }
-        .online-opponent-head {
-          font-size: 10px !important;
-        }
-      }
-      @media (max-width: 768px) {
-        .vbtn-solo .btn,
-        .vbtn-group .btn {
-          width: 80px; /* 放大觸控區 */
-          height: 80px;
-          font-size: 32px; /* 箭頭放大 */
-        }
-
-        /* 讓按鈕緊貼螢幕下緣與兩側 */
-        #vbtn-solo-left,
-        #vbtn-p1-group {
-          left: 10px;
-          bottom: 20px;
-        }
-        #vbtn-solo-right,
-        #vbtn-p2-group {
-          right: 10px;
-          bottom: 20px;
-        }
-      }
-      /* =========================================
-   手機直式螢幕 (Portrait) 專屬排版：將左右對手移至上方 2排4欄
-   ========================================= */
-      @media (orientation: portrait) {
-        #wrap {
-          /* 增加上方空間來容納 2 排對手 (約需要 380px) */
-          padding-top: 380px !important;
-        }
-
-        .side-opponents {
-          position: absolute !important;
-          width: calc(100% - 32px) !important; /* 扣除左右預留的 16px */
-          left: 16px !important;
-          right: 16px !important;
-          flex-direction: row !important; /* 轉為橫向排列 */
-          justify-content: space-between !important;
-          gap: 6px !important;
-        }
-
-        /* 第一排 (1~4 名) 置於最上方 */
-        #online-opponents-left {
-          top: 16px !important;
-        }
-
-        /* 第二排 (5~8 名) 置於第一排下方 */
-        #online-opponents-right {
-          top: 196px !important;
-        }
-
-        .online-opponent {
-          width: 24% !important; /* 4 欄均分寬度 */
-          padding: 6px !important;
-          margin: 0 !important;
-        }
-
-        .online-opponent-head {
-          font-size: 11px !important;
-          margin-bottom: 4px !important;
-        }
-
-        /* 確保第 9 名之後的文字標籤不受影響，乖乖待在最下方 */
-        .bottom-opponents {
-          top: calc(100% + 16px) !important;
+          margin-top: -50vw;
+          margin-left: -50vh;
         }
       }
     </style>
@@ -3597,22 +3518,18 @@
         const wrap = document.getElementById("wrap");
         if (!wrap) return;
 
-        const w = window.innerWidth;
-        const h = window.innerHeight;
+        // 配合 CSS 旋轉：若是直向握持，則將畫面長寬數值對調計算
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const w = isPortrait ? window.innerHeight : window.innerWidth;
+        const h = isPortrait ? window.innerWidth : window.innerHeight;
 
-        // 偵測是否為直式螢幕 (高度大於寬度)
-        const isPortrait = h > w;
+        // 連線模式預留兩側對手縮圖的空間 (縮圖 160 + 間距 16 + 主畫面 800 + 間距 16 + 縮圖 160 = 1152)
+        const isOnline = document.body.classList.contains("online-battle-mode");
+        const baseW = isOnline ? 1160 : 840;
+        const baseH = 750;
 
-        // 設定基礎需要計算的空間
-        const baseW = 840;
-
-        // 關鍵：如果是直式，因為上方多了兩排 8 名玩家的縮圖，高度需求必須加大
-        const baseH = isPortrait ? 1150 : 750;
-
-        // 取得寬高最小的縮放比例
+        // 取得最小縮放比例，確保全畫面內容不被裁切
         let scale = Math.min(w / baseW, h / baseH);
-
-        // 限制最大放大倍率為 1.1
         if (scale > 1.1) scale = 1.1;
 
         wrap.style.transform = `scale(${scale})`;
