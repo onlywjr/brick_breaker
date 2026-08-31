@@ -987,8 +987,8 @@
    手機直式螢幕 (Portrait) 專屬排版：將左右對手移至上方 2排4欄
    ========================================= */
       @media (orientation: portrait) {
-        #wrap {
-          /* 增加上方空間來容納 2 排對手 (約需要 380px) */
+        /* 只有在「線上對戰模式」時，才推開上方 380px 空間，單機模式則保持置中 */
+        body.online-battle-mode #wrap {
           padding-top: 380px !important;
         }
 
@@ -3606,8 +3606,11 @@
         // 設定基礎需要計算的空間
         const baseW = 840;
 
-        // 關鍵：如果是直式，因為上方多了兩排 8 名玩家的縮圖，高度需求必須加大
-        const baseH = isPortrait ? 1150 : 750;
+        // 判斷目前是否處於連線對戰模式
+        const isOnline = document.body.classList.contains("online-battle-mode");
+
+        // 只有在「直式」且「連線模式」下，才需要加大高度需求 (1150)，否則維持標準比例 (750)
+        const baseH = isPortrait && isOnline ? 1150 : 750;
 
         // 取得寬高最小的縮放比例
         let scale = Math.min(w / baseW, h / baseH);
