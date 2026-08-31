@@ -987,7 +987,7 @@
       @media (orientation: portrait) {
         /* 1. 取消上方推擠，改在下方騰出 380px 空間 */
         body.online-battle-mode #wrap {
-          padding-top: 5px !important;
+          padding-top: 16px !important;
           padding-bottom: 380px !important;
         }
 
@@ -3815,11 +3815,7 @@
 
       socket.on("lobbyState", (state) => {
         lobbyState = state || {};
-        // 如果 Server 狀態已回到 waiting (準備階段)，就強制離開結算畫面
-        if (state?.status === "waiting" && onlineMatchFinished) {
-          onlineMatchFinished = false;
-          onlineEliminated = false;
-        }
+
         // ✅ 如果正在顯示結算畫面，就不要強制切回大廳畫面 (解決殘留的核心)
         if (!onlineMatchFinished) {
           if (state?.code) {
