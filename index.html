@@ -3585,13 +3585,8 @@
         // 判斷目前是否處於連線對戰模式
         const isOnline = document.body.classList.contains("online-battle-mode");
 
-        // 橫向且為連線模式時，加寬基準寬度到 1200 (包容左右面板)，否則維持 840
+        // 橫向連線時加寬基準寬度 (1200)；直向連線時加大高度需求 (1150)
         const baseW = !isPortrait && isOnline ? 1200 : 840;
-
-        // 判斷目前是否處於連線對戰模式
-        const isOnline = document.body.classList.contains("online-battle-mode");
-
-        // 只有在「直式」且「連線模式」下，才需要加大高度需求 (1150)，否則維持標準比例 (750)
         const baseH = isPortrait && isOnline ? 1150 : 750;
 
         // 取得寬高最小的縮放比例
@@ -3603,6 +3598,7 @@
         wrap.style.transform = `scale(${scale})`;
         wrap.style.transformOrigin = "center center";
       }
+
       // 監聽視窗變更與設備翻轉
       window.addEventListener("resize", resizeGame);
       window.addEventListener("orientationchange", resizeGame);
