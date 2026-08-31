@@ -21,7 +21,12 @@
 
       body {
         margin: 0;
-        background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
+        background: rgba(
+          30,
+          27,
+          75,
+          0.35
+        ) !important; /* 原本是深藍漸層，radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);*/
         color: #f8fafc;
         display: flex;
         justify-content: center;
@@ -40,10 +45,7 @@
         position: relative;
         border-radius: 20px;
         padding: 16px;
-        background: rgba(30, 27, 75, 0.65);
-        box-shadow:
-          0 25px 60px -15px rgba(0, 0, 0, 0.9),
-          0 0 50px rgba(236, 72, 153, 0.2);
+        background: rgba(30, 27, 75, 0.35);
         border: 1px solid rgba(236, 72, 153, 0.2);
         backdrop-filter: blur(16px);
         flex-shrink: 0;
@@ -66,7 +68,7 @@
 
       #status {
         position: absolute;
-        top: -56px;
+        top: -10px;
         left: 16px;
         right: 16px;
         display: none;
@@ -204,17 +206,25 @@
           center/contain no-repeat;
         filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.7));
       }
-
+      /* 高級感毛玻璃半透明說明框 */
       #cheat-info {
-        position: absolute;
-        bottom: -44px;
-        left: 0;
-        width: 100%;
-        color: rgba(248, 250, 252, 0.45);
+        position: relative;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        padding: 8px 22px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 30px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: rgba(255, 255, 255, 0.9);
         font-size: 13px;
         text-align: center;
         letter-spacing: 0.5px;
-        font-weight: 500;
+        font-weight: 600;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        white-space: nowrap;
       }
 
       #overlay {
@@ -236,7 +246,7 @@
         font-family: "Orbitron", "Noto Sans TC", sans-serif;
         font-size: 52px;
         font-weight: 900;
-        margin-bottom: 36px;
+        margin-top: 0px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
         background: linear-gradient(
           135deg,
           #f472b6 0%,
@@ -636,8 +646,8 @@
         padding: 8px;
         box-sizing: border-box;
         border-radius: 10px;
-        background: rgba(9, 9, 11, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.85) !important; /* 改為半透明白底 */
+        border: 2px solid #f472b6 !important; /* 馬卡龍粉色邊框 */
         backdrop-filter: blur(8px);
       }
       .online-opponent.eliminated {
@@ -653,7 +663,7 @@
         font-size: 12px;
         font-weight: 900;
         margin-bottom: 6px;
-        color: #fff;
+        color: #1e1b4b !important; /* 標題文字改為深藍色，確保高對比清晰度 */
       }
       .online-mini {
         display: block;
@@ -1034,7 +1044,9 @@
     </div>
     <div id="wrap" style="width: 800px; height: 600px">
       <div id="overlay">
+        <div id="cheat-info">單人: 方向鍵 | 雙人 1P: A/D, 2P: 方向鍵</div>
         <h1 id="title">BABYMONSTER</h1>
+
         <div id="loading">正在載入遊戲資源...</div>
         <div
           id="menu-btns"
@@ -1232,11 +1244,6 @@
       <div id="online-opponents-bottom" class="bottom-opponents"></div>
       <div id="online-blind"></div>
       <div id="online-attack-status"></div>
-
-      <div id="cheat-info">
-        [ ⚡ 快速跳關: * ] [ 👹 直接召喚Boss: - ] | 單人: 方向鍵 | 雙人 1P: A/D,
-        2P: 方向鍵
-      </div>
     </div>
 
     <script>
@@ -1487,7 +1494,12 @@
         function push(c, r, hp, isMoving = false, forceOffT = null) {
           const cols = 9,
             offL = (cv.width - cols * (bw + pad) - pad) / 2;
-          const offT = forceOffT !== null ? forceOffT : 60;
+          const defaultOffT = mode === 2 ? 110 : 60;
+          const offT = forceOffT !== null ? forceOffT : defaultOffT;
+
+          // 若為 Boss 關，雙人盾牌往下移至 310，單人維持預設 260
+          const shieldOffT = mode === 2 ? 310 : 260;
+
           const memberIndex = (r * cols + c) % MEMBERS.length;
           let bX = c * (bw + pad) + offL;
           bricks.push({
@@ -1610,7 +1622,7 @@
         boss.w = 160;
         boss.h = 100;
         boss.x = cv.width / 2 - boss.w / 2;
-        boss.y = 80;
+        boss.y = mode === 2 ? 130 : 80;
         boss.phase = 1;
         boss.attackCooldown = 2;
         boss.bullets = [];
@@ -2389,7 +2401,7 @@
             sy = (ih - sh) / 2;
           ctx.save();
           ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
-          ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+          ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
           ctx.fillRect(0, 0, cv.width, cv.height);
           ctx.restore();
         }
@@ -3588,21 +3600,17 @@
         const w = window.innerWidth;
         const h = window.innerHeight;
 
-        // 偵測是否為直式螢幕 (高度大於寬度)
         const isPortrait = h > w;
-
-        // 判斷目前是否處於連線對戰模式
         const isOnline = document.body.classList.contains("online-battle-mode");
 
-        // 橫向連線時加寬基準寬度 (1200)；直向連線時加大高度需求 (1150)
         const baseW = !isPortrait && isOnline ? 1200 : 840;
-        const baseH = isPortrait && isOnline ? 1150 : 750;
+        // 將一般模式的高度需求從 750 降至 660，讓整體畫面能放大填滿螢幕高度
+        const baseH = isPortrait && isOnline ? 1150 : 660;
 
-        // 取得寬高最小的縮放比例
         let scale = Math.min(w / baseW, h / baseH);
 
-        // 限制最大放大倍率為 1.1
-        if (scale > 1.1) scale = 1.1;
+        // 提升放大上限至 1.5，確保在大螢幕/高解析度下能充分填滿螢幕高度
+        if (scale > 1.5) scale = 1.5;
 
         wrap.style.transform = `scale(${scale})`;
         wrap.style.transformOrigin = "center center";
