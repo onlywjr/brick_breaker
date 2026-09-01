@@ -17,1104 +17,1110 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-                  @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap");
 
-                  body {
-                    /* 加上這行防止 Safari 下拉更新與彈性滑動 */
-                    overscroll-behavior: none;
-                    margin: 0;
-                    /* 馬卡龍明亮漸層底色 */
-                    background:
+      body {
+        /* 加上這行防止 Safari 下拉更新與彈性滑動 */
+        overscroll-behavior: none;
+        margin: 0;
+        /* 馬卡龍明亮漸層底色 */
+        background:
                       /* 1. 最上層：像素城市剪影 (利用 SVG 繪製，設定靠下對齊並水平重複) */
-                      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none' shape-rendering='crispEdges'%3E%3Cpath fill='rgba(93, 87, 107, 0.15)' d='M0,100 v-20 h10 v-20 h15 v30 h10 v-40 h20 v20 h15 v-30 h20 v50 h10 v-20 h20 v10 h15 v-40 h25 v30 h15 v-10 h25 v30 Z' /%3E%3Cpath fill='rgba(93, 87, 107, 0.25)' d='M0,100 v-10 h15 v-15 h10 v25 h15 v-35 h15 v40 h15 v-20 h20 v30 h10 v-15 h15 v10 h20 v-25 h20 v30 h15 v-10 h30 v25 Z' /%3E%3C/svg%3E")
-                        bottom left / 200px 33vh repeat-x,
-                      /* 2. 底層：原本的馬卡龍明亮漸層底色 */
-                      linear-gradient(135deg, #fff0f5 0%, #e6f2ff 50%, #f5f0ff 100%) !important;
-                    color: #5d576b; /* 改為深紫灰色以確保在亮底上清晰可見 */
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    font-family: "Noto Sans TC", sans-serif;
-                    overflow: hidden;
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none' shape-rendering='crispEdges'%3E%3Cpath fill='rgba(93, 87, 107, 0.15)' d='M0,100 v-20 h10 v-20 h15 v30 h10 v-40 h20 v20 h15 v-30 h20 v50 h10 v-20 h20 v10 h15 v-40 h25 v30 h15 v-10 h25 v30 Z' /%3E%3Cpath fill='rgba(93, 87, 107, 0.25)' d='M0,100 v-10 h15 v-15 h10 v25 h15 v-35 h15 v40 h15 v-20 h20 v30 h10 v-15 h15 v10 h20 v-25 h20 v30 h15 v-10 h30 v25 Z' /%3E%3C/svg%3E")
+            bottom left / 200px 33vh repeat-x,
+          /* 2. 底層：原本的馬卡龍明亮漸層底色 */
+          linear-gradient(135deg, #fff0f5 0%, #e6f2ff 50%, #f5f0ff 100%) !important;
+        color: #5d576b; /* 改為深紫灰色以確保在亮底上清晰可見 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: "Noto Sans TC", sans-serif;
+        overflow: hidden;
 
-                    /* 加入這三行防止文字選取與長按選單 */
-                    -webkit-user-select: none;
-                    user-select: none;
-                    -webkit-touch-callout: none;
-                  }
+        /* 加入這三行防止文字選取與長按選單 */
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
 
-                  #wrap {
-                    position: relative;
-                    border-radius: 10px;
-                    padding: 8px;
-                    /* 改為半透明白底毛玻璃 */
-                    background: rgba(255, 255, 255, 0.4);
-                    backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255, 255, 255, 0.7);
-                    box-shadow: 0 10px 30px rgba(230, 215, 225, 0.5);
-                    flex-shrink: 0;
-                  }
-                  canvas {
-                    border-radius: 12px;
-                    border: 2px solid rgba(255, 255, 255, 0.8);
-                    box-shadow: 0 0 20px rgba(246, 166, 193, 0.3); /* 改用柔和粉色陰影 */
-                    display: none;
-                  }
+      #wrap {
+        position: relative;
+        border-radius: 10px;
+        padding: 8px;
+        /* 改為半透明白底毛玻璃 */
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 10px 30px rgba(230, 215, 225, 0.5);
+        flex-shrink: 0;
+      }
+      canvas {
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 20px rgba(246, 166, 193, 0.3); /* 改用柔和粉色陰影 */
+        display: none;
+      }
 
-                  #status {
-                    position: absolute;
-                    top: -1px;
-                    left: 16px;
-                    right: 16px;
-                    display: none;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: nowrap;
-                    gap: 8px;
-                    pointer-events: none;
-                  }
-                  /* =========================================
+      #status {
+        position: absolute;
+        top: -1px;
+        left: 16px;
+        right: 16px;
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+        pointer-events: none;
+      }
+      /* =========================================
                單人/連線模式專屬：水平狀態列佈局
                ========================================= */
-                  body.single-layout #status {
-                    justify-content: center;
-                    gap: 20px;
-                  }
+      body.single-layout #status {
+        justify-content: center;
+        gap: 20px;
+      }
 
-                  body.single-layout .stat-card {
-                    flex-direction: row; /* 從垂直改為水平排列 */
-                    border-radius: 40px; /* 圓角藥丸狀 */
-                    padding: 8px 12px;
-                    min-width: auto;
-                    gap: 16px;
-                    /*height: 48px; 固定較小的高度，防止往下擋住畫布 */
-                  }
+      body.single-layout .stat-card {
+        flex-direction: row; /* 從垂直改為水平排列 */
+        border-radius: 40px; /* 圓角藥丸狀 */
+        padding: 8px 12px;
+        min-width: auto;
+        gap: 16px;
+        /*height: 48px; 固定較小的高度，防止往下擋住畫布 */
+      }
 
-                  body.single-layout .score-bar,
-                  body.single-layout .energy-bar {
-                    margin-top: 0; /* 清除原本垂直排列用的邊距 */
-                    width: 90px;
-                    height: 10px;
-                    border-radius: 5px;
-                    display: block;
-                  }
+      body.single-layout .score-bar,
+      body.single-layout .energy-bar {
+        margin-top: 0; /* 清除原本垂直排列用的邊距 */
+        width: 90px;
+        height: 10px;
+        border-radius: 5px;
+        display: block;
+      }
 
-                  /* 將中央 Level 區塊的文字與數字改為水平 */
-                  body.single-layout .center-card {
-                    flex-direction: row;
-                  }
+      /* 將中央 Level 區塊的文字與數字改為水平 */
+      body.single-layout .center-card {
+        flex-direction: row;
+      }
 
-                  body.single-layout .center-card > div {
-                    flex-direction: row !important;
-                    align-items: center;
-                    gap: 8px;
-                  }
+      body.single-layout .center-card > div {
+        flex-direction: row !important;
+        align-items: center;
+        gap: 8px;
+      }
 
-                  /* 隱藏原本用於垂直佈局的分隔線 */
-                  body.single-layout .center-card > div:nth-child(2) {
-                    display: none;
-                  }
-                  .stat-card {
-                    background: rgba(255, 255, 255, 0.75);
-                    border: 1px solid rgba(255, 255, 255, 0.9);
-                    border-radius: 12px;
-                    padding: 8px 18px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 8px;
-                    min-width: 160px;
-                    box-shadow: 0 4px 15px rgba(230, 215, 225, 0.4);
-                    backdrop-filter: blur(8px);
-                  }
+      /* 隱藏原本用於垂直佈局的分隔線 */
+      body.single-layout .center-card > div:nth-child(2) {
+        display: none;
+      }
+      .stat-card {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        padding: 8px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 160px;
+        box-shadow: 0 4px 15px rgba(230, 215, 225, 0.4);
+        backdrop-filter: blur(8px);
+      }
 
-                  .stat-label {
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 15px;
-                    font-weight: 800;
-                    letter-spacing: 1.5px;
-                    color: #8a7e9c; /* 加深確保清楚 */
-                    white-space: nowrap;
-                    text-shadow: none;
-                  }
+      .stat-label {
+        font-family: "Orbitron", sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        color: #8a7e9c; /* 加深確保清楚 */
+        white-space: nowrap;
+        text-shadow: none;
+      }
 
-                  .stat-value {
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 24px;
-                    font-weight: 900;
-                    color: #5d576b; /* 加深確保清楚 */
-                    text-shadow: none;
-                    white-space: nowrap;
-                  }
+      .stat-value {
+        font-family: "Orbitron", sans-serif;
+        font-size: 24px;
+        font-weight: 900;
+        color: #5d576b; /* 加深確保清楚 */
+        text-shadow: none;
+        white-space: nowrap;
+      }
 
-                  .center-card {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 15px;
-                    min-width: 200px;
-                  }
+      .center-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+        min-width: 200px;
+      }
 
-                  .score-bar {
-                    width: 120px;
-                    height: 8px;
-                    background: rgba(230, 220, 235, 0.8);
-                    border-radius: 4px;
-                    overflow: hidden;
-                    border: 1px solid rgba(255, 255, 255, 0.9);
-                    flex-shrink: 0;
-                    display: none;
-                  }
+      .score-bar {
+        width: 120px;
+        height: 8px;
+        background: rgba(230, 220, 235, 0.8);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        flex-shrink: 0;
+        display: none;
+      }
 
-                  .energy-bar {
-                    width: 120px;
-                    height: 6px;
-                    margin-top: 4px;
-                    background: rgba(230, 220, 235, 0.8);
-                    border-radius: 3px;
-                    overflow: hidden;
-                    border: 1px solid rgba(255, 255, 255, 0.9);
-                    flex-shrink: 0;
-                  }
+      .energy-bar {
+        width: 120px;
+        height: 6px;
+        margin-top: 4px;
+        background: rgba(230, 220, 235, 0.8);
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        flex-shrink: 0;
+      }
 
-                  .energy-fill,
-                  .score-fill {
-                    height: 100%;
-                    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 0 12px currentColor;
-                  }
+      .energy-fill,
+      .score-fill {
+        height: 100%;
+        transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 12px currentColor;
+      }
 
-                  .lives-display {
-                    display: flex;
-                    gap: 6px;
-                    align-items: center;
-                    margin-top: 2px;
-                  }
+      .lives-display {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-top: 2px;
+      }
 
-                  .life-heart {
-                    width: 20px;
-                    height: 20px;
-                    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F6A6C1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
-                      center/contain no-repeat;
-                    filter: drop-shadow(0 0 8px rgba(246, 166, 193, 0.62));
-                  }
+      .life-heart {
+        width: 20px;
+        height: 20px;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F6A6C1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
+          center/contain no-repeat;
+        filter: drop-shadow(0 0 8px rgba(246, 166, 193, 0.62));
+      }
 
-                  /* =========================================
+      /* =========================================
                      首頁底部毛玻璃狀態列
                      ========================================= */
-                  #bottom-status-bar {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    height: 40px;
-                    background: rgba(225, 225, 225, 0.45);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border-top: 1px solid rgba(255, 255, 255, 0.9);
-                    border-radius: 0 0 4px 4px; /* 貼合 overlay 圓角 */
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0 20px;
-                    box-shadow: 0 -4px 15px rgba(230, 215, 225, 0.3);
-                    z-index: 250; /* 確保在選單上方 */
-                    font-family: "Noto Sans TC", sans-serif;
-                  }
+      #bottom-status-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: rgba(225, 225, 225, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 0 0 4px 4px; /* 貼合 overlay 圓角 */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 -4px 15px rgba(230, 215, 225, 0.3);
+        z-index: 250; /* 確保在選單上方 */
+        font-family: "Noto Sans TC", sans-serif;
+      }
 
-                  /* 調整操作說明融入狀態列 */
-                  #cheat-info {
-                    color: #8a7e9c;
-                    font-size: 13px;
-                    font-weight: 700;
-                    letter-spacing: 0px;
-                    white-space: nowrap;
-                    margin: 0;
-                    padding: 0;
-                    background: none;
-                    border: none;
-                    backdrop-filter: none;
-                  }
+      /* 調整操作說明融入狀態列 */
+      #cheat-info {
+        color: #8a7e9c;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0px;
+        white-space: nowrap;
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        backdrop-filter: none;
+      }
 
-                  /* 將連線狀態與倒數計時整合到右側 */
-                  #status-right-group {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                  }
+      /* 將連線狀態與倒數計時整合到右側 */
+      #status-right-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
 
-                  #room-status {
-                    font-size: 13px;
-                    font-weight: bold;
-                    text-align: right;
-                    margin: 0;
-                    display: none;
-                  }
+      #room-status {
+        font-size: 13px;
+        font-weight: bold;
+        text-align: right;
+        margin: 0;
+        display: none;
+      }
 
-                  #lobby-countdown {
-                    font-size: 14px;
-                    color: #d96c8e;
-                    font-weight: 900;
-                    margin: 0;
-                    display: none;
-                    animation: pulseText 1s infinite alternate;
-                  }
+      #lobby-countdown {
+        font-size: 14px;
+        color: #d96c8e;
+        font-weight: 900;
+        margin: 0;
+        display: none;
+        animation: pulseText 1s infinite alternate;
+      }
 
-                  @keyframes pulseText {
-                    from {
-                      opacity: 0.8;
-                      transform: scale(1);
-                    }
-                    to {
-                      opacity: 1;
-                      transform: scale(1.05);
-                    }
-                  }
+      @keyframes pulseText {
+        from {
+          opacity: 0.8;
+          transform: scale(1);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+      }
 
-                  #overlay {
-                    position: absolute;
-                    inset: 8px;
-                    background:
-                      radial-gradient(
-                        ellipse 70% 60% at 5% 5%,
-                        rgba(255, 240, 224, 0.9),
-                        transparent 75%
-                      ),
-                      radial-gradient(
-                        ellipse 70% 65% at 100% 0%,
-                        rgba(224, 245, 250, 0.9),
-                        transparent 75%
-                      ),
-                      radial-gradient(
-                        ellipse 70% 60% at 10% 100%,
-                        rgba(250, 230, 238, 0.9),
-                        transparent 75%
-                      ),
-                      radial-gradient(
-                        ellipse 70% 65% at 75% 50%,
-                        rgba(255, 253, 251, 0.95),
-                        transparent 75%
-                      ),
-                      #fdf8f5; /* 明亮柔和底 */
+      #overlay {
+        position: absolute;
+        inset: 8px;
+        background:
+          radial-gradient(
+            ellipse 70% 60% at 5% 5%,
+            rgba(255, 240, 224, 0.9),
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse 70% 65% at 100% 0%,
+            rgba(224, 245, 250, 0.9),
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse 70% 60% at 10% 100%,
+            rgba(250, 230, 238, 0.9),
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse 70% 65% at 75% 50%,
+            rgba(255, 253, 251, 0.95),
+            transparent 75%
+          ),
+          #fdf8f5; /* 明亮柔和底 */
 
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 100;
-                    border-radius: 5px;
-                    border: 1px solid rgba(255, 255, 255, 0.8);
-                    overflow: hidden; /* 確保底部狀態列不會超出圓角 */
-                  }
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        overflow: hidden; /* 確保底部狀態列不會超出圓角 */
+      }
 
-                  #overlay h1 {
-                    font-family: "Orbitron", "Noto Sans TC", sans-serif;
-                    font-size: 52px;
-                    font-weight: 900;
-                    margin-top: -50px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
-                    background: linear-gradient(
-                      135deg,
-                      #f6a6c1 0%,
-                      #c9b1e8 50%,
-                      #9dd9e8 100%
-                    );
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    filter: drop-shadow(0 0 10px rgba(246, 166, 193, 0.3));
-                    letter-spacing: 5px;
-                    max-width: 100%;
-                    text-align: center;
-                    box-sizing: border-box;
-                  }
+      #overlay h1 {
+        font-family: "Orbitron", "Noto Sans TC", sans-serif;
+        font-size: 52px;
+        font-weight: 900;
+        margin-top: -50px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
+        background: linear-gradient(
+          135deg,
+          #f6a6c1 0%,
+          #c9b1e8 50%,
+          #9dd9e8 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 10px rgba(246, 166, 193, 0.3));
+        letter-spacing: 5px;
+        max-width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+      }
 
-                  .btn {
-                    padding: 16px 40px;
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 19px;
-                    font-weight: 900;
-                    cursor: pointer;
-                    background: rgba(255, 255, 255, 0.8);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border: 2px solid #f6a6c1;
-                    color: #5d576b;
-                    text-shadow: none;
-                    border-radius: 14px;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    margin: 10px;
+      .btn {
+        padding: 16px 40px;
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 19px;
+        font-weight: 900;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 2px solid #f6a6c1;
+        color: #5d576b;
+        text-shadow: none;
+        border-radius: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 10px;
 
-                    /* [修改點 1]: 防止字體換行，設定為 max-content 並給定最小寬度 */
-                    width: max-content;
-                    min-width: 280px;
-                    white-space: nowrap;
+        /* [修改點 1]: 防止字體換行，設定為 max-content 並給定最小寬度 */
+        width: max-content;
+        min-width: 280px;
+        white-space: nowrap;
 
-                    box-shadow: 0 8px 20px rgba(246, 166, 193, 0.2);
-                    letter-spacing: 1.5px;
-                  }
+        box-shadow: 0 8px 20px rgba(246, 166, 193, 0.2);
+        letter-spacing: 1.5px;
+      }
 
-                  .btn:hover {
-                    background: rgba(255, 255, 255, 0.95);
-                    border-color: #f6a6c1;
-                    transform: translateY(-3px) scale(1.02);
-                    box-shadow: 0 12px 30px rgba(246, 166, 193, 0.3);
-                  }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #f6a6c1;
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(246, 166, 193, 0.3);
+      }
 
-                  .input-level {
-                    padding: 12px 20px;
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 18px;
-                    font-weight: bold;
-                    border-radius: 14px;
-                    background: rgba(255, 255, 255, 0.8);
-                    border: 2px solid #c9b1e8;
-                    color: #5d576b;
-                    width: 100px;
-                    text-align: center;
-                    outline: none;
-                    box-shadow: inset 0 2px 10px rgba(201, 177, 232, 0.15);
-                  }
-                  .input-level:focus {
-                    border-color: #c9b1e8;
-                    background: rgba(255, 255, 255, 0.95);
-                  }
+      .input-level {
+        padding: 12px 20px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid #c9b1e8;
+        color: #5d576b;
+        width: 100px;
+        text-align: center;
+        outline: none;
+        box-shadow: inset 0 2px 10px rgba(201, 177, 232, 0.15);
+      }
+      .input-level:focus {
+        border-color: #c9b1e8;
+        background: rgba(255, 255, 255, 0.95);
+      }
 
-                  /* 專屬馬卡龍選單按鈕 (底色與外框交換) */
-                  .menu-item-macaron {
-                    width: 320px;
-                    height: 64px;
-                    border-radius: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 12px;
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 19px;
-                    font-weight: 900;
-                    cursor: pointer;
-                    box-sizing: border-box;
+      /* 專屬馬卡龍選單按鈕 (底色與外框交換) */
+      .menu-item-macaron {
+        width: 320px;
+        height: 64px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 19px;
+        font-weight: 900;
+        cursor: pointer;
+        box-sizing: border-box;
 
-                    /* 按鈕底色半透毛玻璃效果 */
-                    background: rgba(255, 255, 255, 0.8);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
+        /* 按鈕底色半透毛玻璃效果 */
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
 
-                    /* 外框預設2px，顏色由下方 class 決定 */
-                    border: 2px solid;
+        /* 外框預設2px，顏色由下方 class 決定 */
+        border: 2px solid;
 
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    color: #5d576b; /* 白底使用深灰確保清晰 */
-                    margin: 0;
-                    white-space: nowrap;
-                  }
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #5d576b; /* 白底使用深灰確保清晰 */
+        margin: 0;
+        white-space: nowrap;
+      }
 
-                  .menu-item-macaron:hover {
-                    transform: translateY(-4px) scale(1.02);
-                    background: rgba(255, 255, 255, 0.95);
-                  }
+      .menu-item-macaron:hover {
+        transform: translateY(-4px) scale(1.02);
+        background: rgba(255, 255, 255, 0.95);
+      }
 
-                  /* 外框改為馬卡龍色系，並加上同色系內外發光 */
-                  .macaron-yellow {
-                    border-color: #f6d98b;
-                    text-shadow: none;
-                    box-shadow: 0 8px 25px rgba(246, 217, 139, 0.3);
-                  }
-                  .macaron-yellow:hover {
-                    box-shadow: 0 12px 30px rgba(246, 217, 139, 0.4);
-                  }
+      /* 外框改為馬卡龍色系，並加上同色系內外發光 */
+      .macaron-yellow {
+        border-color: #f6d98b;
+        text-shadow: none;
+        box-shadow: 0 8px 25px rgba(246, 217, 139, 0.3);
+      }
+      .macaron-yellow:hover {
+        box-shadow: 0 12px 30px rgba(246, 217, 139, 0.4);
+      }
 
-                  .macaron-pink {
-                    border-color: #f6a6c1;
-                    text-shadow: none;
-                    box-shadow: 0 8px 25px rgba(246, 166, 193, 0.3);
-                  }
-                  .macaron-pink:hover {
-                    box-shadow: 0 12px 30px rgba(246, 166, 193, 0.4);
-                  }
+      .macaron-pink {
+        border-color: #f6a6c1;
+        text-shadow: none;
+        box-shadow: 0 8px 25px rgba(246, 166, 193, 0.3);
+      }
+      .macaron-pink:hover {
+        box-shadow: 0 12px 30px rgba(246, 166, 193, 0.4);
+      }
 
-                  .macaron-blue {
-                    border-color: #9dd9e8;
-                    text-shadow: none;
-                    box-shadow: 0 8px 25px rgba(157, 217, 232, 0.3);
-                  }
-                  .macaron-blue:hover {
-                    box-shadow: 0 12px 30px rgba(157, 217, 232, 0.4);
-                  }
+      .macaron-blue {
+        border-color: #9dd9e8;
+        text-shadow: none;
+        box-shadow: 0 8px 25px rgba(157, 217, 232, 0.3);
+      }
+      .macaron-blue:hover {
+        box-shadow: 0 12px 30px rgba(157, 217, 232, 0.4);
+      }
 
-                  /* 輸入框一併調整成半透底、馬卡龍黃色外框 */
-                  .input-level-macaron {
-                    padding: 6px 12px;
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 18px;
-                    font-weight: bold;
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.8);
-                    border: 2px solid #f6d98b;
-                    color: #5d576b;
-                    width: 80px;
-                    text-align: center;
-                    outline: none;
-                    box-shadow: inset 0 2px 6px rgba(246, 217, 139, 0.15);
-                    transition: all 0.2s;
-                  }
-                  .input-level-macaron:focus {
-                    background: rgba(255, 255, 255, 0.95);
-                    border-color: #f9e9b5;
-                    box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
-                  }
+      /* 輸入框一併調整成半透底、馬卡龍黃色外框 */
+      .input-level-macaron {
+        padding: 6px 12px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid #f6d98b;
+        color: #5d576b;
+        width: 80px;
+        text-align: center;
+        outline: none;
+        box-shadow: inset 0 2px 6px rgba(246, 217, 139, 0.15);
+        transition: all 0.2s;
+      }
+      .input-level-macaron:focus {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #f9e9b5;
+        box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+      }
 
-                  #loading {
-                    font-size: 18px;
-                    color: #d96c8e;
-                    letter-spacing: 1px;
-                  }
+      #loading {
+        font-size: 18px;
+        color: #d96c8e;
+        letter-spacing: 1px;
+      }
 
-                  /* 強制取消繼承 h1 的透明漸層與陰影，恢復正常文字顯示 */
-                  .victory-screen,
-                  .victory-screen * {
-                    -webkit-text-fill-color: initial !important;
-                    background-clip: border-box !important;
-                    -webkit-background-clip: border-box !important;
-                  }
+      /* 強制取消繼承 h1 的透明漸層與陰影，恢復正常文字顯示 */
+      .victory-screen,
+      .victory-screen * {
+        -webkit-text-fill-color: initial !important;
+        background-clip: border-box !important;
+        -webkit-background-clip: border-box !important;
+      }
 
-                  .victory-screen {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 10px;
-                    width: 100%;
-                    margin-top: 40px;
-                  }
-                  .ranking-container {
-                    background: rgba(255, 255, 255, 0.85);
-                    border: 2px solid #f6a6c1;
-                    border-radius: 12px;
-                    padding: 12px 24px;
-                    width: 320px;
-                    max-height: 220px; /* 限制高度，超過可滾動 */
-                    overflow-y: auto;
-                    margin-top: 16px;
-                    box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);
-                  }
+      .victory-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin-top: 40px;
+      }
+      .ranking-container {
+        background: rgba(255, 255, 255, 0.85);
+        border: 2px solid #f6a6c1;
+        border-radius: 12px;
+        padding: 12px 24px;
+        width: 320px;
+        max-height: 220px; /* 限制高度，超過可滾動 */
+        overflow-y: auto;
+        margin-top: 16px;
+        box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);
+      }
 
-                  /* 優化計分板配色，提高辨識度 */
-                  .ranking-item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 10px 16px;
-                    border-bottom: 1px solid rgba(246, 166, 193, 0.3);
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #5d576b; /* 改為深灰色確保清晰 */
-                    background: rgba(255, 255, 255, 0.6);
-                  }
-                  .ranking-item:nth-child(even) {
-                    background: rgba(255, 255, 255, 0.8);
-                  }
+      /* 優化計分板配色，提高辨識度 */
+      .ranking-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(246, 166, 193, 0.3);
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #5d576b; /* 改為深灰色確保清晰 */
+        background: rgba(255, 255, 255, 0.6);
+      }
+      .ranking-item:nth-child(even) {
+        background: rgba(255, 255, 255, 0.8);
+      }
 
-                  .ranking-item:last-child {
-                    border-bottom: none;
-                  }
-                  .trophy {
-                    font-size: 64px;
-                    filter: drop-shadow(0 0 10px rgba(246, 217, 139, 0.5));
-                    animation: bounce 1.5s infinite;
-                  }
+      .ranking-item:last-child {
+        border-bottom: none;
+      }
+      .trophy {
+        font-size: 64px;
+        filter: drop-shadow(0 0 10px rgba(246, 217, 139, 0.5));
+        animation: bounce 1.5s infinite;
+      }
 
-                  @keyframes bounce {
-                    0%,
-                    100% {
-                      transform: translateY(0);
-                    }
-                    50% {
-                      transform: translateY(-8px);
-                    }
-                  }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
 
-                  .victory-title {
-                    font-family: "Orbitron", "Noto Sans TC", sans-serif;
-                    font-size: 42px;
-                    font-weight: 800;
-                    text-shadow: none;
-                    letter-spacing: 3px;
-                  }
+      .victory-title {
+        font-family: "Orbitron", "Noto Sans TC", sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        text-shadow: none;
+        letter-spacing: 3px;
+      }
 
-                  .winner-score {
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 36px;
-                    font-weight: 800;
-                    color: #5d576b;
-                    text-shadow: none;
-                  }
+      .winner-score {
+        font-family: "Orbitron", sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        color: #5d576b;
+        text-shadow: none;
+      }
 
-                  .vs-score {
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 24px;
-                    color: #7a728a;
-                  }
+      .vs-score {
+        font-family: "Orbitron", sans-serif;
+        font-size: 24px;
+        color: #7a728a;
+      }
 
-                  .vbtn-solo,
-                  .vbtn-group {
-                    position: absolute;
-                    bottom: 48px;
-                    display: none;
-                    align-items: center;
-                    gap: 16px;
-                    z-index: 1000;
-                    touch-action: none;
-                    -webkit-user-select: none;
-                    user-select: none;
-                    pointer-events: none;
-                  }
-                  #vbtn-solo-left {
-                    left: 20px;
-                  }
-                  #vbtn-solo-right {
-                    right: 20px;
-                  }
-                  #vbtn-p1-group {
-                    left: 20px;
-                  }
-                  #vbtn-p2-group {
-                    right: 20px;
-                  }
+      .vbtn-solo,
+      .vbtn-group {
+        position: absolute;
+        bottom: 48px;
+        display: none;
+        align-items: center;
+        gap: 16px;
+        z-index: 1000;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+        pointer-events: none;
+      }
+      #vbtn-solo-left {
+        left: 20px;
+      }
+      #vbtn-solo-right {
+        right: 20px;
+      }
+      #vbtn-p1-group {
+        left: 20px;
+      }
+      #vbtn-p2-group {
+        right: 20px;
+      }
 
-                  .vbtn-group-label {
-                    position: absolute;
-                    top: -26px;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 14px;
-                    font-weight: 900;
-                    letter-spacing: 1.5px;
-                    text-shadow: 0 0 4px rgba(255, 255, 255, 0.8); /* 亮底加白光，或用深色文字 */
-                    opacity: 1;
-                  }
+      .vbtn-group-label {
+        position: absolute;
+        top: -26px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.8); /* 亮底加白光，或用深色文字 */
+        opacity: 1;
+      }
 
-                  .vbtn-solo .btn,
-                  .vbtn-group .btn {
-                    /* 加入這行，防止瀏覽器處理預設觸控手勢 (如雙擊放大) */
-                    touch-action: none;
+      .vbtn-solo .btn,
+      .vbtn-group .btn {
+        /* 加入這行，防止瀏覽器處理預設觸控手勢 (如雙擊放大) */
+        touch-action: none;
 
-                    pointer-events: auto;
-                    box-sizing: border-box;
-                    flex-shrink: 0;
-                    padding: 0;
-                    margin: 0;
-                    color: #5d576b;
-                    font-weight: 900;
-                    font-size: 28px;
-                    width: 70px;
-                    height: 70px;
-                    min-width: 70px;
-                    min-height: 70px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 50%;
-                    aspect-ratio: 1 / 1;
-                    background: rgba(255, 255, 255, 0.8);
-                    border: 2px solid #c9b1e8;
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    box-shadow: 0 4px 10px rgba(201, 177, 232, 0.3);
-                    opacity: 0.9;
-                    transition:
-                      background 0.15s ease,
-                      transform 0.1s ease,
-                      opacity 0.15s ease,
-                      border-color 0.15s ease;
-                  }
-                  .vbtn-solo .btn.pressed,
-                  .vbtn-group .btn.pressed {
-                    background: rgba(255, 255, 255, 0.95);
-                    color: #5d576b;
-                    border-color: #f6a6c1;
-                    opacity: 1;
-                    transform: scale(0.92);
-                    box-shadow: 0 0 15px rgba(246, 166, 193, 0.4);
-                  }
+        pointer-events: auto;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        padding: 0;
+        margin: 0;
+        color: #5d576b;
+        font-weight: 900;
+        font-size: 28px;
+        width: 70px;
+        height: 70px;
+        min-width: 70px;
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        aspect-ratio: 1 / 1;
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid #c9b1e8;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 10px rgba(201, 177, 232, 0.3);
+        opacity: 0.9;
+        transition:
+          background 0.15s ease,
+          transform 0.1s ease,
+          opacity 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .vbtn-solo .btn.pressed,
+      .vbtn-group .btn.pressed {
+        background: rgba(255, 255, 255, 0.95);
+        color: #5d576b;
+        border-color: #f6a6c1;
+        opacity: 1;
+        transform: scale(0.92);
+        box-shadow: 0 0 15px rgba(246, 166, 193, 0.4);
+      }
 
-                  /* Online Battle UI */
-                  body.online-battle-mode #game {
-                    margin-bottom: 10px;
-                  }
-                  body.online-battle-mode .score-bar {
+      /* Online Battle UI */
+      body.online-battle-mode #game {
+        margin-bottom: 10px;
+      }
+      body.online-battle-mode .score-bar {
         display: none !important;
       }
-                  #game-wrap.online-battle-layout {
-                    width: min(1060px, 96vw);
-                  }
-                  /* 新增左右與下方對手容器 */
-                  /* 左右兩側對手容器 */
-                  .side-opponents {
-                    display: none;
-                    position: absolute;
-                    top: 0;
-                    width: 160px; /* 稍微加寬以容納完整卡片 */
-                    max-height: 600px;
-                    flex-direction: column;
-                    gap: 10px;
-                    z-index: 50;
-                  }
-                  #online-opponents-left {
-                    right: calc(100% + 16px);
-                  }
-                  #online-opponents-right {
-                    left: calc(100% + 16px);
-                  }
+      #game-wrap.online-battle-layout {
+        width: min(1060px, 96vw);
+      }
+      /* 新增左右與下方對手容器 */
+      /* 左右兩側對手容器 */
+      .side-opponents {
+        display: none;
+        position: absolute;
+        top: 0;
+        width: 160px; /* 稍微加寬以容納完整卡片 */
+        max-height: 600px;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 50;
+      }
+      #online-opponents-left {
+        right: calc(100% + 16px);
+      }
+      #online-opponents-right {
+        left: calc(100% + 16px);
+      }
 
-                  /* 下方對手容器 */
-                  .bottom-opponents {
-                    display: none;
-                    position: absolute;
-                    top: calc(100% + 16px);
-                    left: 0;
-                    right: 0;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    gap: 10px;
-                  }
-                  .bottom-opponent-tag {
-                    background: rgba(255, 255, 255, 0.9);
-                    border: 2px solid #c9b1e8;
-                    border-radius: 8px;
-                    padding: 8px 16px;
-                    font-family: "Orbitron", "Noto Sans TC", sans-serif;
-                    font-size: 14px;
-                    font-weight: 900;
-                    color: #5d576b;
-                    white-space: nowrap;
-                    box-shadow: 0 4px 10px rgba(201, 177, 232, 0.2);
-                  }
+      /* 下方對手容器 */
+      .bottom-opponents {
+        display: none;
+        position: absolute;
+        top: calc(100% + 16px);
+        left: 0;
+        right: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+      }
+      .bottom-opponent-tag {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #c9b1e8;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-family: "Orbitron", "Noto Sans TC", sans-serif;
+        font-size: 14px;
+        font-weight: 900;
+        color: #5d576b;
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(201, 177, 232, 0.2);
+      }
 
-                  /* 確保縮圖卡片樣式正確套用 */
-                  .online-opponent {
-                    position: relative;
-                    padding: 8px;
-                    box-sizing: border-box;
-                    border-radius: 10px;
-                    border: 2px solid #c9b1e8 !important; /* 馬卡龍紫色邊框 */
-                    background: rgba(255, 255, 255, 0.85) !important; /* 改為半透明白底 */
-                    backdrop-filter: blur(8px);
-                    max-width: 150px;
-                    max-height: 150px;
-                  }
-                  .online-opponent.eliminated {
-                    opacity: 0.5;
-                    filter: grayscale(0.8);
-                  }
-                  .online-opponent-head {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 6px;
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 12px;
-                    font-weight: 900;
-                    margin-bottom: 6px;
-                    color: #5d576b !important; /* 確保高對比清晰度 */
-                  }
-                  .online-mini {
-                    display: block;
-                    width: 100%;
-                    aspect-ratio: 4/3; /* 自動維持比例 */
-                    height: auto;
-                    background: #fdf4f6;
-                    border-radius: 6px;
-                    border: 1px solid rgba(255, 255, 255, 0.9);
-                  }
-                  #online-attack-status {
-                    display: none;
-                    position: absolute;
-                    left: 50%;
-                    bottom: 12px;
-                    transform: translateX(-50%);
-                    z-index: 300;
-                    padding: 8px 16px;
-                    border-radius: 999px;
-                    background: rgba(255, 255, 255, 0.95);
-                    border: 2px solid #f6d98b;
-                    color: #d4a373; /* 偏深的黃/橘確保清晰 */
-                    font-weight: 900;
-                    font-size: 14px;
-                    pointer-events: none;
-                    white-space: nowrap;
-                    box-shadow: 0 4px 10px rgba(246, 217, 139, 0.3);
-                  }
-                  #online-blind {
-                    display: none;
-                    position: absolute;
-                    inset: 16px;
-                    z-index: 280;
-                    border-radius: 12px;
-                    /* 移除 logo 圖片，保留粉色漸層底 */
-                    background: radial-gradient(
-                      circle at center,
-                      rgba(255, 255, 255, 0.4),
-                      rgba(246, 166, 193, 0.85)
-                    );
+      /* 確保縮圖卡片樣式正確套用 */
+      .online-opponent {
+        position: relative;
+        padding: 8px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 2px solid #c9b1e8 !important; /* 馬卡龍紫色邊框 */
+        background: rgba(255, 255, 255, 0.85) !important; /* 改為半透明白底 */
+        backdrop-filter: blur(8px);
+        max-width: 150px;
+        max-height: 150px;
+      }
+      .online-opponent.eliminated {
+        opacity: 0.5;
+        filter: grayscale(0.8);
+      }
+      .online-opponent-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 12px;
+        font-weight: 900;
+        margin-bottom: 6px;
+        color: #5d576b !important; /* 確保高對比清晰度 */
+      }
+      .online-mini {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4/3; /* 自動維持比例 */
+        height: auto;
+        background: #fdf4f6;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+      }
+      #online-attack-status {
+        display: none;
+        position: absolute;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        z-index: 300;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #f6d98b;
+        color: #d4a373; /* 偏深的黃/橘確保清晰 */
+        font-weight: 900;
+        font-size: 14px;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(246, 217, 139, 0.3);
+      }
+      #online-blind {
+        display: none;
+        position: absolute;
+        inset: 16px;
+        z-index: 280;
+        border-radius: 12px;
+        /* 移除 logo 圖片，保留粉色漸層底 */
+        background: radial-gradient(
+          circle at center,
+          rgba(255, 255, 255, 0.4),
+          rgba(246, 166, 193, 0.85)
+        );
 
-                    /* 新增：強烈的毛玻璃模糊，讓對手完全看不清球在哪 */
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
+        /* 新增：強烈的毛玻璃模糊，讓對手完全看不清球在哪 */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
 
-                    opacity: 0.85;
-                    pointer-events: none;
-                    animation: onlineBlindPulse 0.45s infinite alternate;
-                  }
+        opacity: 0.85;
+        pointer-events: none;
+        animation: onlineBlindPulse 0.45s infinite alternate;
+      }
 
-                  /* 利用虛擬元素直接在正中央產生文字，完全不需要改 HTML */
-                  #online-blind::after {
-                    content: "⚠ VISION LOST";
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 42px;
-                    font-weight: 900;
-                    color: #fffdfb;
-                    text-shadow:
-                      0 0 20px #e0576b,
-                      0 0 40px #e0576b;
-                    white-space: nowrap;
-                    letter-spacing: 3px;
-                  }
+      /* 利用虛擬元素直接在正中央產生文字，完全不需要改 HTML */
+      #online-blind::after {
+        content: "⚠ VISION LOST";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Orbitron", sans-serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: #fffdfb;
+        text-shadow:
+          0 0 20px #e0576b,
+          0 0 40px #e0576b;
+        white-space: nowrap;
+        letter-spacing: 3px;
+      }
 
-                  @keyframes onlineBlindPulse {
-                    from {
-                      opacity: 0.7;
-                      transform: scale(1);
-                    }
-                    to {
-                      opacity: 0.95;
-                      transform: scale(1.025);
-                    }
-                  }
-                  #p1-energy-wrap.online-energy-ready {
-                    cursor: pointer;
-                    animation: onlineEnergyPulse 0.65s infinite alternate;
-                  }
-                  @keyframes onlineEnergyPulse {
-                    from {
-                      filter: drop-shadow(0 0 2px #f6d98b);
-                    }
-                    to {
-                      filter: drop-shadow(0 0 14px #f6d98b);
-                    }
-                  }
-                  @media (max-width: 1100px) {
-                    #online-opponents {
-                      left: 50%;
-                      top: calc(100% + 12px);
-                      transform: translateX(-50%);
-                      width: min(90vw, 430px);
-                      max-height: 190px;
-                      display: none;
-                      flex-wrap: wrap;
-                      gap: 6px;
-                      overflow-y: auto;
-                    }
-                    .online-opponent {
-                      width: 194px;
-                      margin: 0;
-                    }
-                    .online-mini {
-                      width: 180px;
-                      height: 126px;
-                    }
-                  }
-                  /* =========================================
+      @keyframes onlineBlindPulse {
+        from {
+          opacity: 0.7;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0.95;
+          transform: scale(1.025);
+        }
+      }
+      #p1-energy-wrap.online-energy-ready {
+        cursor: pointer;
+        animation: onlineEnergyPulse 0.65s infinite alternate;
+      }
+      @keyframes onlineEnergyPulse {
+        from {
+          filter: drop-shadow(0 0 2px #f6d98b);
+        }
+        to {
+          filter: drop-shadow(0 0 14px #f6d98b);
+        }
+      }
+      @media (max-width: 1100px) {
+        #online-opponents {
+          left: 50%;
+          top: calc(100% + 12px);
+          transform: translateX(-50%);
+          width: min(90vw, 430px);
+          max-height: 190px;
+          display: none;
+          flex-wrap: wrap;
+          gap: 6px;
+          overflow-y: auto;
+        }
+        .online-opponent {
+          width: 194px;
+          margin: 0;
+        }
+        .online-mini {
+          width: 180px;
+          height: 126px;
+        }
+      }
+      /* =========================================
                1. 首頁選單群組化排版 (無間隙設計)
                ========================================= */
-                  .menu-group {
-                    width: 320px;
-                    display: flex;
-                    flex-direction: column;
-                    border-radius: 20px;
-                    overflow: hidden;
-                    border: 2px solid;
-                    background: rgba(255, 255, 255, 0.7);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                  }
-                  .menu-group-top {
-                    border-color: #f6a6c1;
-                    box-shadow: 0 8px 25px rgba(246, 166, 193, 0.25);
-                  }
-                  .menu-group-bottom {
-                    border-color: #9dd9e8;
-                    box-shadow: 0 8px 25px rgba(157, 217, 232, 0.25);
-                  }
-                  .menu-group-item {
-                    width: 100%;
-                    height: 60px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 12px;
-                    background: transparent;
-                    border: none;
-                    border-bottom: 1px solid rgba(246, 166, 193, 0.2);
-                    color: #5d576b;
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 19px;
-                    font-weight: 900;
-                    cursor: pointer;
-                    box-sizing: border-box;
-                    transition: background 0.3s ease;
-                    margin: 0;
-                    padding: 0;
-                  }
-                  .menu-group-item:last-child {
-                    border-bottom: none;
-                  }
-                  button.menu-group-item:hover {
-                    background: rgba(255, 255, 255, 0.85);
-                  }
-                  div.menu-group-item {
-                    cursor: default;
-                  }
+      .menu-group {
+        width: 320px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 2px solid;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .menu-group-top {
+        border-color: #f6a6c1;
+        box-shadow: 0 8px 25px rgba(246, 166, 193, 0.25);
+      }
+      .menu-group-bottom {
+        border-color: #9dd9e8;
+        box-shadow: 0 8px 25px rgba(157, 217, 232, 0.25);
+      }
+      .menu-group-item {
+        width: 100%;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(246, 166, 193, 0.2);
+        color: #5d576b;
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 19px;
+        font-weight: 900;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition: background 0.3s ease;
+        margin: 0;
+        padding: 0;
+      }
+      .menu-group-item:last-child {
+        border-bottom: none;
+      }
+      button.menu-group-item:hover {
+        background: rgba(255, 255, 255, 0.85);
+      }
+      div.menu-group-item {
+        cursor: default;
+      }
 
-                  .menu-group-item input[type="number"],
-                  .menu-group-item input[type="text"]:not(#room-code-input) {
-                    background: rgba(255, 255, 255, 0.8);
-                    border: 2px solid #c9b1e8;
-                    color: #5d576b;
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 18px;
-                    font-weight: bold;
-                    text-align: center;
-                    border-radius: 12px;
-                    padding: 6px 10px;
-                    width: 120px;
-                    outline: none;
-                    transition: all 0.3s;
-                  }
-                  .menu-group-item input:focus {
-                    background: rgba(255, 255, 255, 0.95);
-                    border-color: #f6a6c1;
-                    box-shadow: 0 0 10px rgba(246, 166, 193, 0.3);
-                  }
+      .menu-group-item input[type="number"],
+      .menu-group-item input[type="text"]:not(#room-code-input) {
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid #c9b1e8;
+        color: #5d576b;
+        font-family: "Orbitron", sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 12px;
+        padding: 6px 10px;
+        width: 120px;
+        outline: none;
+        transition: all 0.3s;
+      }
+      .menu-group-item input:focus {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #f6a6c1;
+        box-shadow: 0 0 10px rgba(246, 166, 193, 0.3);
+      }
 
-                  /* 左右分割的輸入框與按鈕 */
-                  .menu-group-item.split {
-                    gap: 0;
-                  }
-                  .menu-group-item.split input {
-                    flex: 1;
-                    min-width: 0; /* 關鍵：解除 input 預設寬度限制，防止撐破外框 */
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 0;
-                    border: none;
-                    border-right: 1px solid rgba(157, 217, 232, 0.3);
-                    background: transparent;
-                    text-transform: uppercase;
-                    font-family: "Orbitron", sans-serif;
-                    font-size: 16px;
-                    font-weight: bold;
-                    color: #5d576b;
-                    text-align: center;
-                    outline: none;
-                  }
-                  .menu-group-item.split input::placeholder {
-                    text-transform: none;
-                    color: rgba(93, 87, 107, 0.48);
-                  }
-                  .menu-group-item.split input:focus {
-                    background: rgba(255, 255, 255, 0.85);
-                  }
+      /* 左右分割的輸入框與按鈕 */
+      .menu-group-item.split {
+        gap: 0;
+      }
+      .menu-group-item.split input {
+        flex: 1;
+        min-width: 0; /* 關鍵：解除 input 預設寬度限制，防止撐破外框 */
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        border-right: 1px solid rgba(157, 217, 232, 0.3);
+        background: transparent;
+        text-transform: uppercase;
+        font-family: "Orbitron", sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        color: #5d576b;
+        text-align: center;
+        outline: none;
+      }
+      .menu-group-item.split input::placeholder {
+        text-transform: none;
+        color: rgba(93, 87, 107, 0.48);
+      }
+      .menu-group-item.split input:focus {
+        background: rgba(255, 255, 255, 0.85);
+      }
 
-                  .menu-group-item.split button {
-                    flex: 0 0 110px; /* 固定按鈕寬度為 110px */
-                    width: 110px;
-                    height: 100%;
-                    background: transparent;
-                    border: none;
-                    color: #5d576b;
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 17px;
-                    font-weight: 900;
-                    cursor: pointer;
-                    transition: background 0.3s ease;
-                    white-space: nowrap;
+      .menu-group-item.split button {
+        flex: 0 0 110px; /* 固定按鈕寬度為 110px */
+        width: 110px;
+        height: 100%;
+        background: transparent;
+        border: none;
+        color: #5d576b;
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 17px;
+        font-weight: 900;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        white-space: nowrap;
 
-                    /* 確保文字絕對置中 */
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 0;
-                    margin: 0;
-                  }
-                  .menu-group-item.split button:hover {
-                    background: rgba(255, 255, 255, 0.85);
-                  }
+        /* 確保文字絕對置中 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+      }
+      .menu-group-item.split button:hover {
+        background: rgba(255, 255, 255, 0.85);
+      }
 
-                  /* =========================================
+      /* =========================================
                2. 多人連線大廳網格排版 (支援 99 人與捲軸)
                ========================================= */
-                  #player-list {
-                    display: grid !important;
-                    grid-template-columns: repeat(3, 1fr);
-                    /* 加入這行，讓網格項目強制靠上方緊密排列 */
-                    align-content: start !important;
-                    gap: 8px;
-                    background: rgba(255, 255, 255, 0.75) !important;
-                    padding: 16px !important;
+      #player-list {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr);
+        /* 加入這行，讓網格項目強制靠上方緊密排列 */
+        align-content: start !important;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.75) !important;
+        padding: 16px !important;
 
-                    width: 100%;
-                    min-width: 540px; /* 確保有足夠寬度容納 3 欄 */
-                    min-height: 215px; /* 預留 4 列空間 */
-                    max-height: 215px; /* 超過 4 列觸發捲軸 */
-                    overflow-y: auto;
-                    margin-bottom: 20px;
-                    border: 2px solid #c9b1e8 !important;
-                    box-shadow: 0 4px 15px rgba(201, 177, 232, 0.2);
-                    box-sizing: border-box;
-                  }
+        width: 100%;
+        min-width: 540px; /* 確保有足夠寬度容納 3 欄 */
+        min-height: 215px; /* 預留 4 列空間 */
+        max-height: 215px; /* 超過 4 列觸發捲軸 */
+        overflow-y: auto;
+        margin-bottom: 20px;
+        border: 2px solid #c9b1e8 !important;
+        box-shadow: 0 4px 15px rgba(201, 177, 232, 0.2);
+        box-sizing: border-box;
+      }
 
-                  /* 美化捲軸 */
-                  #player-list::-webkit-scrollbar {
-                    width: 6px;
-                  }
-                  #player-list::-webkit-scrollbar-track {
-                    background: transparent;
-                  }
-                  #player-list::-webkit-scrollbar-thumb {
-                    background: rgba(201, 177, 232, 0.5);
-                    border-radius: 3px;
-                  }
+      /* 美化捲軸 */
+      #player-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      #player-list::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #player-list::-webkit-scrollbar-thumb {
+        background: rgba(201, 177, 232, 0.5);
+        border-radius: 3px;
+      }
 
-                  .lobby-player-item {
-                    font-family: "Noto Sans TC", sans-serif;
-                    font-size: 14px;
-                    padding: 0 12px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-radius: 8px;
-                    background: rgba(255, 255, 255, 0.7);
-                    border: 1px solid rgba(201, 177, 232, 0.5);
-                    color: #5d576b;
-                    box-sizing: border-box;
-                    height: 35px;
-                  }
-                  /* 手機版 (寬度 768px 以下) 的專屬排版 */
-                  @media (max-width: 768px) {
-                    /* 大廳網格改為 2 欄，取消絕對寬度限制 */
-                    #player-list {
-                      min-width: 100% !important;
-                      grid-template-columns: repeat(3, 1fr) !important;
-                      padding: 12px !important;
-                    }
+      .lobby-player-item {
+        font-family: "Noto Sans TC", sans-serif;
+        font-size: 14px;
+        padding: 0 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(201, 177, 232, 0.5);
+        color: #5d576b;
+        box-sizing: border-box;
+        height: 35px;
+      }
+      /* 手機版 (寬度 768px 以下) 的專屬排版 */
+      @media (max-width: 768px) {
+        /* 大廳網格改為 2 欄，取消絕對寬度限制 */
+        #player-list {
+          min-width: 100% !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          padding: 12px !important;
+        }
 
-                    /* 選單群組自動適應手機寬度 */
-                    .menu-group {
-                      width: 90vw;
-                      max-width: 320px;
-                    }
-                  }
-                  @media (max-width: 1000px) {
-                    /* 縮小手機版的對手畫布尺寸以節省空間 */
-                    .online-opponent {
-                      width: 110px !important;
-                      padding: 4px !important;
-                    }
-                    .online-mini {
-                      width: 100% !important;
-                      border-radius: 4px !important;
-                    }
-                    .online-opponent-head {
-                      font-size: 10px !important;
-                    }
-                  }
-                  @media (max-width: 768px) {
-                    .vbtn-solo .btn,
-                    .vbtn-group .btn {
-                      width: 80px; /* 放大觸控區 */
-                      height: 80px;
-                      font-size: 32px; /* 箭頭放大 */
-                    }
+        /* 選單群組自動適應手機寬度 */
+        .menu-group {
+          width: 90vw;
+          max-width: 320px;
+        }
+      }
+      @media (max-width: 1000px) {
+        /* 縮小手機版的對手畫布尺寸以節省空間 */
+        .online-opponent {
+          width: 110px !important;
+          padding: 4px !important;
+        }
+        .online-mini {
+          width: 100% !important;
+          border-radius: 4px !important;
+        }
+        .online-opponent-head {
+          font-size: 10px !important;
+        }
+      }
+      @media (max-width: 768px) {
+        .vbtn-solo .btn,
+        .vbtn-group .btn {
+          width: 80px; /* 放大觸控區 */
+          height: 80px;
+          font-size: 32px; /* 箭頭放大 */
+        }
 
-                    /* 讓按鈕緊貼螢幕下緣與兩側 */
-                    #vbtn-solo-left,
-                    #vbtn-p1-group {
-                      left: 10px;
-                      bottom: 20px;
-                    }
-                    #vbtn-solo-right,
-                    #vbtn-p2-group {
-                      right: 10px;
-                      bottom: 20px;
-                    }
-                  }
-                  @media (orientation: portrait) {
-                    /* 1. 下方預留空間 */
-                    body.online-battle-mode #wrap {
-                      padding-top: 16px !important;
-                      padding-bottom: 520px !important;
-                    }
+        /* 讓按鈕緊貼螢幕下緣與兩側 */
+        #vbtn-solo-left,
+        #vbtn-p1-group {
+          left: 10px;
+          bottom: 20px;
+        }
+        #vbtn-solo-right,
+        #vbtn-p2-group {
+          right: 10px;
+          bottom: 20px;
+        }
+      }
+      @media (orientation: portrait) {
+        /* 1. 下方預留空間 */
+        body.online-battle-mode #wrap {
+          padding-top: 16px !important;
+          padding-bottom: 520px !important;
+        }
 
-                    /* 2. 容器設定橫向排列與欄位間距 */
-                    .side-opponents {
-                      position: absolute !important;
-                      width: calc(100% - 32px) !important;
-                      left: 16px !important;
-                      right: 16px !important;
-                      flex-direction: row !important;
-                      gap: 10px !important; /* 卡片之間的緊密間距 */
-                    }
+        /* 2. 容器設定橫向排列與欄位間距 */
+        .side-opponents {
+          position: absolute !important;
+          width: calc(100% - 32px) !important;
+          left: 16px !important;
+          right: 16px !important;
+          flex-direction: row !important;
+          gap: 10px !important; /* 卡片之間的緊密間距 */
+        }
 
-                    #online-opponents-left {
-                      top: auto !important;
-                    }
+        #online-opponents-left {
+          top: auto !important;
+        }
 
-                    #online-opponents-right {
-                      top: auto !important;
-                    }
+        #online-opponents-right {
+          top: auto !important;
+        }
 
-                    /* 3. 卡片自動伸展填滿整排 (消除大間隙並拉寬) */
-                    .online-opponent {
-                      flex: 1 1 0px !important; /* 自動平分剩餘空間並拉寬 */
-                      width: auto !important; /* 解除固定寬度限制 */
-                      padding: 6px !important;
-                      margin: 0 !important;
-                    }
+        /* 3. 卡片自動伸展填滿整排 (消除大間隙並拉寬) */
+        .online-opponent {
+          flex: 1 1 0px !important; /* 自動平分剩餘空間並拉寬 */
+          width: auto !important; /* 解除固定寬度限制 */
+          padding: 6px !important;
+          margin: 0 !important;
+        }
 
-                    /* 4. 畫布隨寬度自動等比放大 */
-                    .online-mini {
-                      width: 100% !important;
-                      height: auto !important;
-                      aspect-ratio: 4 / 3 !important;
-                    }
+        /* 4. 畫布隨寬度自動等比放大 */
+        .online-mini {
+          width: 100% !important;
+          height: auto !important;
+          aspect-ratio: 4 / 3 !important;
+        }
 
-                    .bottom-opponents {
-                      top: calc(100% + 16px) !important;
-                    }
-                  }
-                  #rotate-prompt {
-              display: none;
-              position: fixed; inset: 0;
-              background: rgba(255, 255, 255, 0.95);
-              backdrop-filter: blur(10px);
-              z-index: 99999;
-              justify-content: center; align-items: center; flex-direction: column;
-              font-size: 28px; font-weight: 900; color: #E0576B; text-align: center; line-height: 1.5;
-            }
+        .bottom-opponents {
+          top: calc(100% + 16px) !important;
+        }
+      }
+      #rotate-prompt {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-size: 28px;
+        font-weight: 900;
+        color: #e0576b;
+        text-align: center;
+        line-height: 1.5;
+      }
 
-            /* 精準判定 iPad/平板：橫向、觸控設備、且橫向時高度仍大於 600px */
-                @media (orientation: landscape) and (min-height: 600px) and (hover: none) {
-                  body.online-battle-mode #rotate-prompt {
-                    display: flex;
-                  }
-                }
-            }
+      /* 精準判定 iPad/平板：橫向、觸控設備、且橫向時高度仍大於 600px */
+      @media (orientation: landscape) and (min-height: 600px) and (hover: none) {
+        body.online-battle-mode #rotate-prompt {
+          display: flex;
+        }
+      }
     </style>
   </head>
   <body>
