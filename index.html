@@ -747,17 +747,40 @@
         inset: 16px;
         z-index: 280;
         border-radius: 12px;
-        background:
-          radial-gradient(
-            circle at center,
-            rgba(255, 255, 255, 0.5),
-            rgba(246, 166, 193, 0.8)
-          ),
-          url("assets/babymonster/logo.png") center/70% auto no-repeat;
+        /* 移除 logo 圖片，保留粉色漸層底 */
+        background: radial-gradient(
+          circle at center,
+          rgba(255, 255, 255, 0.4),
+          rgba(246, 166, 193, 0.85)
+        );
+
+        /* 新增：強烈的毛玻璃模糊，讓對手完全看不清球在哪 */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+
         opacity: 0.85;
         pointer-events: none;
         animation: onlineBlindPulse 0.45s infinite alternate;
       }
+
+      /* 利用虛擬元素直接在正中央產生文字，完全不需要改 HTML */
+      #online-blind::after {
+        content: "⚠ VISION LOST";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Orbitron", sans-serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: #fffdfb;
+        text-shadow:
+          0 0 20px #e0576b,
+          0 0 40px #e0576b;
+        white-space: nowrap;
+        letter-spacing: 3px;
+      }
+      
       @keyframes onlineBlindPulse {
         from {
           opacity: 0.7;
