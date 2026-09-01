@@ -645,7 +645,6 @@
         box-sizing: border-box;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.85) !important; /* 改為半透明白底 */
-        border: 2px solid #f472b6 !important; /* 馬卡龍粉色邊框 */
         backdrop-filter: blur(8px);
       }
       .online-opponent.eliminated {
@@ -3052,7 +3051,7 @@
               spans[0].textContent = p.name || "玩家";
               spans[1].textContent =
                 p.alive === false ? "淘汰" : `#${index + 1}  ${p.score || 0}`;
-              spans[1].style.color = p.alive === false ? "#94a3b8" : "#fde047";
+              spans[1].style.color = "#94a3b8";
             }
 
             // 繪製畫布 (沿用舊版繪製邏輯)
