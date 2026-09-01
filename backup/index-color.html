@@ -9,7 +9,7 @@
 
     <!-- 新增 PWA 相關 meta 與 manifest -->
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#F6A6C1" />
+    <meta name="theme-color" content="#1e1b4b" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -21,9 +21,13 @@
 
       body {
         margin: 0;
-        /* 馬卡龍明亮漸層底色 */
-        background: linear-gradient(135deg, #FFF0F5 0%, #E6F2FF 50%, #F5F0FF 100%) !important;
-        color: #5D576B; /* 改為深紫灰色以確保在亮底上清晰可見 */
+        background: rgba(
+          30,
+          27,
+          75,
+          0.35
+        ) !important; /* 原本是深藍漸層，radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);*/
+        color: #f8fafc;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -41,17 +45,14 @@
         position: relative;
         border-radius: 10px;
         padding: 8px;
-        /* 改為半透明白底毛玻璃 */
-        background: rgba(255, 255, 255, 0.4);
+        background: rgb(255, 255, 255);
         backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        box-shadow: 0 10px 30px rgba(230, 215, 225, 0.5);
         flex-shrink: 0;
       }
       canvas {
         border-radius: 12px;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 20px rgba(246, 166, 193, 0.3); /* 改用柔和粉色陰影 */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
         display: none;
       }
 
@@ -109,8 +110,11 @@
         display: none;
       }
       .stat-card {
-        background: rgba(255, 255, 255, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.2),
+          rgba(0, 0, 0, 0.1)
+        );
         border-radius: 12px;
         padding: 8px 18px;
         display: flex;
@@ -118,7 +122,9 @@
         align-items: center;
         gap: 8px;
         min-width: 160px;
-        box-shadow: 0 4px 15px rgba(230, 215, 225, 0.4);
+        box-shadow:
+          0 8px 20px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(8px);
       }
 
@@ -127,17 +133,16 @@
         font-size: 15px;
         font-weight: 800;
         letter-spacing: 1.5px;
-        color: #8A7E9C; /* 加深確保清楚 */
+        color: #f472b6;
         white-space: nowrap;
-        text-shadow: none;
       }
 
       .stat-value {
         font-family: "Orbitron", sans-serif;
         font-size: 24px;
         font-weight: 900;
-        color: #5D576B; /* 加深確保清楚 */
-        text-shadow: none;
+        color: #f8fafc;
+        text-shadow: 0 0 10px rgba(244, 114, 182, 0.6);
         white-space: nowrap;
       }
 
@@ -152,10 +157,10 @@
       .score-bar {
         width: 120px;
         height: 8px;
-        background: rgba(230, 220, 235, 0.8);
+        background: rgba(0, 0, 0, 0.4);
         border-radius: 4px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         flex-shrink: 0;
         display: none;
       }
@@ -164,10 +169,10 @@
         width: 120px;
         height: 6px;
         margin-top: 4px;
-        background: rgba(230, 220, 235, 0.8);
+        background: rgba(0, 0, 0, 0.4);
         border-radius: 3px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         flex-shrink: 0;
       }
 
@@ -188,75 +193,27 @@
       .life-heart {
         width: 20px;
         height: 20px;
-        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F6A6C1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f472b6"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>')
           center/contain no-repeat;
-        filter: drop-shadow(0 0 8px rgba(246, 166, 193, 0.62));
+        filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.7));
       }
-      
-      /* =========================================
-         首頁底部毛玻璃狀態列
-         ========================================= */
-      #bottom-status-bar {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: rgba(225, 225, 225, 0.45);
+      /* 高級感毛玻璃半透明說明框 */
+      #cheat-info {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        padding: 8px 22px;
+        background: rgba(0, 0, 0, 0.12);
+        border-radius: 30px;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border-top: 1px solid rgba(255, 255, 255, 0.9);
-        border-radius: 0 0 4px 4px; /* 貼合 overlay 圓角 */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 20px;
-        box-shadow: 0 -4px 15px rgba(230, 215, 225, 0.3);
-        z-index: 250; /* 確保在選單上方 */
-        font-family: "Noto Sans TC", sans-serif;
-      }
-
-      /* 調整操作說明融入狀態列 */
-      #cheat-info {
-        color: #8A7E9C;
+        color: rgba(0, 0, 0, 0.65);
         font-size: 13px;
-        font-weight: 700;
+        text-align: center;
         letter-spacing: 0.5px;
+        font-weight: 600;
         white-space: nowrap;
-        margin: 0;
-        padding: 0;
-        background: none;
-        border: none;
-        backdrop-filter: none;
-      }
-
-      /* 將連線狀態與倒數計時整合到右側 */
-      #status-right-group {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      #room-status {
-        font-size: 13px;
-        font-weight: bold;
-        text-align: right;
-        margin: 0;
-        display: none;
-      }
-
-      #lobby-countdown {
-        font-size: 14px;
-        color: #D96C8E;
-        font-weight: 900;
-        margin: 0;
-        display: none;
-        animation: pulseText 1s infinite alternate;
-      }
-      
-      @keyframes pulseText {
-        from { opacity: 0.8; transform: scale(1); }
-        to { opacity: 1; transform: scale(1.05); }
       }
 
       #overlay {
@@ -265,25 +222,25 @@
         background:
           radial-gradient(
             ellipse 70% 60% at 5% 5%,
-            rgba(255, 240, 224, 0.9),
+            rgba(255, 205, 160, 0.75),
             transparent 75%
           ),
           radial-gradient(
             ellipse 70% 65% at 100% 0%,
-            rgba(224, 245, 250, 0.9),
+            rgba(130, 190, 210, 0.75),
             transparent 75%
           ),
           radial-gradient(
             ellipse 70% 60% at 10% 100%,
-            rgba(250, 230, 238, 0.9),
+            rgba(225, 135, 175, 0.75),
             transparent 75%
           ),
           radial-gradient(
             ellipse 70% 65% at 75% 50%,
-            rgba(255, 253, 251, 0.95),
+            rgba(255, 255, 255, 0.9),
             transparent 75%
           ),
-          #FDF8F5; /* 明亮柔和底 */
+          #f5eee5;
 
         display: flex;
         flex-direction: column;
@@ -291,24 +248,23 @@
         align-items: center;
         z-index: 100;
         border-radius: 5px;
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        overflow: hidden; /* 確保底部狀態列不會超出圓角 */
+        border: 1px solid rgba(236, 72, 153, 0.15);
       }
 
       #overlay h1 {
         font-family: "Orbitron", "Noto Sans TC", sans-serif;
         font-size: 52px;
         font-weight: 900;
-        margin-top: -50px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
+        margin-top: 0px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
         background: linear-gradient(
           135deg,
-          #F6A6C1 0%,
-          #C9B1E8 50%,
-          #9DD9E8 100%
+          #f472b6 0%,
+          #c084fc 50%,
+          #818cf8 100%
         );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 10px rgba(246, 166, 193, 0.3));
+        filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.5));
         letter-spacing: 5px;
         max-width: 100%;
         text-align: center;
@@ -321,12 +277,12 @@
         font-size: 19px;
         font-weight: 900;
         cursor: pointer;
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 2px solid #F6A6C1;
-        color: #5D576B;
-        text-shadow: none;
+        border: 1px solid rgba(180, 210, 255, 0.4);
+        color: #ffffff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
         border-radius: 14px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         margin: 10px;
@@ -336,15 +292,19 @@
         min-width: 280px;
         white-space: nowrap;
 
-        box-shadow: 0 8px 20px rgba(246, 166, 193, 0.2);
+        box-shadow:
+          0 8px 32px 0 rgba(0, 0, 0, 0.3),
+          inset 0 0 10px rgba(255, 255, 255, 0.05);
         letter-spacing: 1.5px;
       }
 
       .btn:hover {
-        background: rgba(255, 255, 255, 0.95);
-        border-color: #F6A6C1;
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(180, 210, 255, 0.8);
         transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 12px 30px rgba(246, 166, 193, 0.3);
+        box-shadow:
+          0 12px 40px 0 rgba(0, 0, 0, 0.4),
+          inset 0 0 15px rgba(255, 255, 255, 0.1);
       }
 
       .input-level {
@@ -353,17 +313,17 @@
         font-size: 18px;
         font-weight: bold;
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 2px solid #C9B1E8;
-        color: #5D576B;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(180, 210, 255, 0.4);
+        color: #ffffff;
         width: 100px;
         text-align: center;
         outline: none;
-        box-shadow: inset 0 2px 10px rgba(201, 177, 232, 0.15);
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
       }
       .input-level:focus {
-        border-color: #C9B1E8;
-        background: rgba(255, 255, 255, 0.95);
+        border-color: rgba(180, 210, 255, 0.8);
+        background: rgba(255, 255, 255, 0.25);
       }
 
       /* 專屬馬卡龍選單按鈕 (底色與外框交換) */
@@ -382,7 +342,7 @@
         box-sizing: border-box;
 
         /* 按鈕底色半透毛玻璃效果 */
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
 
@@ -390,42 +350,54 @@
         border: 2px solid;
 
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #5D576B; /* 白底使用深灰確保清晰 */
+        color: #5e5c5c; /* 白字在暗色系毛玻璃中最清晰 */
         margin: 0;
         white-space: nowrap;
       }
 
       .menu-item-macaron:hover {
         transform: translateY(-4px) scale(1.02);
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.2);
       }
 
       /* 外框改為馬卡龍色系，並加上同色系內外發光 */
       .macaron-yellow {
-        border-color: #F6D98B;
-        text-shadow: none;
-        box-shadow: 0 8px 25px rgba(246, 217, 139, 0.3);
+        border-color: #fde047;
+        text-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          inset 0 0 15px rgba(253, 224, 71, 0.2);
       }
       .macaron-yellow:hover {
-        box-shadow: 0 12px 30px rgba(246, 217, 139, 0.4);
+        box-shadow:
+          0 14px 28px rgba(0, 0, 0, 0.4),
+          inset 0 0 25px rgba(253, 224, 71, 0.5);
       }
 
       .macaron-pink {
-        border-color: #F6A6C1;
-        text-shadow: none;
-        box-shadow: 0 8px 25px rgba(246, 166, 193, 0.3);
+        border-color: #f472b6;
+        text-shadow: 0 0 8px rgba(244, 114, 182, 0.6);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          inset 0 0 15px rgba(244, 114, 182, 0.2);
       }
       .macaron-pink:hover {
-        box-shadow: 0 12px 30px rgba(246, 166, 193, 0.4);
+        box-shadow:
+          0 14px 28px rgba(0, 0, 0, 0.4),
+          inset 0 0 25px rgba(244, 114, 182, 0.5);
       }
 
       .macaron-blue {
-        border-color: #9DD9E8;
-        text-shadow: none;
-        box-shadow: 0 8px 25px rgba(157, 217, 232, 0.3);
+        border-color: #7dd3fc;
+        text-shadow: 0 0 8px rgba(125, 211, 252, 0.6);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          inset 0 0 15px rgba(125, 211, 252, 0.2);
       }
       .macaron-blue:hover {
-        box-shadow: 0 12px 30px rgba(157, 217, 232, 0.4);
+        box-shadow:
+          0 14px 28px rgba(0, 0, 0, 0.4),
+          inset 0 0 25px rgba(125, 211, 252, 0.5);
       }
 
       /* 輸入框一併調整成半透底、馬卡龍黃色外框 */
@@ -435,24 +407,24 @@
         font-size: 18px;
         font-weight: bold;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 2px solid #F6D98B;
-        color: #5D576B;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid #fde047;
+        color: #ffffff;
         width: 80px;
         text-align: center;
         outline: none;
-        box-shadow: inset 0 2px 6px rgba(246, 217, 139, 0.15);
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
         transition: all 0.2s;
       }
       .input-level-macaron:focus {
-        background: rgba(255, 255, 255, 0.95);
-        border-color: #F9E9B5;
+        background: rgba(255, 255, 255, 0.25);
+        border-color: #fef08a;
         box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
       }
 
       #loading {
         font-size: 18px;
-        color: #D96C8E;
+        color: #f8bbd0;
         letter-spacing: 1px;
       }
 
@@ -472,15 +444,15 @@
         width: 100%;
       }
       .ranking-container {
-        background: rgba(255, 255, 255, 0.85);
-        border: 2px solid #F6A6C1;
+        background: rgba(0, 0, 0, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 12px;
         padding: 12px 24px;
         width: 320px;
         max-height: 220px; /* 限制高度，超過可滾動 */
         overflow-y: auto;
         margin-top: 16px;
-        box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
       }
 
       /* 優化計分板配色，提高辨識度 */
@@ -489,15 +461,15 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px 16px;
-        border-bottom: 1px solid rgba(246, 166, 193, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         font-family: "Noto Sans TC", sans-serif;
         font-size: 16px;
         font-weight: 700;
-        color: #5D576B; /* 改為深灰色確保清晰 */
-        background: rgba(255, 255, 255, 0.6); 
+        color: #ffffff; /* 強制白字 */
+        background: rgba(255, 255, 255, 0.05); /* 加上微亮底色 */
       }
       .ranking-item:nth-child(even) {
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .ranking-item:last-child {
@@ -505,7 +477,7 @@
       }
       .trophy {
         font-size: 64px;
-        filter: drop-shadow(0 0 10px rgba(246, 217, 139, 0.5));
+        filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.6));
         animation: bounce 1.5s infinite;
       }
 
@@ -523,7 +495,7 @@
         font-family: "Orbitron", "Noto Sans TC", sans-serif;
         font-size: 42px;
         font-weight: 800;
-        text-shadow: none;
+        text-shadow: 0 0 15px currentColor;
         letter-spacing: 3px;
       }
 
@@ -531,14 +503,14 @@
         font-family: "Orbitron", sans-serif;
         font-size: 36px;
         font-weight: 800;
-        color: #5D576B;
-        text-shadow: none;
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
       }
 
       .vs-score {
         font-family: "Orbitron", sans-serif;
         font-size: 24px;
-        color: #7A728A;
+        color: rgba(47, 178, 167, 0.7);
       }
 
       .vbtn-solo,
@@ -575,10 +547,10 @@
         text-align: center;
         font-family: "Orbitron", sans-serif;
         font-size: 14px;
-        font-weight: 900;
+        font-weight: 800;
         letter-spacing: 1.5px;
-        text-shadow: 0 0 4px rgba(255,255,255,0.8); /* 亮底加白光，或用深色文字 */
-        opacity: 1;
+        text-shadow: 0 0 8px currentColor;
+        opacity: 0.9;
       }
 
       .vbtn-solo .btn,
@@ -591,7 +563,7 @@
         flex-shrink: 0;
         padding: 0;
         margin: 0;
-        color: #5D576B;
+        color: #ffffff;
         font-weight: 900;
         font-size: 28px;
         width: 70px;
@@ -603,12 +575,14 @@
         justify-content: center;
         border-radius: 50%;
         aspect-ratio: 1 / 1;
-        background: rgba(255, 255, 255, 0.8);
-        border: 2px solid #C9B1E8;
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.3);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        box-shadow: 0 4px 10px rgba(201, 177, 232, 0.3);
-        opacity: 0.9;
+        box-shadow:
+          0 6px 16px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        opacity: 0.8;
         transition:
           background 0.15s ease,
           transform 0.1s ease,
@@ -617,12 +591,12 @@
       }
       .vbtn-solo .btn.pressed,
       .vbtn-group .btn.pressed {
-        background: rgba(255, 255, 255, 0.95);
-        color: #5D576B;
-        border-color: #F6A6C1;
+        background: rgba(255, 255, 255, 0.4);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.8);
         opacity: 1;
         transform: scale(0.92);
-        box-shadow: 0 0 15px rgba(246, 166, 193, 0.4);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
       }
 
       /* Online Battle UI */
@@ -663,16 +637,16 @@
         gap: 10px;
       }
       .bottom-opponent-tag {
-        background: rgba(255, 255, 255, 0.9);
-        border: 2px solid #C9B1E8;
+        background: rgba(9, 9, 11, 0.85);
+        border: 1px solid rgba(192, 132, 252, 0.5);
         border-radius: 8px;
         padding: 8px 16px;
         font-family: "Orbitron", "Noto Sans TC", sans-serif;
         font-size: 14px;
         font-weight: 900;
-        color: #5D576B;
+        color: #fff;
         white-space: nowrap;
-        box-shadow: 0 4px 10px rgba(201, 177, 232, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       }
 
       /* 確保縮圖卡片樣式正確套用 */
@@ -681,15 +655,15 @@
         padding: 8px;
         box-sizing: border-box;
         border-radius: 10px;
-        border: 2px solid #C9B1E8 !important; /* 馬卡龍紫色邊框 */
+        border: 1px solid rgb(219, 198, 209) !important; /* 馬卡龍粉色邊框 */
         background: rgba(255, 255, 255, 0.85) !important; /* 改為半透明白底 */
         backdrop-filter: blur(8px);
         max-width: 150px;
         max-height: 150px;
       }
       .online-opponent.eliminated {
-        opacity: 0.5;
-        filter: grayscale(0.8);
+        opacity: 0.4;
+        filter: grayscale(1);
       }
       .online-opponent-head {
         display: flex;
@@ -700,16 +674,16 @@
         font-size: 12px;
         font-weight: 900;
         margin-bottom: 6px;
-        color: #5D576B !important; /* 確保高對比清晰度 */
+        color: #1e1b4b !important; /* 標題文字改為深藍色，確保高對比清晰度 */
       }
       .online-mini {
         display: block;
         width: 100%;
         aspect-ratio: 4/3; /* 自動維持比例 */
         height: auto;
-        background: #FDF4F6;
+        background: #09090b;
         border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
       #online-attack-status {
         display: none;
@@ -720,14 +694,13 @@
         z-index: 300;
         padding: 8px 16px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.95);
-        border: 2px solid #F6D98B;
-        color: #D4A373; /* 偏深的黃/橘確保清晰 */
+        background: rgba(9, 9, 11, 0.8);
+        border: 1px solid rgba(253, 224, 71, 0.55);
+        color: #fde047;
         font-weight: 900;
         font-size: 14px;
         pointer-events: none;
         white-space: nowrap;
-        box-shadow: 0 4px 10px rgba(246, 217, 139, 0.3);
       }
       #online-blind {
         display: none;
@@ -738,21 +711,21 @@
         background:
           radial-gradient(
             circle at center,
-            rgba(255, 255, 255, 0.5),
-            rgba(246, 166, 193, 0.8)
+            rgba(255, 255, 255, 0.16),
+            rgba(244, 114, 182, 0.5)
           ),
           url("assets/babymonster/logo.png") center/70% auto no-repeat;
-        opacity: 0.85;
+        opacity: 0.78;
         pointer-events: none;
         animation: onlineBlindPulse 0.45s infinite alternate;
       }
       @keyframes onlineBlindPulse {
         from {
-          opacity: 0.7;
+          opacity: 0.62;
           transform: scale(1);
         }
         to {
-          opacity: 0.95;
+          opacity: 0.82;
           transform: scale(1.025);
         }
       }
@@ -762,10 +735,10 @@
       }
       @keyframes onlineEnergyPulse {
         from {
-          filter: drop-shadow(0 0 2px #F6D98B);
+          filter: drop-shadow(0 0 2px #fde047);
         }
         to {
-          filter: drop-shadow(0 0 14px #F6D98B);
+          filter: drop-shadow(0 0 14px #fde047);
         }
       }
       @media (max-width: 1100px) {
@@ -799,17 +772,21 @@
         border-radius: 20px;
         overflow: hidden;
         border: 2px solid;
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
       }
       .menu-group-top {
-        border-color: #F6A6C1;
-        box-shadow: 0 8px 25px rgba(246, 166, 193, 0.25);
+        border-color: #f472b6;
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          inset 0 0 15px rgba(244, 114, 182, 0.2);
       }
       .menu-group-bottom {
-        border-color: #9DD9E8;
-        box-shadow: 0 8px 25px rgba(157, 217, 232, 0.25);
+        border-color: #7dd3fc;
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          inset 0 0 15px rgba(125, 211, 252, 0.2);
       }
       .menu-group-item {
         width: 100%;
@@ -820,8 +797,8 @@
         gap: 12px;
         background: transparent;
         border: none;
-        border-bottom: 1px solid rgba(246, 166, 193, 0.2);
-        color: #5D576B;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+        color: #824d4d;
         font-family: "Noto Sans TC", sans-serif;
         font-size: 19px;
         font-weight: 900;
@@ -835,7 +812,7 @@
         border-bottom: none;
       }
       button.menu-group-item:hover {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(0, 0, 0, 0.15);
       }
       div.menu-group-item {
         cursor: default;
@@ -843,9 +820,9 @@
 
       .menu-group-item input[type="number"],
       .menu-group-item input[type="text"]:not(#room-code-input) {
-        background: rgba(255, 255, 255, 0.8);
-        border: 2px solid #C9B1E8;
-        color: #5D576B;
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #575555;
         font-family: "Orbitron", sans-serif;
         font-size: 18px;
         font-weight: bold;
@@ -857,9 +834,9 @@
         transition: all 0.3s;
       }
       .menu-group-item input:focus {
-        background: rgba(255, 255, 255, 0.95);
-        border-color: #F6A6C1;
-        box-shadow: 0 0 10px rgba(246, 166, 193, 0.3);
+        background: rgba(0, 0, 0, 0.5);
+        border-color: rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
       }
 
       /* 左右分割的輸入框與按鈕 */
@@ -873,22 +850,22 @@
         height: 100%;
         border-radius: 0;
         border: none;
-        border-right: 1px solid rgba(157, 217, 232, 0.3);
+        border-right: 1px solid rgba(0, 0, 0, 0.2);
         background: transparent;
         text-transform: uppercase;
         font-family: "Orbitron", sans-serif;
         font-size: 16px;
         font-weight: bold;
-        color: #5D576B;
+        color: #000000;
         text-align: center;
         outline: none;
       }
       .menu-group-item.split input::placeholder {
         text-transform: none;
-        color: rgba(93, 87, 107, 0.48);
+        color: rgba(0, 0, 0, 0.5);
       }
       .menu-group-item.split input:focus {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(0, 0, 0, 0.1);
       }
 
       .menu-group-item.split button {
@@ -897,7 +874,7 @@
         height: 100%;
         background: transparent;
         border: none;
-        color: #5D576B;
+        color: #233a58;
         font-family: "Noto Sans TC", sans-serif;
         font-size: 17px;
         font-weight: 900;
@@ -913,7 +890,7 @@
         margin: 0;
       }
       .menu-group-item.split button:hover {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(125, 125, 125, 0.15);
       }
 
       /* =========================================
@@ -925,7 +902,7 @@
         /* 加入這行，讓網格項目強制靠上方緊密排列 */
         align-content: start !important;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.75) !important;
+        background: rgba(0, 0, 0, 0.65) !important;
         padding: 16px !important;
 
         width: 100%;
@@ -934,8 +911,8 @@
         max-height: 215px; /* 超過 4 列觸發捲軸 */
         overflow-y: auto;
         margin-bottom: 20px;
-        border: 2px solid #C9B1E8 !important;
-        box-shadow: 0 4px 15px rgba(201, 177, 232, 0.2);
+        border: 1px solid rgba(192, 132, 252, 0.5) !important;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
         box-sizing: border-box;
       }
 
@@ -947,7 +924,7 @@
         background: transparent;
       }
       #player-list::-webkit-scrollbar-thumb {
-        background: rgba(201, 177, 232, 0.5);
+        background: rgba(255, 255, 255, 0.3);
         border-radius: 3px;
       }
 
@@ -959,9 +936,9 @@
         justify-content: space-between;
         align-items: center;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(201, 177, 232, 0.5);
-        color: #5D576B;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
         box-sizing: border-box;
         height: 35px;
       }
@@ -1065,17 +1042,18 @@
     <div id="vbtn-solo-right" class="vbtn-solo"><div class="btn">▶</div></div>
 
     <div id="vbtn-p1-group" class="vbtn-group">
-      <span class="vbtn-group-label" style="color: #D96C8E">1P</span>
+      <span class="vbtn-group-label" style="color: #f472b6">1P</span>
       <div class="btn">◀</div>
       <div class="btn">▶</div>
     </div>
     <div id="vbtn-p2-group" class="vbtn-group">
-      <span class="vbtn-group-label" style="color: #5FA8D3">2P</span>
+      <span class="vbtn-group-label" style="color: #38bdf8">2P</span>
       <div class="btn">◀</div>
       <div class="btn">▶</div>
     </div>
     <div id="wrap" style="width: 800px; height: 600px">
       <div id="overlay">
+        <div id="cheat-info">單人: 方向鍵 | 雙人 1P: A/D, 2P: 方向鍵</div>
         <h1 id="title">BM Brick Breaker</h1>
 
         <div id="loading">正在載入遊戲資源...</div>
@@ -1128,6 +1106,16 @@
         </div>
         <!-- menu-btns 結束標籤 -->
 
+        <!-- 用來顯示房間代碼與等待狀態的文字 -->
+        <div
+          id="room-status"
+          style="
+            color: #e3be06;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+          "></div>
         <!-- 新增的大廳與準備畫面 -->
         <div
           id="lobby-screen"
@@ -1138,20 +1126,28 @@
             width: 100%;
             z-index: 200;
           ">
-          <div style="font-size: 16px; color: #7A728A; margin-bottom: 4px">
+          <div style="font-size: 16px; color: #94a3b8; margin-bottom: 4px">
             多人連線大廳
           </div>
           <h2
             style="
-              color: #DDA15E;
+              color: #fde047;
               font-family: &quot;Orbitron&quot;;
               font-size: 28px;
               margin-bottom: 10px;
             ">
-            房間代碼: <span id="lobby-code" style="color: #5D576B"></span>
+            房間代碼: <span id="lobby-code" style="color: #fff"></span>
           </h2>
 
-          <div id="player-list">
+          <div
+            id="player-list"
+            style="
+              background: rgba(0, 0, 0, 0.6);
+              padding: 15px 30px;
+              min-width: 280px;
+              margin-bottom: 20px;
+              border: 1px solid #c084fc;
+            ">
             <!-- JS 會在這裡動態列出所有玩家 -->
           </div>
 
@@ -1161,14 +1157,17 @@
             onclick="toggleReady()">
             準備完成
           </button>
-        </div>
-        
-        <!-- 底部狀態列 -->
-        <div id="bottom-status-bar">
-          <div id="cheat-info">操作 | 單人: 左右鍵 · 雙人 1P: A/D · 2P: 左右鍵</div>
-          <div id="status-right-group">
-            <div id="room-status"></div>
-            <div id="lobby-countdown">10s...</div>
+
+          <div
+            id="lobby-countdown"
+            style="
+              font-size: 15px;
+              color: #f43f5e;
+              font-weight: bold;
+              margin-top: 2px;
+              display: none;
+            ">
+            遊戲將在 10 秒後開始...
           </div>
         </div>
       </div>
@@ -1179,9 +1178,9 @@
           <div style="display: flex; gap: 8px; align-items: center">
             <span
               class="stat-label"
-              style="color: #DDA15E; font-size: 16px"
+              style="color: #fde047; font-size: 16px"
               id="p1-rank"></span>
-            <span class="stat-label" id="p1-label" style="color: #D96C8E"
+            <span class="stat-label" id="p1-label" style="color: #f472b6"
               >1P <span class="stat-value" id="p1-score">0</span></span
             >
           </div>
@@ -1190,7 +1189,7 @@
             <div
               id="p1-width-bar"
               class="score-fill"
-              style="background: #F6A6C1; width: 100%"></div>
+              style="background: #f472b6; width: 100%"></div>
           </div>
           <!-- 能量條與愛心...保持原樣 -->
           <div class="energy-bar" id="p1-energy-wrap">
@@ -1198,7 +1197,7 @@
               id="p1-energy-bar"
               class="energy-fill"
               style="
-                background: linear-gradient(90deg, #F6A6C1, #C9B1E8);
+                background: linear-gradient(90deg, #f472b6, #c084fc);
                 width: 0%;
               "></div>
           </div>
@@ -1206,27 +1205,27 @@
         </div>
         <div
           class="stat-card center-card"
-          style="background: rgba(255, 255, 255, 0.85); border: 2px solid #F2C1D1; box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);">
+          style="background: rgba(30, 27, 75, 0.85); border-color: #ffb3c6">
           <div
             style="display: flex; flex-direction: column; align-items: center"
             id="timer-container">
-            <span class="stat-label" style="color: #DDA15E">TIME</span>
+            <span class="stat-label" style="color: #fde047">TIME</span>
             <span id="timer-txt" class="stat-value">03:00</span>
           </div>
           <div
             style="
               width: 1px;
               height: 40px;
-              background: rgba(246, 166, 193, 0.5);
+              background: rgba(255, 255, 255, 0.2);
             "></div>
           <div
             style="display: flex; flex-direction: column; align-items: center">
-            <span class="stat-label" style="color: #7A728A">LEVEL</span>
+            <span class="stat-label" style="color: #fff">LEVEL</span>
             <span id="level-txt" class="stat-value">1</span>
           </div>
         </div>
         <div class="stat-card" id="p2-card">
-          <span class="stat-label" style="color: #5FA8D3"
+          <span class="stat-label" style="color: #38bdf8"
             >2P <span class="stat-value" id="p2-score">0</span></span
           >
 
@@ -1234,14 +1233,14 @@
             <div
               id="p2-width-bar"
               class="score-fill"
-              style="background: #9DD9E8; width: 100%"></div>
+              style="background: #38bdf8; width: 100%"></div>
           </div>
           <div class="energy-bar" id="p2-energy-wrap">
             <div
               id="p2-energy-bar"
               class="energy-fill"
               style="
-                background: linear-gradient(90deg, #9DD9E8, #A9B8E8);
+                background: linear-gradient(90deg, #38bdf8, #818cf8);
                 width: 0%;
               "></div>
           </div>
@@ -1367,7 +1366,7 @@
 
         return {
           // ⭐ 不要再使用幾乎白色的底
-          base: "#F4EDE7",
+          base: "#E8E1D9",
 
           glow,
         };
@@ -1507,13 +1506,13 @@
         particles = [],
         floatTexts = [];
       const MEMBERS = [
-        { name: "AHYEON", color: "#ec4899", light: "#F6A6C1" },
-        { name: "RUKA", color: "#a855f7", light: "#C9B1E8" },
-        { name: "CHIQUITA", color: "#eab308", light: "#F6D98B" },
-        { name: "ASA", color: "#06b6d4", light: "#9DD9E8" },
+        { name: "AHYEON", color: "#ec4899", light: "#f472b6" },
+        { name: "RUKA", color: "#a855f7", light: "#c084fc" },
+        { name: "CHIQUITA", color: "#eab308", light: "#fde047" },
+        { name: "ASA", color: "#06b6d4", light: "#38bdf8" },
         { name: "RAMI", color: "#10b981", light: "#34d399" },
         { name: "PHARITA", color: "#f97316", light: "#fb923c" },
-        { name: "RORA", color: "#E79AAA", light: "#fb7185" },
+        { name: "RORA", color: "#f43f5e", light: "#fb7185" },
       ];
 
       function lightenColor(color, factor) {
@@ -1706,7 +1705,7 @@
           life: 2.5,
           x: cv.width / 2,
           y: cv.height / 2,
-          c: "#D96C8E",
+          c: "#f43f5e",
           big: true,
         });
       }
@@ -1760,7 +1759,7 @@
               life: 1,
               x: cv.width / 2,
               y: cv.height / 2,
-              c: "#DDA15E",
+              c: "#fde047",
               big: true,
             });
           }
@@ -1775,7 +1774,7 @@
               life: 1.5,
               x: cv.width / 2,
               y: cv.height / 2,
-              c: "#E0576B",
+              c: "#fb7185",
               big: true,
             });
           }
@@ -1924,13 +1923,13 @@
           case "star":
             pl.score += 300;
             bricks = []; // ⭐ STAR POWER
-            burst(cv.width / 2, cv.height / 2, "#DDA15E");
+            burst(cv.width / 2, cv.height / 2, "#fde047");
             floatTexts.push({
               t: "⭐ STAR POWER +300! 全場清除",
               life: 2,
               x: cv.width / 2,
               y: cv.height / 2,
-              c: "#DDA15E",
+              c: "#fde047",
               big: true,
             });
             break;
@@ -2047,7 +2046,7 @@
                   dx: a * (1.5 + diffFactor * 0.2),
                   dy: bulletSpeed,
                   type: "orb",
-                  c: "#E0576B",
+                  c: "#fb7185",
                 });
               }
             }
@@ -2072,7 +2071,7 @@
                 && b.x < pl.x + pl.w
               ) {
                 boss.bullets.splice(i, 1);
-                burst(b.x, b.y, b.c || "#E0576B");
+                burst(b.x, b.y, b.c || "#fb7185");
                 if (onlineMode && pl === p1) {
                   // 線上模式沒有「重生」：Boss 擊殺即淘汰。
                   onlineFinishLocalElimination();
@@ -2084,7 +2083,7 @@
                     life: 1,
                     x: cv.width / 2,
                     y: pl.y - 30,
-                    c: "#E0576B",
+                    c: "#fb7185",
                   });
                   if (pl.lives <= 0) endGame();
                 } else {
@@ -2094,7 +2093,7 @@
                     life: 1.5,
                     x: pl.x + pl.w / 2,
                     y: pl.y - 30,
-                    c: "#E0576B",
+                    c: "#fb7185",
                   });
                 }
                 break; // 只打中一個玩家
@@ -2138,24 +2137,24 @@
               if (targetPl !== b.owner && mode === 2) {
                 targetPl.w = Math.max(targetPl.minW, targetPl.w - 25);
                 targetPl.shrinkFx = 0.6;
-                burst(b.x, targetPl.y, "#D96C8E");
+                burst(b.x, targetPl.y, "#f472b6");
                 floatTexts.push({
                   t: "接到對手球! 縮小",
                   life: 1,
                   x: b.x,
                   y: targetPl.y - 10,
-                  c: "#D96C8E",
+                  c: "#f472b6",
                 });
               } else if (targetPl === b.owner) {
                 if (targetPl.w < 120) {
                   targetPl.w = Math.min(120, targetPl.w + 15);
-                  burst(b.x, targetPl.y, "#5FA8D3");
+                  burst(b.x, targetPl.y, "#38bdf8");
                   floatTexts.push({
                     t: "回復!",
                     life: 0.8,
                     x: b.x,
                     y: targetPl.y - 10,
-                    c: "#5FA8D3",
+                    c: "#38bdf8",
                   });
                 }
                 if (mode === 2) {
@@ -2205,26 +2204,26 @@
               b.dy *= -1;
               boss.hp -= b.fire ? 20 : 10;
               boss.flashTimer = 0.15;
-              burst(b.x, b.y, "#5D576B");
+              burst(b.x, b.y, "#ffffff");
               floatTexts.push({
                 t: `-${b.fire ? 20 : 10}`,
                 life: 0.8,
                 x: b.x,
                 y: boss.y - 10,
-                c: "#5D576B",
+                c: "#ffffff",
               });
               sfx("hit");
 
               if (boss.hp <= 0) {
                 boss.active = false;
                 pl.score += 500;
-                burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
+                burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#fde047");
                 floatTexts.push({
                   t: "BOSS DEFEATED! +500",
                   life: 2,
                   x: cv.width / 2,
                   y: boss.y,
-                  c: "#DDA15E",
+                  c: "#fde047",
                   big: true,
                 });
                 sfx("brk");
@@ -2277,7 +2276,7 @@
                     life: 1,
                     x: br.x,
                     y: br.y - 15,
-                    c: "#DDA15E",
+                    c: "#fde047",
                   });
                 } else {
                   pl.score += baseScore;
@@ -2330,7 +2329,7 @@
                 life: 1,
                 x: cv.width / 2,
                 y: cv.height - 60,
-                c: "#D96C8E",
+                c: "#f472b6",
               });
             } else {
               // 雙人對戰模式 (mode 2)
@@ -2346,7 +2345,7 @@
                 life: 1,
                 x: cv.width / 2,
                 y: cv.height - 60,
-                c: "#D96C8E",
+                c: "#f472b6",
               });
             }
           }
@@ -2439,7 +2438,7 @@
             life: 1.5,
             x: cv.width / 2,
             y: cv.height / 2 - 50,
-            c: "#5FA8D3",
+            c: "#38bdf8",
           });
         }
         if (onlineMode) onlineSendState(performance.now());
@@ -2487,9 +2486,9 @@
           Math.max(cv.width, cv.height) * 0.65,
         );
 
-        center.addColorStop(0, "rgba(255,255,255,0.4)");
+        center.addColorStop(0, "rgba(255,255,255,0.3)");
 
-        center.addColorStop(0.45, "rgba(255,255,255,0.15)");
+        center.addColorStop(0.45, "rgba(255,255,255,0.12)");
 
         center.addColorStop(1, "rgba(255,255,255,0.0)");
 
@@ -2502,11 +2501,11 @@
           Math.max(cv.width, cv.height) * 0.75,
         );
 
-        vignette.addColorStop(0, "rgba(255, 255, 255, 0)");
+        vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
 
-        vignette.addColorStop(0.65, "rgba(255, 255, 255, 0.1)");
+        vignette.addColorStop(0.65, "rgba(0, 0, 0, 0.05)");
 
-        vignette.addColorStop(1, "rgba(200, 180, 200, 0.20)");
+        vignette.addColorStop(1, "rgba(0, 0, 0, 0.30)");
 
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, cv.width, cv.height);
@@ -2577,7 +2576,7 @@
           ctx.lineWidth = 3;
           ctx.strokeStyle = "rgba(0,0,0,0.85)";
           ctx.strokeText(name, b.x + b.w / 2, b.y + b.h / 2);
-          ctx.fillStyle = "#FFFDFB";
+          ctx.fillStyle = "#ffffff";
           ctx.fillText(name, b.x + b.w / 2, b.y + b.h / 2);
           ctx.restore();
         }
@@ -2589,12 +2588,12 @@
 
           // 獨立畫血條在最上方，不受平移影響
           let hpW = (Math.max(0, boss.hp) / boss.maxHp) * boss.w;
-          ctx.fillStyle = "rgba(255,255,255,0.7)";
+          ctx.fillStyle = "rgba(0,0,0,0.4)";
           ctx.fillRect(boss.x, boss.y - 20, boss.w, 8);
           // 血條使用馬卡龍粉/綠
-          ctx.fillStyle = boss.phase === 3 ? "#E0576B" : "#2EB886";
+          ctx.fillStyle = boss.phase === 3 ? "#fb7185" : "#6ee7b7";
           ctx.fillRect(boss.x, boss.y - 20, hpW, 8);
-          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.strokeStyle = "rgba(255,255,255,0.6)";
           ctx.lineWidth = 2;
           ctx.strokeRect(boss.x, boss.y - 20, boss.w, 8);
 
@@ -2620,19 +2619,19 @@
           // 定義馬卡龍配色變數
           let colorBody =
             boss.flashTimer > 0 ?
-              "#FFFDFB"
+              "#ffffff"
             : `hsl(${boss.parts.hueMain}, 85%, 82%)`;
           let strokeBody = `hsl(${boss.parts.hueMain}, 75%, 65%)`;
 
           let colorArmor =
             boss.flashTimer > 0 ?
-              "#FFFDFB"
+              "#ffffff"
             : `hsl(${boss.parts.hueArmor}, 85%, 80%)`;
           let strokeArmor = `hsl(${boss.parts.hueArmor}, 75%, 65%)`;
 
           let colorAcc =
             boss.flashTimer > 0 ?
-              "#FFFDFB"
+              "#ffffff"
             : `hsl(${boss.parts.hueAcc}, 85%, 75%)`;
           let strokeAcc = `hsl(${boss.parts.hueAcc}, 75%, 60%)`;
 
@@ -2748,9 +2747,9 @@
 
           // Core 核心發光
           let coreGlow =
-            boss.phase === 3 ? "#E0576B"
-            : boss.phase === 2 ? "#C9B1E8"
-            : "#9DD9E8";
+            boss.phase === 3 ? "#fb7185"
+            : boss.phase === 2 ? "#c084fc"
+            : "#38bdf8";
           ctx.fillStyle = colorAcc;
           ctx.strokeStyle = coreGlow;
           ctx.shadowColor = coreGlow;
@@ -2782,20 +2781,20 @@
             let bulletGlow =
               boss.phase === 3 ? "#fda4af"
               : boss.phase === 2 ? "#d8b4fe"
-              : "#9DD9E8";
+              : "#7dd3fc";
             ctx.fillStyle = b.c || bulletGlow;
             ctx.shadowColor = b.c || bulletGlow;
             ctx.shadowBlur = 10;
 
             if (b.type === "laser") {
               ctx.fillRect(b.x - 3, b.y - 10, 6, 20);
-              ctx.fillStyle = "#FFFDFB";
+              ctx.fillStyle = "#fff";
               ctx.fillRect(b.x - 1, b.y - 8, 2, 16);
             } else {
               ctx.beginPath();
               ctx.arc(b.x, b.y, 8, 0, Math.PI * 2);
               ctx.fill();
-              ctx.fillStyle = "#FFFDFB";
+              ctx.fillStyle = "#fff";
               ctx.beginPath();
               ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
               ctx.fill();
@@ -2849,15 +2848,15 @@
           ctx.fillStyle =
             d.type === "star" ?
               "rgba(253, 224, 71, 0.85)"
-            : "rgba(255,255,255,0.9)";
+            : "rgba(255,255,255,0.75)";
           ctx.fill();
-          ctx.strokeStyle = "rgba(0,0,0,0.15)";
+          ctx.strokeStyle = "rgba(0,0,0,0.25)";
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          ctx.shadowColor = "#FFFDFB";
+          ctx.shadowColor = "#ffffff";
           ctx.shadowBlur = 6;
-          ctx.fillStyle = "#5D576B";
+          ctx.fillStyle = "#000000";
 
           ctx.beginPath();
           ctx.moveTo(-12, -6);
@@ -2956,13 +2955,13 @@
           ctx.translate(b.x, b.y);
 
           if (isP1) {
-            ctx.fillStyle = "#A89CB8";
+            ctx.fillStyle = "#1e1b4b";
             ctx.fillRect(-3, 0, 6, 12);
-            ctx.fillStyle = "#8B7F9E";
+            ctx.fillStyle = "#09090b";
             ctx.fillRect(-2, 11, 4, 2);
             const grad = ctx.createRadialGradient(-1, -4, 1, 0, -4, 8);
-            grad.addColorStop(0, "#FFFDFB");
-            grad.addColorStop(0.7, "#FFFDFB");
+            grad.addColorStop(0, "#ffffff");
+            grad.addColorStop(0.7, "#f8fafc");
             grad.addColorStop(1, "#cbd5e1");
             ctx.fillStyle = grad;
             ctx.beginPath();
@@ -2980,7 +2979,7 @@
             ctx.quadraticCurveTo(9, -5, 6, -8);
             ctx.fill();
           } else {
-            ctx.strokeStyle = "#9DD9E8";
+            ctx.strokeStyle = "#38bdf8";
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(0, 0, 9, 0, Math.PI * 2);
@@ -2999,7 +2998,7 @@
             ctx.lineTo(-3, -2);
             ctx.closePath();
             ctx.fill();
-            ctx.fillStyle = "#FFFDFB";
+            ctx.fillStyle = "#ffffff";
             ctx.beginPath();
             ctx.arc(0, 0, 2, 0, Math.PI * 2);
             ctx.fill();
@@ -3020,13 +3019,9 @@
           f.life -= 0.02;
           f.y -= 1;
           ctx.globalAlpha = f.life;
-          // 添加微光白邊讓字體更清晰
-          ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-          ctx.shadowBlur = 4;
-          ctx.fillStyle = f.c || "#D96C8E";
+          ctx.fillStyle = f.c || "#f472b6";
           ctx.font = f.big ? "bold 24px sans-serif" : "bold 18px sans-serif";
           ctx.fillText(f.t, f.x, f.y);
-          ctx.shadowBlur = 0;
         }
         ctx.globalAlpha = 1;
         floatTexts = floatTexts.filter((f) => f.life > 0);
@@ -3040,7 +3035,7 @@
             vx: (Math.random() - 0.5) * 10,
             vy: (Math.random() - 0.5) * 10,
             life: 1,
-            c: c || ["#F6A6C1", "#F6D98B", "#9DD9E8"][i % 3], // 馬卡龍色爆破粒子
+            c: c || ["#f472b6", "#ec4899", "#ffffff"][i % 3],
           });
       }
 
@@ -3094,37 +3089,37 @@
             p.alive === false ? "淘汰" : `#${p.rank || "?"}  ${p.score || 0}`;
         const x = c.getContext("2d");
         x.clearRect(0, 0, c.width, c.height);
-        x.fillStyle = "#FDF4F6";
+        x.fillStyle = "#0b0b12";
         x.fillRect(0, 0, c.width, c.height);
         x.save();
         x.scale(c.width / 800, c.height / 600);
         const g = x.createLinearGradient(0, 0, 800, 600);
-        g.addColorStop(0, "#FDF4F6");
-        g.addColorStop(1, "#E6F3FA");
+        g.addColorStop(0, "#1e1b4b");
+        g.addColorStop(1, "#09090b");
         x.fillStyle = g;
         x.fillRect(0, 0, 800, 600);
         for (const b of p.bricks || []) {
           if (b.hp <= 0) continue;
-          x.fillStyle = b.interference ? "#E79AAA" : "#C9B1E8";
+          x.fillStyle = b.interference ? "#f43f5e" : "#c084fc";
           x.globalAlpha = b.interference ? 0.9 : 0.65;
           x.fillRect(b.x, b.y, b.w || 72, b.h || 24);
         }
         x.globalAlpha = 1;
         if (p.paddle) {
-          x.fillStyle = "#9DD9E8";
+          x.fillStyle = "#38bdf8";
           x.fillRect(p.paddle.x, p.paddle.y, p.paddle.w, p.paddle.h);
         }
         if (p.ball) {
           x.beginPath();
-          x.fillStyle = "#5D576B";
+          x.fillStyle = "#fff";
           x.arc(p.ball.x, p.ball.y, p.ball.r || 8, 0, Math.PI * 2);
           x.fill();
         }
         x.restore();
         if (p.alive === false) {
-          x.fillStyle = "rgba(255,255,255,.65)";
+          x.fillStyle = "rgba(0,0,0,.55)";
           x.fillRect(0, 0, c.width, c.height);
-          x.fillStyle = "#E0576B";
+          x.fillStyle = "#fb7185";
           x.font = "900 26px sans-serif";
           x.textAlign = "center";
           x.fillText("ELIMINATED", c.width / 2, c.height / 2);
@@ -3181,7 +3176,7 @@
               spans[0].textContent = p.name || "玩家";
               spans[1].textContent =
                 p.alive === false ? "淘汰" : `#${index + 1}  ${p.score || 0}`;
-              spans[1].style.color = "#7A728A";
+              spans[1].style.color = "#94a3b8";
             }
 
             // 繪製畫布 (沿用舊版繪製邏輯)
@@ -3189,37 +3184,37 @@
             if (c) {
               const x = c.getContext("2d");
               x.clearRect(0, 0, c.width, c.height);
-              x.fillStyle = "#FDF4F6";
+              x.fillStyle = "#0b0b12";
               x.fillRect(0, 0, c.width, c.height);
               x.save();
               x.scale(c.width / 800, c.height / 600);
               const g = x.createLinearGradient(0, 0, 800, 600);
-              g.addColorStop(0, "#FDF4F6");
-              g.addColorStop(1, "#E6F3FA");
+              g.addColorStop(0, "#1e1b4b");
+              g.addColorStop(1, "#09090b");
               x.fillStyle = g;
               x.fillRect(0, 0, 800, 600);
               for (const b of p.bricks || []) {
                 if (b.hp <= 0) continue;
-                x.fillStyle = b.interference ? "#E79AAA" : "#C9B1E8";
+                x.fillStyle = b.interference ? "#f43f5e" : "#c084fc";
                 x.globalAlpha = b.interference ? 0.9 : 0.65;
                 x.fillRect(b.x, b.y, b.w || 72, b.h || 24);
               }
               x.globalAlpha = 1;
               if (p.paddle) {
-                x.fillStyle = "#9DD9E8";
+                x.fillStyle = "#38bdf8";
                 x.fillRect(p.paddle.x, p.paddle.y, p.paddle.w, p.paddle.h);
               }
               if (p.ball) {
-                x.fillStyle = "#5D576B";
+                x.fillStyle = "#fff";
                 x.beginPath();
                 x.arc(p.ball.x, p.ball.y, p.ball.r || 8, 0, Math.PI * 2);
                 x.fill();
               }
               x.restore();
               if (p.alive === false) {
-                x.fillStyle = "rgba(255,255,255,.65)";
+                x.fillStyle = "rgba(0,0,0,.55)";
                 x.fillRect(0, 0, c.width, c.height);
-                x.fillStyle = "#E0576B";
+                x.fillStyle = "#fb7185";
                 x.font = "900 26px sans-serif";
                 x.textAlign = "center";
                 x.fillText("ELIMINATED", c.width / 2, c.height / 2);
@@ -3313,7 +3308,7 @@
               interference: true,
             });
           }
-        burst(cv.width / 2, cv.height - 70, "#E0576B");
+        burst(cv.width / 2, cv.height - 70, "#fb7185");
       }
       function onlineReceiveAttack(d) {
         if (!onlineMode || onlineEliminated) return;
@@ -3345,7 +3340,7 @@
           onlineSpeedTimer = 3;
           onlineShowStatus(`⚡ ${name}：球速 ×1.5！`, 1600);
         }
-        burst(cv.width / 2, cv.height / 2, "#D96C8E");
+        burst(cv.width / 2, cv.height / 2, "#f472b6");
         if (onlineBlindEl)
           onlineBlindEl.style.display = onlineBlindTimer > 0 ? "block" : "none";
       }
@@ -3415,8 +3410,8 @@
           10,
         );
         level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
-        p1 = makePlayer("#F6A6C1", "#f9a8d4");
-        p2 = makePlayer("#9DD9E8", "#9DD9E8");
+        p1 = makePlayer("#f472b6", "#f9a8d4");
+        p2 = makePlayer("#38bdf8", "#7dd3fc");
         p1.lives = 3;
         p1.energy = 0;
         comboCount = 0;
@@ -3478,7 +3473,7 @@
             (p) =>
               `<div class="ranking-item">
         <span>#${p.rank || "?"} ${escapeHtml(p.name || "玩家")}</span>
-        <span style="color:#DDA15E; font-family:'Orbitron', sans-serif; font-weight:800;">${p.score || 0}</span>
+        <span style="color:#fde047; font-family:'Orbitron', sans-serif; font-weight:800;">${p.score || 0}</span>
       </div>`,
           )
           .join("");
@@ -3486,7 +3481,7 @@
         titleEl.innerHTML = `
     <div class="victory-screen">
       <div class="trophy">${won ? "🏆" : "💀"}</div>
-      <div class="victory-title" style="color:${won ? "#DDA15E" : "#E0576B"}">${won ? "VICTORY!" : "ELIMINATED"}</div>
+      <div class="victory-title" style="color:${won ? "#fde047" : "#fb7185"}">${won ? "VICTORY!" : "ELIMINATED"}</div>
       <div class="winner-score" style="font-size:24px;">${winner ? escapeHtml(winner.name || "玩家") + " 獲勝" : "對戰結束"}</div>
       <div class="ranking-container">${ranking}</div>
       <div class="vs-score" style="margin-top: 15px;">你的最終排名：#${me?.rank || "?"}</div>
@@ -3602,8 +3597,8 @@
         );
         level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
 
-        p1 = makePlayer("#F6A6C1", "#f9a8d4");
-        p2 = makePlayer("#9DD9E8", "#9DD9E8");
+        p1 = makePlayer("#f472b6", "#f9a8d4");
+        p2 = makePlayer("#38bdf8", "#7dd3fc");
         comboCount = 0;
 
         const p2Card = document.getElementById("p2-card");
@@ -3641,7 +3636,7 @@
           if (p1.score > p2.score) {
             msg = `<div class="victory-screen">
   <div class="trophy">🏆</div>
-  <div class="victory-title" style="color:#D96C8E">1P (BABYMONSTER) 獲勝！</div>
+  <div class="victory-title" style="color:#f472b6">1P (BABYMONSTER) 獲勝！</div>
   <div class="winner-score">得分: ${p1.score}</div>
   <div class="vs-score">vs ${p2.score}</div>
   <button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="backToMainMenu()">返回首頁</button>
@@ -3649,7 +3644,7 @@
           } else if (p2.score > p1.score) {
             msg = `<div class="victory-screen">
   <div class="trophy">🏆</div>
-  <div class="victory-title" style="color:#5FA8D3">2P 獲勝！</div>
+  <div class="victory-title" style="color:#38bdf8">2P 獲勝！</div>
   <div class="winner-score">得分: ${p2.score}</div>
   <div class="vs-score">vs ${p1.score}</div>
   <button class="menu-item-macaron macaron-blue" style="margin-top:20px;" onclick="backToMainMenu()">返回首頁</button>
@@ -3657,14 +3652,14 @@
           } else {
             msg = `<div class="victory-screen">
   <div class="trophy">🤝</div>
-  <div class="victory-title" style="color:#5D576B">平手！</div>
+  <div class="victory-title" style="color:#fff">平手！</div>
   <div class="winner-score">${p1.score} : ${p2.score}</div>
   <button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="backToMainMenu()">返回首頁</button>
 </div>`;
           }
         } else {
           msg = `<div class="victory-screen">
-  <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
+  <div class="winner-score" style="color:#f472b6; font-size:48px;">最終得分: ${p1.score}</div>
   <div class="vs-score">剩餘生命: ${Math.max(0, p1.lives)}</div>
   <button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="backToMainMenu()">返回首頁</button>
 </div>`;
@@ -3793,7 +3788,7 @@
         roomStatusEl.style.color =
           type === "error" ? "#fb7185"
           : type === "success" ? "#34d399"
-          : "#DDA15E"; /* 馬卡龍暖黃/橘 */
+          : "#fde047";
       }
 
       function resetLobbyUI() {
@@ -3895,7 +3890,7 @@
         // 沒人時顯示置中提示
         if (!list.length) {
           playerListEl.innerHTML =
-            '<div style="grid-column: 1 / -1; text-align:center; color:#7A728A; padding: 20px;">等待玩家加入…</div>';
+            '<div style="grid-column: 1 / -1; text-align:center; color:#94a3b8; padding: 20px;">等待玩家加入…</div>';
           return;
         }
 
@@ -3905,11 +3900,11 @@
             const me = p.id === socket.id;
             const host = p.host ? "👑" : "";
             const name = escapeHtml(p.name || `玩家 ${index + 1}`);
-            const statusColor = p.ready ? "#2EB886" : "#A39EAD";
+            const statusColor = p.ready ? "#34d399" : "#94a3b8";
             const statusIcon = p.ready ? "✔" : "⋯";
 
             return `
-      <div class="lobby-player-item" style="border-color: ${me ? "#DDA15E" : "rgba(201, 177, 232, 0.5)"}; box-shadow: ${me ? "0 0 10px rgba(221, 161, 94, 0.4)" : "none"};">
+      <div class="lobby-player-item" style="border-color: ${me ? "#fde047" : "rgba(255,255,255,.1)"}; box-shadow: ${me ? "0 0 8px rgba(253,224,71,0.3)" : "none"};">
         <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px;">
           ${host} ${name}
         </span>
@@ -3973,9 +3968,7 @@
           }
           if (state?.status === "countdown" && state.countdown > 0) {
             countdownEl.style.display = "block";
-            countdownEl.innerText = `🔥 遊戲將在 ${state.countdown} 秒後開始...`;
-            // 當開始倒數時，隱藏一般的連線狀態文字，避免重疊
-            if(roomStatusEl) roomStatusEl.style.display = "none";
+            countdownEl.innerText = `🔥 遊戲將在 ${state.countdown} 秒後開始... 🔥`;
           }
         }
 
@@ -4002,8 +3995,7 @@
       socket.on("countdown", (time) => {
         if (!countdownEl) return;
         countdownEl.style.display = "block";
-        countdownEl.innerText = `🔥 遊戲將在 ${time} 秒後開始...`;
-        if(roomStatusEl) roomStatusEl.style.display = "none";
+        countdownEl.innerText = `🔥 遊戲將在 ${time} 秒後開始... 🔥`;
       });
 
       socket.on("cancelCountdown", (message) => {

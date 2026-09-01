@@ -192,71 +192,24 @@
           center/contain no-repeat;
         filter: drop-shadow(0 0 8px rgba(246, 166, 193, 0.62));
       }
-      
-      /* =========================================
-         首頁底部毛玻璃狀態列
-         ========================================= */
-      #bottom-status-bar {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: rgba(225, 225, 225, 0.45);
+      /* 高級感毛玻璃半透明說明框 */
+      #cheat-info {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        padding: 8px 22px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 30px;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border-top: 1px solid rgba(255, 255, 255, 0.9);
-        border-radius: 0 0 4px 4px; /* 貼合 overlay 圓角 */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 20px;
-        box-shadow: 0 -4px 15px rgba(230, 215, 225, 0.3);
-        z-index: 250; /* 確保在選單上方 */
-        font-family: "Noto Sans TC", sans-serif;
-      }
-
-      /* 調整操作說明融入狀態列 */
-      #cheat-info {
-        color: #8A7E9C;
+        color: #7A728A; /* 加深清楚 */
         font-size: 13px;
-        font-weight: 700;
+        text-align: center;
         letter-spacing: 0.5px;
+        font-weight: 600;
         white-space: nowrap;
-        margin: 0;
-        padding: 0;
-        background: none;
-        border: none;
-        backdrop-filter: none;
-      }
-
-      /* 將連線狀態與倒數計時整合到右側 */
-      #status-right-group {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      #room-status {
-        font-size: 13px;
-        font-weight: bold;
-        text-align: right;
-        margin: 0;
-        display: none;
-      }
-
-      #lobby-countdown {
-        font-size: 14px;
-        color: #D96C8E;
-        font-weight: 900;
-        margin: 0;
-        display: none;
-        animation: pulseText 1s infinite alternate;
-      }
-      
-      @keyframes pulseText {
-        from { opacity: 0.8; transform: scale(1); }
-        to { opacity: 1; transform: scale(1.05); }
       }
 
       #overlay {
@@ -292,14 +245,13 @@
         z-index: 100;
         border-radius: 5px;
         border: 1px solid rgba(255, 255, 255, 0.8);
-        overflow: hidden; /* 確保底部狀態列不會超出圓角 */
       }
 
       #overlay h1 {
         font-family: "Orbitron", "Noto Sans TC", sans-serif;
         font-size: 52px;
         font-weight: 900;
-        margin-top: -50px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
+        margin-top: 0px !important; /* 縮小下邊距，讓說明框緊鄰標題 */
         background: linear-gradient(
           135deg,
           #F6A6C1 0%,
@@ -1076,6 +1028,7 @@
     </div>
     <div id="wrap" style="width: 800px; height: 600px">
       <div id="overlay">
+        <div id="cheat-info">單人: 方向鍵 | 雙人 1P: A/D, 2P: 方向鍵</div>
         <h1 id="title">BM Brick Breaker</h1>
 
         <div id="loading">正在載入遊戲資源...</div>
@@ -1128,6 +1081,16 @@
         </div>
         <!-- menu-btns 結束標籤 -->
 
+        <!-- 用來顯示房間代碼與等待狀態的文字 -->
+        <div
+          id="room-status"
+          style="
+            color: #DDA15E;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+          "></div>
         <!-- 新增的大廳與準備畫面 -->
         <div
           id="lobby-screen"
@@ -1161,14 +1124,17 @@
             onclick="toggleReady()">
             準備完成
           </button>
-        </div>
-        
-        <!-- 底部狀態列 -->
-        <div id="bottom-status-bar">
-          <div id="cheat-info">操作 | 單人: 左右鍵 · 雙人 1P: A/D · 2P: 左右鍵</div>
-          <div id="status-right-group">
-            <div id="room-status"></div>
-            <div id="lobby-countdown">10s...</div>
+
+          <div
+            id="lobby-countdown"
+            style="
+              font-size: 15px;
+              color: #D96C8E;
+              font-weight: bold;
+              margin-top: 2px;
+              display: none;
+            ">
+            遊戲將在 10 秒後開始...
           </div>
         </div>
       </div>
@@ -3791,9 +3757,9 @@
         roomStatusEl.style.display = text ? "block" : "none";
         roomStatusEl.innerText = text || "";
         roomStatusEl.style.color =
-          type === "error" ? "#fb7185"
-          : type === "success" ? "#34d399"
-          : "#DDA15E"; /* 馬卡龍暖黃/橘 */
+          type === "error" ? "#E0576B"
+          : type === "success" ? "#2EB886"
+          : "#DDA15E";
       }
 
       function resetLobbyUI() {
@@ -3973,9 +3939,7 @@
           }
           if (state?.status === "countdown" && state.countdown > 0) {
             countdownEl.style.display = "block";
-            countdownEl.innerText = `🔥 遊戲將在 ${state.countdown} 秒後開始...`;
-            // 當開始倒數時，隱藏一般的連線狀態文字，避免重疊
-            if(roomStatusEl) roomStatusEl.style.display = "none";
+            countdownEl.innerText = `🔥 遊戲將在 ${state.countdown} 秒後開始... 🔥`;
           }
         }
 
@@ -4002,8 +3966,7 @@
       socket.on("countdown", (time) => {
         if (!countdownEl) return;
         countdownEl.style.display = "block";
-        countdownEl.innerText = `🔥 遊戲將在 ${time} 秒後開始...`;
-        if(roomStatusEl) roomStatusEl.style.display = "none";
+        countdownEl.innerText = `🔥 遊戲將在 ${time} 秒後開始... 🔥`;
       });
 
       socket.on("cancelCountdown", (message) => {
