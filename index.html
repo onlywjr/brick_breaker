@@ -2535,11 +2535,40 @@
         // ========================
 
         // ==========================================
-        // 新增：底部 1/3 雙層像素風格城市剪影 (含窗戶)
+        // 新增：底部 1/3 雙層像素風格城市剪影 (含窗戶，每秒更新)
         // ==========================================
         const blockSize = 20; // 像素區塊大小
 
-        // 1. 後方建築層 (較高、顏色較淡)
+        // 1. 每 1000 毫秒更新一次窗戶狀態，避免每秒 60 幀瘋狂閃爍
+        if (
+          !currentBg.cityLastUpdate
+          || performance.now() - currentBg.cityLastUpdate > 1000
+        ) {
+          currentBg.cityLastUpdate = performance.now();
+          currentBg.bgWindows = [];
+          currentBg.fgWindows = [];
+
+          let cols = Math.ceil(cv.width / blockSize) + 1;
+          for (let i = 0; i < cols; i++) {
+            // 背景窗戶狀態 (預留高度 12 層)
+            let bgCol = [];
+            for (let j = 0; j < 12; j++) bgCol.push(Math.random() > 0.6);
+            currentBg.bgWindows.push(bgCol);
+
+            // 前景窗戶狀態
+            let fgCol = [];
+            for (let j = 0; j < 12; j++) {
+              let active = Math.random() > 0.4;
+              fgCol.push({
+                left: active && Math.random() > 0.3,
+                right: active && Math.random() > 0.3,
+              });
+            }
+            currentBg.fgWindows.push(fgCol);
+          }
+        }
+
+        // 2. 後方建築層 (較高、顏色較淡)
         const bgHeights = [
           6, 8, 5, 9, 7, 4, 10, 6, 5, 8, 7, 4, 9, 5, 6, 8, 10, 5, 7, 6, 4, 8, 5,
           9, 6, 7, 4, 10, 5, 6, 8, 5, 7, 9, 4, 6, 8, 5, 10, 7,
@@ -2550,23 +2579,19 @@
           let x = i * blockSize;
           let y = cv.height - h;
 
-          // 畫建築主體
           ctx.fillStyle = "rgba(138, 126, 156, 0.15)";
           ctx.fillRect(x, y, blockSize, h);
 
-          // 畫窗戶 (冷白光)
           ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
           for (let j = 1; j < blocks - 1; j++) {
-            // 避開最頂部與最底部
-            if (Math.random() > 0.6) {
-              // 40% 機率亮燈
-              // 在 20x20 的區塊中央畫一個 8x8 的窗戶
+            // 讀取快取的窗戶狀態
+            if (currentBg.bgWindows[i] && currentBg.bgWindows[i][j]) {
               ctx.fillRect(x + 6, y + j * blockSize + 6, 8, 8);
             }
           }
         }
 
-        // 2. 前方建築層 (較矮、顏色較深)
+        // 3. 前方建築層 (較矮、顏色較深)
         const fgHeights = [
           3, 4, 2, 5, 3, 2, 6, 4, 3, 5, 2, 4, 3, 2, 5, 3, 6, 4, 2, 3, 5, 2, 4,
           3, 6, 2, 4, 3, 5, 2, 4, 3, 6, 2, 5, 3, 4, 2, 6, 3,
@@ -2577,19 +2602,16 @@
           let x = i * blockSize;
           let y = cv.height - h;
 
-          // 畫建築主體
           ctx.fillStyle = "rgba(93, 87, 107, 0.25)";
           ctx.fillRect(x, y, blockSize, h);
 
-          // 畫窗戶 (暖黃光，模擬前景的室內燈)
           ctx.fillStyle = "rgba(253, 224, 71, 0.35)";
           for (let j = 1; j < blocks; j++) {
-            if (Math.random() > 0.4) {
-              // 60% 機率亮燈
-              // 前景建築較近，可以畫並排的兩扇小窗戶 (寬 4, 高 8)
-              if (Math.random() > 0.3)
+            // 讀取快取的窗戶狀態
+            if (currentBg.fgWindows[i] && currentBg.fgWindows[i][j]) {
+              if (currentBg.fgWindows[i][j].left)
                 ctx.fillRect(x + 3, y + j * blockSize + 6, 4, 8);
-              if (Math.random() > 0.3)
+              if (currentBg.fgWindows[i][j].right)
                 ctx.fillRect(x + 13, y + j * blockSize + 6, 4, 8);
             }
           }
