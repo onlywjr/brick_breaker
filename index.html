@@ -2542,7 +2542,7 @@
         // 1. 每 1000 毫秒更新一次窗戶狀態，避免每秒 60 幀瘋狂閃爍
         if (
           !currentBg.cityLastUpdate
-          || performance.now() - currentBg.cityLastUpdate > 1000
+          || performance.now() - currentBg.cityLastUpdate > 5000
         ) {
           currentBg.cityLastUpdate = performance.now();
           currentBg.bgWindows = [];
@@ -2552,13 +2552,13 @@
           for (let i = 0; i < cols; i++) {
             // 背景窗戶狀態 (預留高度 12 層)
             let bgCol = [];
-            for (let j = 0; j < 12; j++) bgCol.push(Math.random() > 0.6);
+            for (let j = 0; j < 12; j++) bgCol.push(Math.random() > 0.8);
             currentBg.bgWindows.push(bgCol);
 
             // 前景窗戶狀態
             let fgCol = [];
             for (let j = 0; j < 12; j++) {
-              let active = Math.random() > 0.4;
+              let active = Math.random() > 0.6;
               fgCol.push({
                 left: active && Math.random() > 0.3,
                 right: active && Math.random() > 0.3,
