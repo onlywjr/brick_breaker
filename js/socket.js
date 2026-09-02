@@ -93,11 +93,13 @@ export function setupSocketListeners(handlers) {
 
   socket.on("roomCreated", (payload) => {
     const code = typeof payload === "string" ? payload : payload?.code;
+    currentRoomCode = code; // 新增這行：儲存房間代碼
     handlers.showLobby(code);
   });
 
   socket.on("roomJoined", (payload) => {
     const code = typeof payload === "string" ? payload : payload?.code;
+    currentRoomCode = code; // 新增這行：儲存房間代碼
     handlers.showLobby(code);
   });
 

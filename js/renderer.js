@@ -177,20 +177,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.shadowColor = paleColor;
     ctx.shadowBlur = 10;
 
-    if (img && img.complete && img.naturalWidth > 0) {
-      const tempCv = document.createElement("canvas");
-      tempCv.width = b.w;
-      tempCv.height = b.h;
-      const tCtx = tempCv.getContext("2d");
-      tCtx.drawImage(img, 0, 0, b.w, b.h);
-      tCtx.globalCompositeOperation = "source-in";
-      tCtx.fillStyle = paleColor;
-      tCtx.fillRect(0, 0, b.w, b.h);
-      ctx.drawImage(tempCv, b.x, b.y);
-    } else {
-      ctx.fillStyle = paleColor;
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-    }
+    ctx.fillStyle = paleColor;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
 
     if (b.isMoving) {
       ctx.strokeStyle = "rgba(255,255,255,0.8)";
@@ -487,28 +475,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       : loadedImages.padM;
     const hasImg = pim && pim.complete && pim.naturalWidth > 0;
 
-    if (hasImg) {
-      ctx.save();
-      ctx.shadowColor = pl.lightColor;
-      ctx.shadowBlur = 18;
-      const tempCv = document.createElement("canvas");
-      tempCv.width = pl.w;
-      tempCv.height = pl.h;
-      const tCtx = tempCv.getContext("2d");
-      tCtx.drawImage(pim, 0, 0, pl.w, pl.h);
-      tCtx.globalCompositeOperation = "source-in";
-      tCtx.fillStyle = pl.color;
-      tCtx.fillRect(0, 0, pl.w, pl.h);
-      ctx.drawImage(tempCv, pl.x, pl.y);
-      ctx.restore();
-    } else {
-      ctx.save();
-      ctx.shadowColor = pl.lightColor;
-      ctx.shadowBlur = 18;
-      ctx.fillStyle = pl.color;
-      ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
-      ctx.restore();
-    }
+    ctx.save();
+    ctx.shadowColor = pl.lightColor;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = pl.color;
+    ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
+    ctx.restore();
 
     if (pl.shrinkFx > 0) {
       ctx.globalAlpha = pl.shrinkFx;

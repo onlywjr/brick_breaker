@@ -78,6 +78,10 @@ export let onlineMatchFinished = false;
 export let onlineAttackCooldown = 0;
 export let onlineAttackPending = false;
 
+export function loadImages() {
+  return Promise.resolve();
+}
+
 function makePlayer(color, lightColor) {
   return {
     x: 0,
