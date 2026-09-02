@@ -6,48 +6,59 @@ const SND = {
 };
 
 export const loadedAudio = {};
+let audioCtx = null;
+let bgmSource = null;
 
-export function loadAudio() {
-  const jobs = [];
-  for (const [k, s] of Object.entries(SND)) {
-    const a = new Audio(s);
-    a.volume = 0.5;
-    loadedAudio[k] = a;
-    jobs.push(
-      a
-        .play()
-        .then(() => {
-          a.pause();
-          a.currentTime = 0;
-        })
-        .catch(() => {}),
-    );
-  }
-  if (loadedAudio.music) {
-    loadedAudio.music.loop = true;
-    loadedAudio.music.volume = 0.25;
-  }
+export async function loadAudio() {
+  const windowAudioContext = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new windowAudioContext();
+
+  const jobs = Object.entries(SND).map(async ([k, src]) => {
+    try {
+      const response = await fetch(src);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      loadedAudio[k] = audioBuffer;
+    } catch (e) {
+      console.error(`音效載入失敗: ${src}`, e);
+    }
+  });
+
   return Promise.all(jobs);
 }
 
 export function playSfx(name) {
-  const a = loadedAudio[name];
-  if (!a) return;
-  a.currentTime = 0;
-  a.play().catch(() => {});
+  if (!audioCtx || !loadedAudio[name]) return;
+
+  // 背景音樂需要無限循環
+  if (name === "music") {
+    if (bgmSource) return; // 避免重複播放
+    bgmSource = audioCtx.createBufferSource();
+    bgmSource.buffer = loadedAudio[name];
+    bgmSource.loop = true;
+
+    // BGM 音量控制
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0.25;
+    bgmSource.connect(gainNode).connect(audioCtx.destination);
+    bgmSource.start(0);
+    return;
+  }
+
+  // 短音效播放 (零延遲)
+  const source = audioCtx.createBufferSource();
+  source.buffer = loadedAudio[name];
+
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.5; // 音效音量
+
+  source.connect(gainNode).connect(audioCtx.destination);
+  source.start(0);
 }
 
 export function unlockAudio() {
-  for (const k of ["hit", "brk", "bounce"]) {
-    const a = loadedAudio[k];
-    if (a) {
-      a.play()
-        .then(() => {
-          a.pause();
-          a.currentTime = 0;
-        })
-        .catch(() => {});
-    }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
   }
   window.removeEventListener("click", unlockAudio);
   window.removeEventListener("keydown", unlockAudio);
