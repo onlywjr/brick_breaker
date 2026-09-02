@@ -796,6 +796,14 @@ export function loop(ts, cv) {
 }
 
 export function initGlobalBindings() {
+  const touchCapable = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const coarsePointer =
+    window.matchMedia && window.matchMedia("(any-pointer: coarse)").matches;
+
+  // 只要設備支援觸控且指標不精確（如手指），就自動開啟虛擬按鍵
+  if (touchCapable && coarsePointer) {
+    showVirtual = true;
+  }
   window.addEventListener("keydown", (e) => {
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;
