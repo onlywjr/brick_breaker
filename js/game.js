@@ -457,7 +457,7 @@ export function showOnlineMatchOver(result) {
     .sort((a, b) => (a.rank || 999) - (b.rank || 999))
     .map(
       (p) =>
-        `<div class="ranking-item"><span>#${p.rank || "?"} ${escapeHtml(p.name || "玩家")}</span><span style="color:#DDA15E; font-family:'Orbitron', sans-serif; font-weight:800;">${p.score || 0}</span></div>`,
+        `<div class="ranking-item"><span style="width:100%; text-align:center;">#${p.rank || "?"} ${escapeHtml(p.name || "玩家")}</span></div>`,
     )
     .join("");
   document.getElementById("title").innerHTML =
@@ -724,7 +724,8 @@ export function updateGameState(dt, cv) {
         rank: null,
         energy: p1.energy,
         level,
-        paddle: { x: p1.x, y: p1.y, w: p1.w, h: p1.h },
+        // 在 updateGameState 中，替換 paddle 的傳遞方式：
+        paddle: { x: p1.x, y: p1.y, w: p1.w, h: p1.h, lives: p1.lives },
         ball:
           p1.ball ?
             {
@@ -796,14 +797,14 @@ export function loop(ts, cv) {
 }
 
 export function initGlobalBindings() {
-  const touchCapable = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  const coarsePointer =
-    window.matchMedia && window.matchMedia("(any-pointer: coarse)").matches;
-
-  // 只要設備支援觸控且指標不精確（如手指），就自動開啟虛擬按鍵
-  if (touchCapable && coarsePointer) {
+  // 嚴格偵測：必須是沒有游標(滑鼠)且主要為觸控(手指)的裝置
+  const isMobileTouch = window.matchMedia(
+    "(hover: none) and (pointer: coarse)",
+  ).matches;
+  if (isMobileTouch) {
     showVirtual = true;
   }
+
   window.addEventListener("keydown", (e) => {
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;

@@ -296,6 +296,7 @@
               };
             },
             onAttackAccepted: () => {
+              if (p1) p1.energy = 0; // 新增這行：攻擊成功後將本機能量歸零
               document
                 .getElementById("p1-energy-wrap")
                 ?.classList.remove("online-energy-ready");

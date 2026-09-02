@@ -101,11 +101,14 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       if (w.parentElement !== targetContainer) targetContainer.appendChild(w);
 
       w.classList.toggle("eliminated", p.alive === false);
+
       const spans = w.querySelectorAll(".online-opponent-head span");
       if (spans.length === 2) {
+        const livesLeft =
+          p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
         spans[0].textContent = p.name || "玩家";
         spans[1].textContent =
-          p.alive === false ? "淘汰" : `#${index + 1}  ${p.score || 0}`;
+          p.alive === false ? "💀 淘汰" : `❤️ x${livesLeft}`; // 改顯示愛心
         spans[1].style.color = "#7A728A";
       }
 
@@ -165,7 +168,12 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
         if (bottomEl) bottomEl.appendChild(tag);
       }
       tag.style.opacity = p.alive === false ? "0.4" : "1";
-      tag.innerText = `#${index + 1} ${p.name || "玩家"} - ${p.score || 0}`;
+      const livesLeft =
+        p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
+      tag.innerText =
+        p.alive === false ?
+          `💀 ${p.name || "玩家"}`
+        : `${p.name || "玩家"} - ❤️x${livesLeft}`; // 改顯示愛心
     }
   });
 }
