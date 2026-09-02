@@ -1,0 +1,298 @@
+#lobby-countdown {
+  font-size: 14px;
+  color: #d96c8e;
+  font-weight: 900;
+  margin: 0;
+  display: none;
+  animation: pulseText 1s infinite alternate;
+}
+
+@keyframes pulseText {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+body.online-battle-mode #game {
+  margin-bottom: 10px;
+}
+
+body.online-battle-mode .score-bar {
+  display: none !important;
+}
+
+#game-wrap.online-battle-layout {
+  width: min(1060px, 96vw);
+}
+
+.side-opponents {
+  display: none;
+  position: absolute;
+  top: 0;
+  width: 160px;
+  max-height: 600px;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+}
+
+#online-opponents-left {
+  right: calc(100% + 16px);
+}
+
+#online-opponents-right {
+  left: calc(100% + 16px);
+}
+
+.bottom-opponents {
+  display: none;
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 0;
+  right: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.bottom-opponent-tag {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #c9b1e8;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: "Orbitron", "Noto Sans TC", sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #5d576b;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(201, 177, 232, 0.2);
+}
+
+.online-opponent {
+  position: relative;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 2px solid #c9b1e8 !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  max-width: 150px;
+  max-height: 150px;
+}
+
+.online-opponent.eliminated {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+}
+
+.online-opponent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: #5d576b !important;
+}
+
+.online-mini {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4/3;
+  height: auto;
+  background: #fdf4f6;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+#online-attack-status {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 300;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #f6d98b;
+  color: #d4a373;
+  font-weight: 900;
+  font-size: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(246, 217, 139, 0.3);
+}
+
+#online-blind {
+  display: none;
+  position: absolute;
+  inset: 16px;
+  z-index: 280;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4), rgba(246, 166, 193, 0.85));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0.85;
+  pointer-events: none;
+  animation: onlineBlindPulse 0.45s infinite alternate;
+}
+
+#online-blind::after {
+  content: "⚠ VISION LOST";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Orbitron", sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #fffdfb;
+  text-shadow: 0 0 20px #e0576b, 0 0 40px #e0576b;
+  white-space: nowrap;
+  letter-spacing: 3px;
+}
+
+@keyframes onlineBlindPulse {
+  from { opacity: 0.7; transform: scale(1); }
+  to { opacity: 0.95; transform: scale(1.025); }
+}
+
+#p1-energy-wrap.online-energy-ready {
+  cursor: pointer;
+  animation: onlineEnergyPulse 0.65s infinite alternate;
+}
+
+@keyframes onlineEnergyPulse {
+  from { filter: drop-shadow(0 0 2px #f6d98b); }
+  to { filter: drop-shadow(0 0 14px #f6d98b); }
+}
+
+#player-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: start !important;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.75) !important;
+  padding: 16px !important;
+  width: 100%;
+  min-width: 540px;
+  min-height: 215px;
+  max-height: 215px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border: 2px solid #c9b1e8 !important;
+  box-shadow: 0 4px 15px rgba(201, 177, 232, 0.2);
+  box-sizing: border-box;
+}
+
+#player-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#player-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#player-list::-webkit-scrollbar-thumb {
+  background: rgba(201, 177, 232, 0.5);
+  border-radius: 3px;
+}
+
+.lobby-player-item {
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 14px;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(201, 177, 232, 0.5);
+  color: #5d576b;
+  box-sizing: border-box;
+  height: 35px;
+}
+
+@media (max-width: 1100px) {
+  #online-opponents {
+    left: 50%;
+    top: calc(100% + 12px);
+    transform: translateX(-50%);
+    width: min(90vw, 430px);
+    max-height: 190px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    overflow-y: auto;
+  }
+  .online-opponent {
+    width: 194px;
+    margin: 0;
+  }
+  .online-mini {
+    width: 180px;
+    height: 126px;
+  }
+}
+
+@media (max-width: 768px) {
+  #player-list {
+    min-width: 100% !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 1000px) {
+  .online-opponent {
+    width: 110px !important;
+    padding: 4px !important;
+  }
+  .online-mini {
+    width: 100% !important;
+    border-radius: 4px !important;
+  }
+  .online-opponent-head {
+    font-size: 10px !important;
+  }
+}
+
+@media (orientation: portrait) {
+  body.online-battle-mode #wrap {
+    padding-top: 16px !important;
+    padding-bottom: 520px !important;
+  }
+
+  .side-opponents {
+    position: absolute !important;
+    width: calc(100% - 32px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+  }
+
+  #online-opponents-left,
+  #online-opponents-right {
+    top: auto !important;
+  }
+
+  .online-opponent {
+    flex: 1 1 0px !important;
+    width: auto !important;
+    padding: 6px !important;
+    margin: 0 !important;
+  }
+
+  .online-mini {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  .bottom-opponents {
+    top: calc(100% + 16px) !important;
+  }
+}

@@ -1,0 +1,307 @@
+#bottom-status-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: rgba(225, 225, 225, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 0 0 4px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 -4px 15px rgba(230, 215, 225, 0.3);
+  z-index: 250;
+  font-family: "Noto Sans TC", sans-serif;
+}
+
+#cheat-info {
+  color: #8a7e9c;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0px;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  backdrop-filter: none;
+}
+
+#status-right-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#room-status {
+  font-size: 13px;
+  font-weight: bold;
+  text-align: right;
+  margin: 0;
+  display: none;
+}
+
+.btn {
+  padding: 16px 40px;
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 19px;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid #f6a6c1;
+  color: #5d576b;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 10px;
+  width: max-content;
+  min-width: 280px;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(246, 166, 193, 0.2);
+  letter-spacing: 1.5px;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #f6a6c1;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(246, 166, 193, 0.3);
+}
+
+.input-level {
+  padding: 12px 20px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #c9b1e8;
+  color: #5d576b;
+  width: 100px;
+  text-align: center;
+  outline: none;
+  box-shadow: inset 0 2px 10px rgba(201, 177, 232, 0.15);
+}
+
+.input-level:focus {
+  border-color: #c9b1e8;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.menu-item-macaron {
+  width: 320px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 19px;
+  font-weight: 900;
+  cursor: pointer;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #5d576b;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.menu-item-macaron:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.macaron-yellow {
+  border-color: #f6d98b;
+  box-shadow: 0 8px 25px rgba(246, 217, 139, 0.3);
+}
+.macaron-yellow:hover {
+  box-shadow: 0 12px 30px rgba(246, 217, 139, 0.4);
+}
+
+.macaron-pink {
+  border-color: #f6a6c1;
+  box-shadow: 0 8px 25px rgba(246, 166, 193, 0.3);
+}
+.macaron-pink:hover {
+  box-shadow: 0 12px 30px rgba(246, 166, 193, 0.4);
+}
+
+.macaron-blue {
+  border-color: #9dd9e8;
+  box-shadow: 0 8px 25px rgba(157, 217, 232, 0.3);
+}
+.macaron-blue:hover {
+  box-shadow: 0 12px 30px rgba(157, 217, 232, 0.4);
+}
+
+.input-level-macaron {
+  padding: 6px 12px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #f6d98b;
+  color: #5d576b;
+  width: 80px;
+  text-align: center;
+  outline: none;
+  box-shadow: inset 0 2px 6px rgba(246, 217, 139, 0.15);
+  transition: all 0.2s;
+}
+
+.input-level-macaron:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #f9e9b5;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+}
+
+.menu-group {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.menu-group-top {
+  border-color: #f6a6c1;
+  box-shadow: 0 8px 25px rgba(246, 166, 193, 0.25);
+}
+
+.menu-group-bottom {
+  border-color: #9dd9e8;
+  box-shadow: 0 8px 25px rgba(157, 217, 232, 0.25);
+}
+
+.menu-group-item {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(246, 166, 193, 0.2);
+  color: #5d576b;
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 19px;
+  font-weight: 900;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.3s ease;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-group-item:last-child {
+  border-bottom: none;
+}
+
+button.menu-group-item:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+div.menu-group-item {
+  cursor: default;
+}
+
+.menu-group-item input[type="number"],
+.menu-group-item input[type="text"]:not(#room-code-input) {
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #c9b1e8;
+  color: #5d576b;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 12px;
+  padding: 6px 10px;
+  width: 120px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.menu-group-item input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #f6a6c1;
+  box-shadow: 0 0 10px rgba(246, 166, 193, 0.3);
+}
+
+.menu-group-item.split {
+  gap: 0;
+}
+
+.menu-group-item.split input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid rgba(157, 217, 232, 0.3);
+  background: transparent;
+  text-transform: uppercase;
+  font-family: "Orbitron", sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: #5d576b;
+  text-align: center;
+  outline: none;
+}
+
+.menu-group-item.split input::placeholder {
+  text-transform: none;
+  color: rgba(93, 87, 107, 0.48);
+}
+
+.menu-group-item.split input:focus {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.menu-group-item.split button {
+  flex: 0 0 110px;
+  width: 110px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: #5d576b;
+  font-family: "Noto Sans TC", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-group-item.split button:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 768px) {
+  .menu-group {
+    width: 90vw;
+    max-width: 320px;
+  }
+}

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BRICK RUSH 99</title>
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#F6A6C1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- 引入拆分的 CSS -->
+    <link rel="stylesheet" href="./css/game.css" />
+    <link rel="stylesheet" href="./css/menu.css" />
+    <link rel="stylesheet" href="./css/lobby.css" />
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  </head>
+  <body>
+    <div id="rotate-prompt">
+      📱<br />請將設備轉為直向<br />以顯示完整對戰畫面
+    </div>
+    <div id="vbtn-solo-left" class="vbtn-solo"><div class="btn">◀</div></div>
+    <div id="vbtn-solo-right" class="vbtn-solo"><div class="btn">▶</div></div>
+    <div id="vbtn-p1-group" class="vbtn-group">
+      <span class="vbtn-group-label" style="color: #d96c8e">1P</span>
+      <div class="btn">◀</div>
+      <div class="btn">▶</div>
+    </div>
+    <div id="vbtn-p2-group" class="vbtn-group">
+      <span class="vbtn-group-label" style="color: #5fa8d3">2P</span>
+      <div class="btn">◀</div>
+      <div class="btn">▶</div>
+    </div>
+
+    <div id="wrap" style="width: 800px; height: 600px">
+      <div id="overlay">
+        <h1 id="title">BRICK RUSH 99</h1>
+        <div id="loading">正在載入遊戲資源...</div>
+
+        <div
+          id="menu-btns"
+          style="
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+          ">
+          <div class="menu-group menu-group-top">
+            <div class="menu-group-item">
+              <label>起始關卡:</label
+              ><input
+                type="number"
+                id="start-level"
+                value="1"
+                min="1"
+                max="999" />
+            </div>
+            <button class="menu-group-item" onclick="window.startGame(1)">
+              🚀 單人冒險模式
+            </button>
+            <button class="menu-group-item" onclick="window.startGame(2)">
+              ⚡ 雙人對戰 (限時 3 分鐘)
+            </button>
+          </div>
+          <div class="menu-group menu-group-bottom">
+            <button class="menu-group-item" onclick="window.createRoom()">
+              👑 建立連線房間
+            </button>
+            <div class="menu-group-item">
+              <label>玩家暱稱:</label
+              ><input
+                type="text"
+                id="player-name-input"
+                placeholder="輸入名稱"
+                maxlength="10" />
+            </div>
+            <div class="menu-group-item split">
+              <input
+                type="text"
+                id="room-code-input"
+                placeholder="輸入代碼" /><button onclick="window.joinRoom()">
+                🔗 連線加入
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="lobby-screen"
+          style="
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            z-index: 200;
+          ">
+          <div style="font-size: 16px; color: #7a728a; margin-bottom: 4px">
+            多人連線大廳
+          </div>
+          <h2
+            style="
+              color: #dda15e;
+              font-family: &quot;Orbitron&quot;;
+              font-size: 28px;
+              margin-bottom: 10px;
+            ">
+            房間代碼: <span id="lobby-code" style="color: #5d576b"></span>
+          </h2>
+          <div id="player-list"></div>
+          <button
+            id="btn-ready"
+            class="menu-item-macaron macaron-pink"
+            onclick="window.toggleReady()">
+            準備完成
+          </button>
+        </div>
+
+        <div id="bottom-status-bar">
+          <div id="cheat-info">
+            操作 | 單人: 左右鍵 · 雙人 1P: A/D · 2P: 左右鍵
+          </div>
+          <div id="status-right-group">
+            <div id="room-status"></div>
+            <div id="lobby-countdown">10s...</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="status">
+        <div class="stat-card">
+          <div style="display: flex; gap: 8px; align-items: center">
+            <span
+              class="stat-label"
+              style="color: #dda15e; font-size: 16px"
+              id="p1-rank"></span
+            ><span class="stat-label" id="p1-label" style="color: #d96c8e"
+              >1P <span class="stat-value" id="p1-score">0</span></span
+            >
+          </div>
+          <div class="score-bar">
+            <div
+              id="p1-width-bar"
+              class="score-fill"
+              style="background: #f6a6c1; width: 100%"></div>
+          </div>
+          <div class="energy-bar" id="p1-energy-wrap">
+            <div
+              id="p1-energy-bar"
+              class="energy-fill"
+              style="
+                background: linear-gradient(90deg, #f6a6c1, #c9b1e8);
+                width: 0%;
+              "></div>
+          </div>
+          <div id="p1-lives" class="lives-display" style="display: none"></div>
+        </div>
+        <div
+          class="stat-card center-card"
+          style="
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid #f2c1d1;
+            box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);
+          ">
+          <div
+            style="display: flex; flex-direction: column; align-items: center"
+            id="timer-container">
+            <span class="stat-label" style="color: #dda15e">TIME</span
+            ><span id="timer-txt" class="stat-value">03:00</span>
+          </div>
+          <div
+            style="
+              width: 1px;
+              height: 40px;
+              background: rgba(246, 166, 193, 0.5);
+            "></div>
+          <div
+            style="display: flex; flex-direction: column; align-items: center">
+            <span class="stat-label" style="color: #7a728a">LEVEL</span
+            ><span id="level-txt" class="stat-value">1</span>
+          </div>
+        </div>
+        <div class="stat-card" id="p2-card">
+          <span class="stat-label" style="color: #5fa8d3"
+            >2P <span class="stat-value" id="p2-score">0</span></span
+          >
+          <div class="score-bar">
+            <div
+              id="p2-width-bar"
+              class="score-fill"
+              style="background: #9dd9e8; width: 100%"></div>
+          </div>
+          <div class="energy-bar" id="p2-energy-wrap">
+            <div
+              id="p2-energy-bar"
+              class="energy-fill"
+              style="
+                background: linear-gradient(90deg, #9dd9e8, #a9b8e8);
+                width: 0%;
+              "></div>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="game" width="800" height="600"></canvas>
+
+      <div id="online-opponents-left" class="side-opponents"></div>
+      <div id="online-opponents-right" class="side-opponents"></div>
+      <div id="online-opponents-bottom" class="bottom-opponents"></div>
+      <div id="online-blind"></div>
+      <div id="online-attack-status"></div>
+    </div>
+
+    <!-- 引入模組化主程式 -->
+    <script type="module">
+      import { loadAudio } from "./js/audio.js";
+      import {
+        loadImages,
+        startGameGlobal,
+        initGlobalBindings,
+        onlineMode,
+        onlinePlayers,
+        p1,
+        myPlayerId,
+      } from "./js/game.js";
+      import { setupVirtualControls, resizeGame } from "./js/ui.js";
+      import {
+        setupSocketListeners,
+        createRoom,
+        joinRoom,
+        toggleReady,
+      } from "./js/socket.js";
+      import { onlineRenderPlayers } from "./js/lobby.js";
+      import { showOnlineMatchOver, onlineEliminated } from "./js/game.js"; // required internal logic
+
+      // 綁定全域函式供 HTML onclick 使用
+      window.startGame = (mode) =>
+        startGameGlobal(mode, document.getElementById("game"));
+      window.createRoom = createRoom;
+      window.joinRoom = joinRoom;
+      window.toggleReady = toggleReady;
+      window.backToMainMenu = () => {
+        document.getElementById("title").innerHTML = "BRICK RUSH 99";
+        document.getElementById("menu-btns").style.display = "flex";
+        document.getElementById("bottom-status-bar").style.display = "flex";
+      };
+      window.returnToLobby = () => {
+        document.getElementById("online-attack-status").style.display = "none";
+        document.getElementById("title").innerHTML = "BRICK RUSH 99";
+        document.getElementById("lobby-screen").style.display = "flex";
+        document.getElementById("room-status").style.display = "block";
+        document.getElementById("bottom-status-bar").style.display = "flex";
+      };
+
+      // 初始化資源與綁定事件
+      Promise.all([loadImages(), loadAudio()])
+        .then(() => {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("menu-btns").style.display = "flex";
+
+          setupVirtualControls();
+          initGlobalBindings();
+
+          setupSocketListeners({
+            showLobby: (code) => {
+              document.getElementById("menu-btns").style.display = "none";
+              document.getElementById("lobby-screen").style.display = "flex";
+              document.getElementById("lobby-code").innerText = code;
+            },
+            onLobbyState: (state) => {
+              /* internal lobby handled */
+            },
+            onOnlineState: (state) => {
+              if (!onlineMode || !state?.id || state.id === myPlayerId) return;
+              onlinePlayers[state.id] = {
+                ...(onlinePlayers[state.id] || {}),
+                ...state,
+                alive: state.alive !== false,
+              };
+            },
+            onAttackAccepted: () => {
+              document
+                .getElementById("p1-energy-wrap")
+                ?.classList.remove("online-energy-ready");
+            },
+            onAttackRejected: (data) => {
+              if (p1 && Number.isFinite(Number(data?.energy))) {
+                p1.energy = Math.min(p1.maxEnergy, Number(data.energy));
+                document
+                  .getElementById("p1-energy-wrap")
+                  ?.classList.toggle(
+                    "online-energy-ready",
+                    p1.energy >= p1.maxEnergy,
+                  );
+              }
+            },
+            onPlayerEliminated: (data) => {
+              if (data?.id && onlinePlayers[data.id]) {
+                onlinePlayers[data.id].alive = false;
+                onlinePlayers[data.id].rank =
+                  data.rank || onlinePlayers[data.id].rank;
+              }
+            },
+          });
+
+          setTimeout(resizeGame, 100);
+        })
+        .catch((err) => {
+          document.getElementById("loading").textContent =
+            "載入失敗: " + (err && err.message ? err.message : err);
+          document.getElementById("loading").style.color = "#ff3333";
+        });
+    </script>
+  </body>
+</html>
