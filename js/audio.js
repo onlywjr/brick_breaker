@@ -29,14 +29,14 @@ export async function loadAudio() {
 
 export function playSfx(name) {
   if (!audioCtx || !loadedAudio[name]) return;
-  
+
   // 背景音樂需要無限循環
   if (name === "music") {
     if (bgmSource) return; // 避免重複播放
     bgmSource = audioCtx.createBufferSource();
     bgmSource.buffer = loadedAudio[name];
     bgmSource.loop = true;
-    
+
     // BGM 音量控制
     const gainNode = audioCtx.createGain();
     gainNode.gain.value = 0.25;
@@ -48,16 +48,16 @@ export function playSfx(name) {
   // 短音效播放 (零延遲)
   const source = audioCtx.createBufferSource();
   source.buffer = loadedAudio[name];
-  
+
   const gainNode = audioCtx.createGain();
   gainNode.gain.value = 0.5; // 音效音量
-  
+
   source.connect(gainNode).connect(audioCtx.destination);
   source.start(0);
 }
 
 export function unlockAudio() {
-  if (audioCtx && audioCtx.state === 'suspended') {
+  if (audioCtx && audioCtx.state === "suspended") {
     audioCtx.resume();
   }
   window.removeEventListener("click", unlockAudio);
