@@ -1,4 +1,4 @@
-const CACHE_NAME = 'babymonster-game-v1';
+const CACHE_NAME = 'BRICK-RUSH-99';
 
 // 1. 安裝階段：強制立即接管控制權
 self.addEventListener('install', event => {
