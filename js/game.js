@@ -78,8 +78,32 @@ export let onlineMatchFinished = false;
 export let onlineAttackCooldown = 0;
 export let onlineAttackPending = false;
 
+const IMG = {
+  padS: "assets/png/pad_s.png",
+  padM: "assets/png/pad_m.png",
+  padL: "assets/png/pad_l.png",
+};
+
 export function loadImages() {
-  return Promise.resolve();
+  const jobs = [];
+  for (const [k, src] of Object.entries(IMG)) {
+    jobs.push(
+      new Promise((res) => {
+        const im = new Image();
+        im.src = src;
+        const done = (img) => {
+          loadedImages[k] = img;
+          res();
+        };
+        im.onload = () => done(im);
+        im.onerror = () => done(null);
+        setTimeout(() => {
+          if (!loadedImages[k]) done(null);
+        }, 8000);
+      }),
+    );
+  }
+  return Promise.all(jobs);
 }
 
 function makePlayer(color, lightColor) {

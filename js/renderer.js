@@ -468,6 +468,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.restore();
   }
 
+  // 找到負責畫擋板的迴圈，並將其內容替換如下：
   for (const pl of activePlayers) {
     const pim =
       pl.w <= 90 ? loadedImages.padS
@@ -475,12 +476,32 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       : loadedImages.padM;
     const hasImg = pim && pim.complete && pim.naturalWidth > 0;
 
-    ctx.save();
-    ctx.shadowColor = pl.lightColor;
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = pl.color;
-    ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
-    ctx.restore();
+    if (hasImg) {
+      ctx.save();
+      ctx.shadowColor = pl.lightColor;
+      ctx.shadowBlur = 18;
+
+      // 使用另一個小畫布將圖片填上玩家專屬的馬卡龍色
+      const tempCv = document.createElement("canvas");
+      tempCv.width = pl.w;
+      tempCv.height = pl.h;
+      const tCtx = tempCv.getContext("2d");
+      tCtx.drawImage(pim, 0, 0, pl.w, pl.h);
+      tCtx.globalCompositeOperation = "source-in";
+      tCtx.fillStyle = pl.color;
+      tCtx.fillRect(0, 0, pl.w, pl.h);
+
+      ctx.drawImage(tempCv, pl.x, pl.y);
+      ctx.restore();
+    } else {
+      // 圖片載入失敗時的備用純色方案
+      ctx.save();
+      ctx.shadowColor = pl.lightColor;
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = pl.color;
+      ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
+      ctx.restore();
+    }
 
     if (pl.shrinkFx > 0) {
       ctx.globalAlpha = pl.shrinkFx;
