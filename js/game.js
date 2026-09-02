@@ -1,4 +1,4 @@
-import { loadAudio, loadedAudio } from "./audio.js";
+import { loadAudio, loadedAudio, playSfx } from "./audio.js";
 import {
   drawGameBackground,
   drawGameEntities,
@@ -369,7 +369,7 @@ export function startGameGlobal(selectedMode, cv) {
   updateVirtualButtonsVisibility(showVirtual, running, mode);
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame((ts) => loop(ts, cv));
-  loadedAudio.music?.play().catch(() => {});
+  playSfx("music");
 }
 
 export function startOnlineGame(state, cv) {
@@ -413,7 +413,7 @@ export function startOnlineGame(state, cv) {
   updateVirtualButtonsVisibility(showVirtual, running, mode);
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame((ts) => loop(ts, cv));
-  loadedAudio.music?.play().catch(() => {});
+  playSfx("music");
   for (const p of state?.players || [])
     onlinePlayers[p.id] = {
       ...p,
