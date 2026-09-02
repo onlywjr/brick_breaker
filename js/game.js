@@ -854,3 +854,7 @@ export function resetMatchState() {
   onlineEliminated = false;
   onlineMatchFinished = false;
 }
+
+export function clearAttackPending() {
+  onlineAttackPending = false;
+}

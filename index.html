@@ -230,6 +230,7 @@
         p1,
         myPlayerId,
         resetMatchState,
+        clearAttackPending,
       } from "./js/game.js";
       import { setupVirtualControls, resizeGame } from "./js/ui.js";
       // 這裡新增了 socket 的引入
@@ -300,6 +301,7 @@
               document
                 .getElementById("p1-energy-wrap")
                 ?.classList.remove("online-energy-ready");
+              clearAttackPending(); // 新增這行：解除發送鎖定，允許下一次攻擊
             },
             onAttackRejected: (data) => {
               if (p1 && Number.isFinite(Number(data?.energy))) {
@@ -311,6 +313,7 @@
                     p1.energy >= p1.maxEnergy,
                   );
               }
+              clearAttackPending(); // 新增這行：解除發送鎖定
             },
             onPlayerEliminated: (data) => {
               if (data?.id && onlinePlayers[data.id]) {
