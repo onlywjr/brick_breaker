@@ -78,62 +78,6 @@ export let onlineMatchFinished = false;
 export let onlineAttackCooldown = 0;
 export let onlineAttackPending = false;
 
-const IMG = {
-  brickFull: [
-    "assets/Breakout Tile Set Free/PNG/01-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/03-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/05-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/07-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/09-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/11-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/13-Breakout-Tiles.png",
-  ],
-  brickCrack: [
-    "assets/Breakout Tile Set Free/PNG/02-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/04-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/06-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/08-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/10-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/12-Breakout-Tiles.png",
-    "assets/Breakout Tile Set Free/PNG/14-Breakout-Tiles.png",
-  ],
-  slow: "assets/Breakout Tile Set Free/PNG/41-Breakout-Tiles.png",
-  fire: "assets/Breakout Tile Set Free/PNG/44-Breakout-Tiles.png",
-  grow: "assets/Breakout Tile Set Free/PNG/47-Breakout-Tiles.png",
-  padS: "assets/Breakout Tile Set Free/PNG/51-Breakout-Tiles.png",
-  padM: "assets/Breakout Tile Set Free/PNG/53-Breakout-Tiles.png",
-  padL: "assets/Breakout Tile Set Free/PNG/55-Breakout-Tiles.png",
-  ball: "assets/Breakout Tile Set Free/PNG/58-Breakout-Tiles.png",
-  heart: "assets/Breakout Tile Set Free/PNG/60-Breakout-Tiles.png",
-};
-
-export function loadImages() {
-  const jobs = [];
-  for (const [k, src] of Object.entries(IMG)) {
-    const list = Array.isArray(src) ? src : [src];
-    list.forEach((s, i) => {
-      jobs.push(
-        new Promise((res) => {
-          const im = new Image();
-          im.src = s;
-          const done = (img) => {
-            if (Array.isArray(src)) {
-              (loadedImages[k] = loadedImages[k] || [])[i] = img;
-            } else loadedImages[k] = img;
-            res();
-          };
-          im.onload = () => done(im);
-          im.onerror = () => done(null);
-          setTimeout(() => {
-            if (!loadedImages[k]) done(null);
-          }, 8000);
-        }),
-      );
-    });
-  }
-  return Promise.all(jobs);
-}
-
 function makePlayer(color, lightColor) {
   return {
     x: 0,
