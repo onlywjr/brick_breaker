@@ -220,6 +220,7 @@
     <!-- 引入模組化主程式 -->
     <script type="module">
       import { loadAudio } from "./js/audio.js";
+      // 這裡新增了 resetMatchState 的引入
       import {
         loadImages,
         startGameGlobal,
@@ -228,16 +229,19 @@
         onlinePlayers,
         p1,
         myPlayerId,
+        resetMatchState,
       } from "./js/game.js";
       import { setupVirtualControls, resizeGame } from "./js/ui.js";
+      // 這裡新增了 socket 的引入
       import {
         setupSocketListeners,
         createRoom,
         joinRoom,
         toggleReady,
+        socket,
       } from "./js/socket.js";
       import { onlineRenderPlayers } from "./js/lobby.js";
-      import { showOnlineMatchOver, onlineEliminated } from "./js/game.js"; // required internal logic
+      import { showOnlineMatchOver } from "./js/game.js";
 
       // 綁定全域函式供 HTML onclick 使用
       window.startGame = (mode) =>
@@ -250,12 +254,19 @@
         document.getElementById("menu-btns").style.display = "flex";
         document.getElementById("bottom-status-bar").style.display = "flex";
       };
+
+      // ★ 修正：加入重置變數與通知伺服器的邏輯 ★
       window.returnToLobby = () => {
         document.getElementById("online-attack-status").style.display = "none";
         document.getElementById("title").innerHTML = "BRICK RUSH 99";
         document.getElementById("lobby-screen").style.display = "flex";
         document.getElementById("room-status").style.display = "block";
         document.getElementById("bottom-status-bar").style.display = "flex";
+
+        resetMatchState();
+        if (socket && socket.connected) {
+          socket.emit("restartOnlineGame");
+        }
       };
 
       // 初始化資源與綁定事件

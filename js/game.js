@@ -848,3 +848,8 @@ export function initGlobalBindings() {
   window.addEventListener("resize", resizeGame);
   window.addEventListener("orientationchange", resizeGame);
 }
+
+export function resetMatchState() {
+  onlineEliminated = false;
+  onlineMatchFinished = false;
+}
