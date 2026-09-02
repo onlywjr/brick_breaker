@@ -152,7 +152,7 @@ export function setupSocketListeners(handlers) {
     document.getElementById("lobby-screen").style.display = "none";
     document.getElementById("lobby-countdown").style.display = "none";
     document.getElementById("menu-btns").style.display = "none";
-    startOnlineGame(state);
+    startOnlineGame(state, document.getElementById("game"));
   });
 
   socket.on("onlineState", (state) => handlers.onOnlineState(state));

@@ -603,7 +603,27 @@ export function updateGameState(dt, cv) {
       return;
     }
   }
+  // ==========================================
+  // 補回遺失的擋板移動邏輯
+  // ==========================================
+  let p1Left =
+    p1.reversed ? keys["d"]
+    : mode === 2 ? keys["a"]
+    : keys.ArrowLeft;
+  let p1Right =
+    p1.reversed ? keys["a"]
+    : mode === 2 ? keys["d"]
+    : keys.ArrowRight;
+  if (p1Right && p1.x + p1.w < cv.width) p1.x += p1.speed * dt;
+  if (p1Left && p1.x > 0) p1.x -= p1.speed * dt;
 
+  if (mode === 2) {
+    const p2Left = p2.reversed ? keys.ArrowRight : keys.ArrowLeft;
+    const p2Right = p2.reversed ? keys.ArrowLeft : keys.ArrowRight;
+    if (p2Right && p2.x + p2.w < cv.width) p2.x += p2.speed * dt;
+    if (p2Left && p2.x > 0) p2.x -= p2.speed * dt;
+  }
+  // ==========================================
   const activePlayers = mode === 2 ? [p1, p2] : [p1];
   let gameState = {
     bricks,
