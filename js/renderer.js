@@ -1,5 +1,11 @@
 import { lightenColor } from "./physics.js";
-import { MEMBERS } from "./game.js";
+import { MEMBERS, chemDLCEnabled, p1, mode, onlineMode } from "./game.js";
+import {
+  ELEMENT_DATA,
+  getNeededElements,
+  chemStates,
+  getSkillData,
+} from "../mod/chemistry.js";
 
 let currentBg = null;
 
@@ -193,15 +199,58 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.restore();
 
     ctx.save();
-    ctx.font = "900 12px Orbitron, sans-serif";
-    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    const name = member.name;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(0,0,0,0.85)";
-    ctx.strokeText(name, b.x + b.w / 2, b.y + b.h / 2);
-    ctx.fillStyle = "#FFFDFB";
-    ctx.fillText(name, b.x + b.w / 2, b.y + b.h / 2);
+
+    if (b.symbol && ELEMENT_DATA[b.symbol]) {
+      const zhName = ELEMENT_DATA[b.symbol][0];
+
+      // 1. 量測中英文寬度，計算置中起點
+      ctx.font = "900 14px Orbitron, sans-serif";
+      const engWidth = ctx.measureText(b.symbol).width;
+
+      ctx.font = "500 14px 'Noto Sans TC', sans-serif";
+      const zhWidth = ctx.measureText(zhName).width;
+
+      const gap = 5;
+      const totalWidth = engWidth + gap + zhWidth;
+      const startX = b.x + b.w / 2 - totalWidth / 2;
+
+      // ★ 新增：如果此元素是願望清單目標，在文字左邊畫一個發光小圓點
+      const needed = getNeededElements();
+      if (needed.includes(b.symbol)) {
+        ctx.beginPath();
+        // 位置放在英文起點向左推 10px，半徑 3px
+        ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#F6D98B"; // 亮黃色
+        ctx.shadowColor = "#F6D98B";
+        ctx.shadowBlur = 8; // 光暈效果
+        ctx.fill();
+        ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
+      }
+
+      // 2. 繪製英文 (粗體 + 黑體描邊)
+      ctx.font = "900 14px Orbitron, sans-serif";
+      ctx.fillStyle = "#FFFDFB";
+      ctx.textAlign = "left";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.75)";
+      ctx.strokeText(b.symbol, startX, b.y + b.h / 2 + 1);
+      ctx.fillText(b.symbol, startX, b.y + b.h / 2 + 1);
+
+      // 3. 繪製中文 (一般黑體 + 微弱陰影)
+      ctx.font = "500 14px 'Noto Sans TC', sans-serif";
+      ctx.fillStyle = "#666";
+      ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
+    } else {
+      // 預設沒有化學元素的磚塊維持原樣
+      const name = member.name;
+      ctx.font = "900 14px Orbitron, sans-serif";
+      ctx.textAlign = "center";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.85)";
+      ctx.strokeText(name, b.x + b.w / 2, b.y + b.h / 2);
+      ctx.fillText(name, b.x + b.w / 2, b.y + b.h / 2);
+    }
     ctx.restore();
   }
 
@@ -367,6 +416,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         boss.phase === 3 ? "#fda4af"
         : boss.phase === 2 ? "#d8b4fe"
         : "#9DD9E8";
+
       ctx.fillStyle = b.c || bulletGlow;
       ctx.shadowColor = b.c || bulletGlow;
       ctx.shadowBlur = 10;
@@ -601,6 +651,74 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.shadowBlur = 0;
   }
   ctx.globalAlpha = 1;
+
+  // ★ HTML 底部狀態列更新 (DOM Overlay)
+  const hud = document.getElementById("chem-bottom-hud");
+  if (hud) {
+    if (chemDLCEnabled && chemStates) {
+      hud.style.display = "flex";
+      const p1El = document.getElementById("hud-1p");
+      const p2El = document.getElementById("hud-2p");
+
+      // 建立技能類別的專屬配色字典
+      const categoryColors = {
+        "攻擊": "#E0576B", // 攻擊紅
+        "防禦": "#5FA8D3", // 防禦藍
+        "輔助": "#2EB886", // 輔助綠
+        "控制": "#DDA15E", // 控制橘
+        "特殊": "#A985DC", // 特殊紫
+        "實驗": "#8A7E9C", // 實驗灰
+      };
+
+      const getStatusText = (pId) => {
+        const eq = chemStates[pId]?.equipped || [];
+        const inv = chemStates[pId]?.inventory || {};
+        const validSkills = eq.filter((id) => id);
+
+        if (validSkills.length === 0)
+          return "<span style='opacity: 0.5;'>尚未裝備</span>";
+
+        return validSkills
+          .map((sId) => {
+            const skill = getSkillData(sId);
+            if (!skill) return "";
+
+            let maxCasts = 999;
+            for (const [sym, req] of Object.entries(skill.elements)) {
+              maxCasts = Math.min(maxCasts, Math.floor((inv[sym] || 0) / req));
+            }
+
+            // 擷取乾淨的化學式並將數字轉為下標
+            const pureFormula = skill.formula.split("(")[0];
+            const subscripted = pureFormula.replace(
+              /\d/g,
+              (d) => "₀₁₂₃₄₅₆₇₈₉"[d],
+            );
+
+            // 根據分類取得對應顏色，並繪製膠囊標籤
+            const color =
+              categoryColors[skill.category] || categoryColors["實驗"];
+
+            return `<span style="display: inline-flex; align-items: center; background: ${color}15; color: ${color}; padding: 1px 8px; border-radius: 12px; margin: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <span style="font-family: serif; font-weight: 900; letter-spacing: 0.5px;">${subscripted}</span> 
+                    <span style="font-size: 0.85em; opacity: 0.85; margin-left: 4px; color: #333;">x${maxCasts}</span>
+                  </span>`;
+          })
+          .join(""); // 取消原本的 | 分隔符號，改用標籤本身的 margin 分隔
+      };
+
+      // 使用 Flex 確保標籤與玩家字樣完美置中對齊
+      if (mode === 1 || onlineMode) {
+        p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
+        p2El.innerHTML = "";
+      } else {
+        p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
+        p2El.innerHTML = `<div style="display: flex; align-items: center; justify-content: flex-end;">${getStatusText(1)} <span style="color: #5fa8d3; margin-left: 8px;">2P</span></div>`;
+      }
+    } else {
+      hud.style.display = "none";
+    }
+  }
 }
 
 export function resetBackground() {

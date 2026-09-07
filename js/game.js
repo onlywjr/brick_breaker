@@ -1,3 +1,40 @@
+import {
+  initChemistrySystem,
+  setChemistryMode,
+  openChemistryShop,
+  equippedSkills,
+  wishlist,
+  chemSkills,
+  calculateBrickHP,
+} from "../mod/chemistry.js";
+
+window.setChemistryMode = setChemistryMode; // 讓 HTML 可以呼叫
+export let chemDLCEnabled = true; // ★ 新增 DLC 全域開關
+
+window.openChemistryShop = openChemistryShop;
+
+window.proceedToNextLevel = () => {
+  clearInterval(nextLevelTimer); // ★ 清除計時器
+  document.getElementById("level-clear-overlay").style.display = "none";
+  level++;
+  buildLevel(level, document.getElementById("game"));
+  resetRound(document.getElementById("game"));
+  running = true;
+  // ★ 修復卡死：重新喚醒遊戲迴圈引擎
+  loop.last = performance.now();
+  cancelAnimationFrame(animId);
+  animId = requestAnimationFrame((ts) =>
+    loop(ts, document.getElementById("game")),
+  );
+};
+
+window.enterShopFromLevelClear = () => {
+  clearInterval(nextLevelTimer);
+  document.getElementById("level-clear-overlay").style.display = "none";
+  // ★ 單人模式永遠是 1P (0)
+  openChemistryShop("單人配方商店", 0, window.proceedToNextLevel);
+};
+
 import { loadAudio, loadedAudio, playSfx } from "./audio.js";
 import {
   drawGameBackground,
@@ -49,6 +86,12 @@ export let bricks = [];
 export let drops = [];
 export let particles = [];
 export let floatTexts = [];
+
+// 假設基礎 Boss 血量定為 200
+const baseBossHp = 200;
+const bossMultiplier = 1 + (level - 1) * 0.15;
+const finalBossHp = Math.round(baseBossHp * bossMultiplier);
+
 export let boss = {
   active: false,
   level: 10,
@@ -56,8 +99,8 @@ export let boss = {
   y: 150,
   w: 160,
   h: 100,
-  hp: 100,
-  maxHp: 100,
+  hp: finalBossHp,
+  maxHp: finalBossHp,
   phase: 1,
   dx: 2,
   attackCooldown: 0,
@@ -128,6 +171,45 @@ function makePlayer(color, lightColor) {
   };
 }
 
+function generateBrickSymbol(gameMode) {
+  const basicPool = ["H", "C", "O", "N"];
+  let rarePool = [];
+
+  // 從已裝備的技能中，找出需要的特殊元素
+  equippedSkills.forEach((skillId) => {
+    if (!skillId) return;
+    const skill = chemSkills.find((s) => s.id === skillId);
+    if (skill) {
+      Object.keys(skill.elements).forEach((sym) => {
+        if (!basicPool.includes(sym)) rarePool.push(sym);
+      });
+    }
+  });
+
+  // 單人模式加入願望清單的元素
+  if (gameMode === 1) {
+    wishlist.forEach((skillId) => {
+      const skill = chemSkills.find((s) => s.id === skillId);
+      if (skill) {
+        Object.keys(skill.elements).forEach((sym) => {
+          if (!basicPool.includes(sym)) rarePool.push(sym);
+        });
+      }
+    });
+  }
+
+  // 去除重複，若玩家沒裝備任何技能，給予預設稀有池
+  rarePool = [...new Set(rarePool)];
+  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Fe", "Mg"];
+
+  // 70% 基礎元素，30% 稀有元素
+  if (Math.random() < 0.7) {
+    return basicPool[Math.floor(Math.random() * basicPool.length)];
+  } else {
+    return rarePool[Math.floor(Math.random() * rarePool.length)];
+  }
+}
+
 function buildLevel(lv, cv) {
   bricks.length = 0;
   drops.length = 0;
@@ -148,18 +230,25 @@ function buildLevel(lv, cv) {
       : 50;
     const memberIndex = (r * cols + c) % MEMBERS.length;
     let bX = c * (bw + pad) + offL;
+
+    // ★ 修正：先在這裡產生當前磚塊的化學元素符號
+    const currentBrickSymbol =
+      chemDLCEnabled ? generateBrickSymbol(mode) : null;
+
     bricks.push({
       x: bX,
       y: r * (bh + pad) + offT,
       w: bw,
       h: bh,
-      hp,
+      // ★ 修正：將產生的符號傳入計算血量，若沒開 DLC 則使用原本傳入的參數 hp
+      hp: chemDLCEnabled ? calculateBrickHP(currentBrickSymbol, level) : hp,
       maxHp: hp,
       ci: memberIndex,
       isMoving: isMoving,
       dx: isMoving ? (Math.random() > 0.5 ? 1 : -1) * 1.5 : 0,
       minX: bX - 30,
       maxX: bX + 30,
+      symbol: currentBrickSymbol, // ★ 修正：將剛剛產生的符號存入磚塊中
     });
   }
 
@@ -325,11 +414,31 @@ export function burst(x, y, c) {
 }
 
 export function startGameGlobal(selectedMode, cv) {
+  chemDLCEnabled = document.getElementById("enable-dlc").checked;
+  setChemistryMode(selectedMode);
+
+  if (selectedMode === 2 && chemDLCEnabled) {
+    // ★ 依序傳入 0 與 1
+    openChemistryShop("1P 配方商店", 0, () => {
+      openChemistryShop("2P 配方商店", 1, () => {
+        executeStartGame(selectedMode, cv);
+      });
+    });
+  } else {
+    executeStartGame(selectedMode, cv);
+  }
+}
+
+// 這裡不要加 export，作為內部呼叫使用
+function executeStartGame(selectedMode, cv) {
+  // 在 executeStartGame 開頭加入：
+  chemDLCEnabled = document.getElementById("enable-dlc").checked;
   onlineMode = false;
   document.getElementById("p1-label").style.display = "inline";
   document.body.classList.remove("online-battle-mode");
   if (selectedMode === 1) document.body.classList.add("single-layout");
   else document.body.classList.remove("single-layout");
+
   onlineEliminated = false;
   document.getElementById("online-opponents-left").style.display = "none";
   document.getElementById("online-opponents-right").style.display = "none";
@@ -338,32 +447,44 @@ export function startGameGlobal(selectedMode, cv) {
   document.getElementById("online-attack-status").style.display = "none";
   onlineMatchFinished = false;
   myPlayerId = socket?.id || null;
+
+  // ★ 確保模式正確設定 (這非常重要，物理引擎依賴這個)
   mode = selectedMode;
+
   document.getElementById("overlay").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
 
   const inputLv = parseInt(document.getElementById("start-level").value, 10);
   level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
+
+  // ★ 絕對不能加上 let！必須修改上方宣告的全域 p1, p2
   p1 = makePlayer("#F6A6C1", "#f9a8d4");
   p2 = makePlayer("#9DD9E8", "#9DD9E8");
   comboCount = 0;
 
+  document.getElementById("p1-width-bar").parentElement.style.display = "none";
   if (mode === 1) {
     document.getElementById("p2-card").style.display = "none";
     document.getElementById("p1-energy-wrap").style.display = "none";
     document.getElementById("p2-energy-wrap").style.display = "none";
+    // ★ 隱藏單人無用的血條
     document.getElementById("timer-container").style.display = "none";
   } else {
     document.getElementById("p2-card").style.display = "flex";
-    document.getElementById("p1-energy-wrap").style.display = "block";
-    document.getElementById("p2-energy-wrap").style.display = "block";
+    // ★ 化學模式下隱藏能量條，一般模式顯示
+    document.getElementById("p1-energy-wrap").style.display =
+      chemDLCEnabled ? "none" : "block";
+    document.getElementById("p2-energy-wrap").style.display =
+      chemDLCEnabled ? "none" : "block";
     document.getElementById("timer-container").style.display = "flex";
     gameTimeRemaining = 180;
   }
 
+  // 依序呼叫生成關卡與重新設定回合
   buildLevel(level, cv);
   resetRound(cv);
+
   running = true;
   loop.last = performance.now();
   updateVirtualButtonsVisibility(showVirtual, running, mode);
@@ -372,9 +493,13 @@ export function startGameGlobal(selectedMode, cv) {
   playSfx("music");
 }
 
+export let nextLevelTimer = null; // ★ 宣告倒數計時器
+
 export function startOnlineGame(state, cv) {
   onlineMode = true;
-  mode = 1;
+  mode = 1; // 底層模式
+  // ★ 強制讀取大廳同步好的 DLC 狀態
+  chemDLCEnabled = document.getElementById("enable-dlc").checked;
   myPlayerId = socket.id;
   Object.keys(onlinePlayers).forEach((k) => delete onlinePlayers[k]);
   onlineEliminated = false;
@@ -384,6 +509,7 @@ export function startOnlineGame(state, cv) {
   onlineSpeedTimer = 0;
   onlineAttackCooldown = 0;
   onlineAttackPending = false;
+
   document.getElementById("overlay").style.display = "none";
   document.body.classList.add("online-battle-mode", "single-layout");
   document.getElementById("p1-label").style.display = "none";
@@ -393,6 +519,14 @@ export function startOnlineGame(state, cv) {
   document
     .getElementById("p1-energy-wrap")
     ?.style.setProperty("display", "block");
+
+  document
+    .getElementById("p1-width-bar")
+    ?.parentElement.style.setProperty("display", "none"); // ★ 隱藏單人血條
+  document
+    .getElementById("p1-energy-wrap")
+    ?.style.setProperty("display", chemDLCEnabled ? "none" : "block"); // ★ 化學模式隱藏能量條
+
   document
     .getElementById("p2-energy-wrap")
     ?.style.setProperty("display", "none");
@@ -534,62 +668,59 @@ export function onlineChooseAttack() {
 
 export function onlineReceiveAttack(d) {
   if (!onlineMode || onlineEliminated) return;
-  const type = d?.type || "reverse",
-    power = Math.max(1, Number(d?.power) || 1),
-    name = d?.attackerName || "對手";
-  if (type === "shrink") {
-    p1.w = Math.max(p1.minW, p1.w - 25 * power);
-    p1.shrinkFx = 1;
-    onlineShowStatus(`💥 ${name}：擋板縮小！`);
-  } else if (type === "reverse") {
-    p1.reversed = true;
-    p1.reversedTimer = Math.max(3, 5 + power - 1);
-    onlineShowStatus(
-      `🔄 ${name}：操作反轉 ${Math.ceil(p1.reversedTimer)} 秒！`,
-      1800,
-    );
-  } else if (type === "garbage") {
-    /* inline garbage function logic to keep simple */ const bw = 72,
-      bh = 24,
-      pad = 8,
-      cols = 9,
-      offL = (800 - cols * (bw + pad) - pad) / 2;
-    for (const b of bricks) b.y -= power * (bh + pad);
-    for (let r = 0; r < power; r++)
-      for (let c = 0; c < cols; c++) {
-        if (Math.random() < 0.18) continue;
-        const x = c * (bw + pad) + offL;
-        bricks.push({
-          x,
-          y: 600 - (power - r) * (bh + pad) - 8,
-          w: bw,
-          h: bh,
-          hp: 4,
-          maxHp: 4,
-          ci: (c + r * cols) % MEMBERS.length,
-          isMoving: false,
-          dx: 0,
-          minX: x,
-          maxX: x,
-          interference: true,
-        });
-      }
-    burst(400, 530, "#E0576B");
-    onlineShowStatus(`🧱 ${name}：垃圾磚 ×${Math.min(2, power)}！`, 1600);
-  } else if (type === "blind") {
-    onlineBlindTimer = 2.8;
-    onlineShowStatus(`👁 ${name}：視線干擾！`, 1400);
-  } else if (type === "speed") {
-    if (p1.ball) {
-      p1.ball.dx *= 1.5;
-      p1.ball.dy *= 1.5;
-    }
-    onlineSpeedTimer = 3;
-    onlineShowStatus(`⚡ ${name}：球速 ×1.5！`, 1600);
+  const type = d?.type;
+  const power = Number(d?.power) || 1;
+  const duration = Number(d?.durationSec) || 3;
+  const name = d?.attackerName || "對手";
+
+  burst(400, 300, "#D96C8E"); // 畫面震動爆點
+
+  // 解析來自對手的 14 種標準化 Action
+  switch (type) {
+    case "damage_hp":
+      // 多人模式以分數為判定標準，直接扣分
+      p1.score = Math.max(0, p1.score - power * 5);
+      onlineShowStatus(`💥 ${name}：扣除 ${power * 5} 分！`, 1500);
+      break;
+
+    case "shrink_width":
+      p1.w = Math.max(p1.minW, p1.w * power);
+      p1.shrinkFx = 1;
+      onlineShowStatus(`💥 ${name}：擋板縮小！`, 1500);
+      setTimeout(() => {
+        p1.w = 120;
+      }, duration * 1000);
+      break;
+
+    case "slow_speed":
+      p1.speed = 9 * power; // 基礎速度 9 乘上減速倍率 (如 0.8)
+      onlineShowStatus(`🐢 ${name}：擋板減速！`, 1500);
+      setTimeout(() => {
+        p1.speed = 9;
+      }, duration * 1000);
+      break;
+
+    case "freeze":
+      p1.speed = 0;
+      onlineShowStatus(`❄️ ${name}：擋板完全凍結！`, 1500);
+      setTimeout(() => {
+        p1.speed = 9;
+      }, duration * 1000);
+      break;
+
+    case "reverse_controls":
+      p1.reversed = true;
+      p1.reversedTimer = duration;
+      onlineShowStatus(`🔄 ${name}：操作反轉！`, 1500);
+      break;
+
+    case "blind_screen":
+      onlineBlindTimer = duration;
+      const blindEl = document.getElementById("online-blind");
+      if (blindEl) blindEl.style.display = "block";
+      onlineShowStatus(`👁 ${name}：視線遮蔽！`, 1500);
+      break;
   }
-  burst(400, 300, "#D96C8E");
-  const blindEl = document.getElementById("online-blind");
-  if (blindEl) blindEl.style.display = onlineBlindTimer > 0 ? "block" : "none";
 }
 
 export function updateGameState(dt, cv) {
@@ -702,19 +833,47 @@ export function updateGameState(dt, cv) {
       p2.reversedTimer = 0;
     }
   }
+
   if (bricks.length === 0 && !boss.active) {
-    level++;
-    buildLevel(level, cv);
-    resetRound(cv);
     for (const pl of activePlayers) pl.score += 200;
-    floatTexts.push({
-      t: "STAGE CLEAR! +200!",
-      life: 1.5,
-      x: cv.width / 2,
-      y: cv.height / 2 - 50,
-      c: "#5FA8D3",
-    });
+
+    if (mode === 1) {
+      running = false;
+      const shopBtn = document.querySelector(
+        "#level-clear-overlay button:nth-child(1)",
+      );
+      if (shopBtn)
+        shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
+      document.getElementById("level-clear-overlay").style.display = "flex";
+
+      // ★ 啟動 10 秒倒數
+      if (chemDLCEnabled) {
+        let count = 10;
+        shopBtn.innerHTML = `🛒 進入商店 <span style="font-size:14px;">(${count}s)</span>`;
+        clearInterval(nextLevelTimer);
+        nextLevelTimer = setInterval(() => {
+          count--;
+          shopBtn.innerHTML = `🛒 進入商店 <span style="font-size:14px;">(${count}s)</span>`;
+          if (count <= 0) {
+            window.proceedToNextLevel();
+          }
+        }, 1000);
+      }
+    } else {
+      // 雙人模式直接進入下一波
+      level++;
+      buildLevel(level, cv);
+      resetRound(cv);
+      floatTexts.push({
+        t: "STAGE CLEAR! +200!",
+        life: 1.5,
+        x: cv.width / 2,
+        y: cv.height / 2 - 50,
+        c: "#5FA8D3",
+      });
+    }
   }
+
   if (onlineMode) {
     if (performance.now() - onlineLastStateSend >= 100) {
       onlineLastStateSend = performance.now();
@@ -858,3 +1017,29 @@ export function resetMatchState() {
 export function clearAttackPending() {
   onlineAttackPending = false;
 }
+
+// ==========================================
+// ★ 開發者測試專用：乾淨畫面凍結 (按 P 鍵)
+// ==========================================
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+  if (e.key.toLowerCase() === "p") {
+    const cv = document.getElementById("game");
+    if (!cv || cv.style.display === "none") return;
+
+    running = !running;
+
+    if (running) {
+      // 恢復遊戲
+      loop.last = performance.now();
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame((ts) => loop(ts, cv));
+      console.log("▶ 遊戲恢復運行");
+    } else {
+      // 凍結遊戲 (拔除所有畫布覆蓋效果，保持 100% 原畫面)
+      cancelAnimationFrame(animId);
+      console.log("⏸ 遊戲已完美凍結，可自由檢視畫面細節");
+    }
+  }
+});

@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="./css/game.css" />
     <link rel="stylesheet" href="./css/menu.css" />
     <link rel="stylesheet" href="./css/lobby.css" />
+    <link rel="stylesheet" href="./mod/chem.css" />
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   </head>
@@ -53,15 +54,6 @@
             width: 100%;
           ">
           <div class="menu-group menu-group-top">
-            <div class="menu-group-item">
-              <label>起始關卡:</label
-              ><input
-                type="number"
-                id="start-level"
-                value="1"
-                min="1"
-                max="999" />
-            </div>
             <button class="menu-group-item" onclick="window.startGame(1)">
               🚀 單人冒險模式
             </button>
@@ -90,8 +82,83 @@
               </button>
             </div>
           </div>
-        </div>
 
+          <!-- ★ 第三個區塊：遊戲設定 (合併單一區塊，中間分隔) -->
+          <div
+            class="menu-group"
+            style="
+              border-color: #c9b1e8;
+              box-shadow: 0 8px 25px rgba(201, 177, 232, 0.25);
+            ">
+            <div
+              class="menu-group-item split"
+              style="cursor: default; padding: 0">
+              <!-- 左側：起始關卡 (無邊框融合設計) -->
+              <div
+                style="
+                  flex: 1;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100%;
+                  border-right: 1px solid rgba(201, 177, 232, 0.5);
+                ">
+                <label
+                  for="start-level"
+                  style="
+                    font-size: 16px;
+                    font-weight: 900;
+                    color: #5d576b;
+                    cursor: pointer;
+                    padding: 0 10px 0 20px;
+                  "
+                  >關卡</label
+                >
+                <input
+                  type="number"
+                  id="start-level"
+                  value="1"
+                  min="1"
+                  max="999"
+                  style="
+                    width: 40px;
+                    background: transparent;
+                    border: none;
+                    outline: none;
+                    font-family: &quot;Orbitron&quot;, sans-serif;
+                    font-size: 20px;
+                    font-weight: 900;
+                    color: #d96c8e;
+                    text-align: center;
+                    cursor: pointer;
+                    padding: 0;
+                  " />
+              </div>
+
+              <!-- 右側：化學 DLC 開關 -->
+              <label
+                style="
+                  flex: 1;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100%;
+                  font-size: 16px;
+                  font-weight: 900;
+                  color: #5d576b;
+                  cursor: pointer;
+                ">
+                化學 DLC
+                <div
+                  class="toggle-switch"
+                  style="margin-left: 12px; transform: scale(0.9)">
+                  <input type="checkbox" id="enable-dlc" checked />
+                  <span class="slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
         <div
           id="lobby-screen"
           style="
@@ -101,25 +168,76 @@
             width: 100%;
             z-index: 200;
           ">
-          <div style="font-size: 16px; color: #7a728a; margin-bottom: 4px">
-            多人連線大廳
-          </div>
-          <h2
+          <!-- ★ 將代碼與模式並排，用分隔線隔開，並加上微透明背景襯托 -->
+          <div
             style="
-              color: #dda15e;
-              font-family: &quot;Orbitron&quot;;
-              font-size: 28px;
-              margin-bottom: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 15px;
+              margin-bottom: 15px;
             ">
-            房間代碼: <span id="lobby-code" style="color: #5d576b"></span>
-          </h2>
+            <h2
+              style="
+                color: #dda15e;
+                font-size: 28px;
+                font-weight: 900;
+                margin: 0;
+              ">
+              <span style="font-family: Noto Sans TC">房間代碼: </span
+              ><span
+                id="lobby-code"
+                style="
+                  color: #5d576b;
+                  font-family: &quot;Orbitron&quot;;
+                "></span>
+            </h2>
+            <div
+              style="
+                width: 2px;
+                height: 28px;
+                background: rgba(201, 177, 232, 0.6);
+              "></div>
+            <div
+              id="lobby-dlc-status"
+              style="
+                font-size: 20px;
+                font-weight: 900;
+                color: #a8dd5e;
+                margin-top: 2px;
+              ">
+              🧪 化學擴展 (DLC)
+            </div>
+          </div>
+
           <div id="player-list"></div>
-          <button
-            id="btn-ready"
-            class="menu-item-macaron macaron-pink"
-            onclick="window.toggleReady()">
-            準備完成
-          </button>
+
+          <div style="display: flex; gap: 10px; margin-top: 10px">
+            <button
+              id="btn-lobby-shop"
+              class="menu-item-macaron macaron-yellow"
+              style="width: 155px"
+              onclick="
+                window.setChemistryMode(2);
+                window.openChemistryShop('多人配方商店', 0);
+              ">
+              🛒 進入商店
+            </button>
+            <button
+              id="btn-ready"
+              class="menu-item-macaron macaron-pink"
+              style="width: 155px"
+              onclick="window.toggleReady()">
+              準備完成
+            </button>
+            <!-- ★ 格式比照上面按鈕，換成 macaron-blue 樣式，並改為「離開」 -->
+            <button
+              class="menu-item-macaron macaron-blue"
+              style="width: 150px"
+              onclick="window.location.reload()">
+              離開
+            </button>
+          </div>
         </div>
 
         <div id="bottom-status-bar">
@@ -130,6 +248,47 @@
             <div id="room-status"></div>
             <div id="lobby-countdown">10s...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- ★ 新增：單人過關商店選擇畫面 (放在 #status 上方) -->
+      <div
+        id="level-clear-overlay"
+        style="
+          display: none;
+          position: absolute;
+          inset: 0;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(10px);
+          z-index: 300;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+        ">
+        <h1
+          style="
+            color: #dda15e;
+            font-family: &quot;Orbitron&quot;, sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 30px;
+          ">
+          STAGE CLEAR!
+        </h1>
+        <div style="display: flex; gap: 20px">
+          <button
+            class="btn"
+            style="min-width: 180px; border-color: #f6d98b"
+            onclick="window.enterShopFromLevelClear()">
+            🛒 進入商店
+          </button>
+          <button
+            class="btn"
+            style="min-width: 180px; border-color: #9dd9e8"
+            onclick="window.proceedToNextLevel()">
+            ▶ 下一關
+          </button>
         </div>
       </div>
 
@@ -209,7 +368,29 @@
       </div>
 
       <canvas id="game" width="800" height="600"></canvas>
-
+      <!-- ★ 化學 DLC HTML 狀態列 (疊加於 Canvas 之上) -->
+      <div
+        id="chem-bottom-hud"
+        style="
+          display: none;
+          position: absolute;
+          bottom: 0px;
+          left: 0px;
+          width: 100%;
+          height: 28px;
+          background: rgba(255, 255, 255, 0.85);
+          z-index: 50;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 20px 7px 20px;
+          box-sizing: border-box;
+          pointer-events: none;
+          font-size: 13px;
+          border-radius: 0 0 10px 10px;
+        ">
+        <div id="hud-1p"></div>
+        <div id="hud-2p" style="text-align: right"></div>
+      </div>
       <div id="online-opponents-left" class="side-opponents"></div>
       <div id="online-opponents-right" class="side-opponents"></div>
       <div id="online-opponents-bottom" class="bottom-opponents"></div>
@@ -240,9 +421,12 @@
         joinRoom,
         toggleReady,
         socket,
+        updateReadyButton,
       } from "./js/socket.js";
       import { onlineRenderPlayers } from "./js/lobby.js";
       import { showOnlineMatchOver } from "./js/game.js";
+
+      import { initChemistrySystem } from "./mod/chemistry.js";
 
       // 綁定全域函式供 HTML onclick 使用
       window.startGame = (mode) =>
@@ -271,7 +455,7 @@
       };
 
       // 初始化資源與綁定事件
-      Promise.all([loadImages(), loadAudio()])
+      Promise.all([loadImages(), loadAudio(), initChemistrySystem()])
         .then(() => {
           document.getElementById("loading").style.display = "none";
           document.getElementById("menu-btns").style.display = "flex";
@@ -284,11 +468,73 @@
               document.getElementById("menu-btns").style.display = "none";
               document.getElementById("lobby-screen").style.display = "flex";
               document.getElementById("lobby-code").innerText = code;
+              setChemistryMode(2);
+
+              // ★ 進大廳時先讀取一次本地開關狀態，避免初始顯示錯誤
+              const isDlc = document.getElementById("enable-dlc").checked;
+              const dlcStatus = document.getElementById("lobby-dlc-status");
+              if (dlcStatus) {
+                dlcStatus.innerText =
+                  isDlc ? "🧪 化學擴展 (DLC)" : "🎮 一般對戰";
+                dlcStatus.style.color = isDlc ? "#DDA15E" : "#7A728A";
+              }
+              if (typeof updateReadyButton === "function") updateReadyButton(); // 同步商店按鈕
             },
             onLobbyState: (state) => {
-              /* internal lobby handled */
+              // ★ 新增：房主負責廣播 DLC 狀態，其他玩家禁用勾選框
+              const me = (state?.players || []).find((p) => p.id === socket.id);
+              const isHost = me?.host;
+              const dlcCb = document.getElementById("enable-dlc");
+              if (dlcCb) {
+                if (isHost) {
+                  dlcCb.parentElement.style.pointerEvents = "auto";
+                  dlcCb.parentElement.style.opacity = "1";
+                  socket.emit("playerState", {
+                    isLobbySync: true,
+                    dlc: dlcCb.checked,
+                  });
+                } else {
+                  dlcCb.parentElement.style.pointerEvents = "none";
+                  dlcCb.parentElement.style.opacity = "0.5";
+                }
+              }
             },
             onOnlineState: (state) => {
+              if (state?.isLobbySync !== undefined) {
+                const dlcCb = document.getElementById("enable-dlc");
+                if (dlcCb) dlcCb.checked = state.dlc;
+
+                const dlcStatus = document.getElementById("lobby-dlc-status");
+                if (dlcStatus) {
+                  dlcStatus.innerText =
+                    state.dlc ? "🧪 化學擴展 (DLC)" : "🎮 一般對戰";
+                  dlcStatus.style.color = state.dlc ? "#DDA15E" : "#7A728A";
+                }
+
+                // ★ 接收到房主 DLC 變更時，同步刷新商店按鈕禁用狀態
+                if (typeof updateReadyButton === "function")
+                  updateReadyButton();
+                return;
+              }
+              // ★ 新增：攔截大廳的 DLC 廣播，動態更新 UI 與隱藏商店按鈕
+              if (state?.isLobbySync !== undefined) {
+                const dlcCb = document.getElementById("enable-dlc");
+                if (dlcCb) dlcCb.checked = state.dlc;
+
+                const dlcStatus = document.getElementById("lobby-dlc-status");
+                if (dlcStatus) {
+                  dlcStatus.innerText =
+                    state.dlc ?
+                      "🧪 當前模式: 化學擴展 (DLC)"
+                    : "🎮 當前模式: 一般對戰";
+                  dlcStatus.style.color = state.dlc ? "#DDA15E" : "#7A728A";
+                }
+                const lobbyShop = document.getElementById("btn-lobby-shop");
+                if (lobbyShop)
+                  lobbyShop.style.display = state.dlc ? "flex" : "none";
+                return; // 這是大廳廣播，不進入下方物理引擎的渲染
+              }
+
               if (!onlineMode || !state?.id || state.id === myPlayerId) return;
               onlinePlayers[state.id] = {
                 ...(onlinePlayers[state.id] || {}),

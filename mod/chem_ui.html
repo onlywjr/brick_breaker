@@ -1,0 +1,65 @@
+<div id="chem-ui-overlay">
+  <!-- 上半部：左右雙欄佈局 -->
+  <div id="chem-shop-section" class="shop-two-column">
+    <!-- 左欄：商店標題、頁籤與卡片 -->
+    <div class="shop-left-col">
+      <div class="shop-header">
+        <h2>🛒 配方商店</h2>
+        <div class="chem-tabs"></div>
+        <!-- 返回按鈕加上 Emoji -->
+        <button
+          class="chem-return-btn"
+          onclick="
+            document.getElementById('chem-ui-overlay').style.display = 'none'
+          ">
+          ↩️ 返回主畫面
+        </button>
+      </div>
+      <div class="shop-carousel-wrapper">
+        <button
+          id="shop-prev-btn"
+          class="shop-nav-btn"
+          onclick="prevShopPage()">
+          &#10094;
+        </button>
+
+        <!-- 改為網格分頁容器 -->
+        <div id="chem-skill-cards-container" class="chem-card-grid-page">
+          <!-- 動態產生 -->
+        </div>
+
+        <button
+          id="shop-next-btn"
+          class="shop-nav-btn"
+          onclick="nextShopPage()">
+          &#10095;
+        </button>
+      </div>
+    </div>
+
+    <!-- 右欄：裝備槽 -->
+    <div class="shop-right-col">
+      <div id="chem-equipped-slots" class="chem-equipped-container-vertical">
+        <!-- 動態產生 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 下半部：週期表主區塊與 3x5 側邊區塊 -->
+  <div id="chem-pt-section" class="pt-layout-wrapper">
+    <!-- 左側主週期表 -->
+    <div id="chem-pt-grid" class="pt-main-grid"></div>
+
+    <!-- 右側：鑭系與錒系獨立區塊 -->
+    <div class="pt-side-blocks">
+      <div class="pt-block">
+        <div class="pt-block-title">鑭系 Lanthanides</div>
+        <div id="chem-lanthanides-grid" class="pt-sub-grid"></div>
+      </div>
+      <div class="pt-block">
+        <div class="pt-block-title">錒系 Actinides</div>
+        <div id="chem-actinides-grid" class="pt-sub-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>

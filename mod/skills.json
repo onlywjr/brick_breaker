@@ -1,0 +1,2411 @@
+{
+  "meta": {
+    "description": "BRICK RUSH 99 化學技能對照表。全面升級為 14 種標準化 Action，根據分子量換算為具體的 Level，並補回所有化合物專屬的背景說明 Flavor Text。",
+    "derivedFieldsNote": "atomCount 由 elements 內所有數量加總得出；avgAtomicWeight = molecularWeight / atomCount；strength 由下方公式在遊戲載入時即時計算，不寫死在本檔案中。",
+    "strengthFormula": "strength = clamp(molecularWeight * STRENGTH_BASE_COEFFICIENT - avgAtomicWeight * AVG_ATOMIC_WEIGHT_PENALTY_COEFFICIENT, MIN_STRENGTH, MAX_STRENGTH)",
+    "costFormula": "cost = molecularWeight * MOLECULAR_WEIGHT_TO_COST_RATIO"
+  },
+  "constants": {
+    "MOLECULAR_WEIGHT_TO_COST_RATIO": 1,
+    "STRENGTH_BASE_COEFFICIENT": 1.0,
+    "AVG_ATOMIC_WEIGHT_PENALTY_COEFFICIENT": 0.5,
+    "MIN_STRENGTH": 10,
+    "MAX_STRENGTH": 999
+  },
+  "skills": [
+    {
+      "id": "helium_hydride_ion",
+      "name": "太初星火",
+      "formula": "HeH+(氦氫離子)",
+      "molecularWeight": 5,
+      "elements": { "He": 1, "H": 1 },
+      "category": "特殊",
+      "description": "宇宙誕生後最早形成的分子。 【單人】Lv.1 獲得貫穿屬性 3 秒。 【多人】Lv.1 扣除對手 3 點生命。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 3 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "methane",
+      "name": "沼氣燃動",
+      "formula": "CH4(甲烷)",
+      "molecularWeight": 16,
+      "elements": { "C": 1, "H": 4 },
+      "category": "輔助",
+      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 遮蔽對手視線 2 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 1.15, "durationSec": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 2 }
+      }
+    },
+    {
+      "id": "ammonia",
+      "name": "刺鼻迷霧",
+      "formula": "NH3(氨氣)",
+      "molecularWeight": 17,
+      "elements": { "N": 1, "H": 3 },
+      "category": "攻擊",
+      "description": "具有強烈刺鼻氣味的鹼性氣體。 【單人】Lv.1 擋板寬度增加 10%，持續 4 秒。 【多人】Lv.1 對手擋板縮小 5%，持續 4 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.1, "durationSec": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.95, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "water_life",
+      "name": "生命之源",
+      "formula": "H2O(水)",
+      "molecularWeight": 18,
+      "elements": { "H": 2, "O": 1 },
+      "category": "防禦",
+      "description": "孕育生命的基礎，覆蓋地球表面的大部分。 【單人】Lv.1 回復 1 點生命。 【多人】Lv.1 獲得 1 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 1 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      }
+    },
+    {
+      "id": "hydrogen_peroxide",
+      "name": "氧化沸騰",
+      "formula": "H2O2(雙氧水)",
+      "molecularWeight": 34,
+      "elements": { "H": 2, "O": 2 },
+      "category": "攻擊",
+      "description": "強效的氧化劑，常用於消毒與漂白。 【單人】Lv.1 對全場磚塊造成 2 點傷害。 【多人】Lv.1 扣除對手 3 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "sodium_hydroxide",
+      "name": "強鹼淨化",
+      "formula": "NaOH(氫氧化鈉)",
+      "molecularWeight": 40,
+      "elements": { "Na": 1, "O": 1, "H": 1 },
+      "category": "輔助",
+      "description": "強鹼性物質，能與酸劇烈中和。 【單人】Lv.1 瞬間消除底層 1 排磚塊。 【多人】Lv.1 獲得 1 層護盾。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 1 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      }
+    },
+    {
+      "id": "magnesium_oxide",
+      "name": "耐火壁壘",
+      "formula": "MgO(氧化鎂)",
+      "molecularWeight": 40,
+      "elements": { "Mg": 1, "O": 1 },
+      "category": "防禦",
+      "description": "耐高溫的白色固體，常用作耐火材料。 【單人】Lv.1 獲得 1 層護盾。 【多人】Lv.1 獲得 1 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      }
+    },
+    {
+      "id": "carbon_dioxide",
+      "name": "窒息氣流",
+      "formula": "CO2(二氧化碳)",
+      "molecularWeight": 44,
+      "elements": { "C": 1, "O": 2 },
+      "category": "控制",
+      "description": "燃燒與呼吸作用的產物，能產生溫室效應。 【單人】Lv.1 減緩球速 10%，持續 4 秒。 【多人】Lv.1 對手擋板減速 5%，持續 4 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 0.9, "durationSec": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.95, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "ethanol",
+      "name": "烈焰佳釀",
+      "formula": "C2H6O(乙醇)",
+      "molecularWeight": 46,
+      "elements": { "C": 2, "H": 6, "O": 1 },
+      "category": "輔助",
+      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 扣除對手 3 點生命。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 1.15, "durationSec": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "calcium_oxide",
+      "name": "石灰熱浪",
+      "formula": "CaO(氧化鈣)",
+      "molecularWeight": 56,
+      "elements": { "Ca": 1, "O": 1 },
+      "category": "攻擊",
+      "description": "遇水會釋放大量熱能的生石灰。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 對手擋板減速 10%，持續 5 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.9, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "sodium_chloride",
+      "name": "結晶干擾",
+      "formula": "NaCl(氯化鈉)",
+      "molecularWeight": 58.5,
+      "elements": { "Na": 1, "Cl": 1 },
+      "category": "控制",
+      "description": "最常見的鹽類，維持生命運作的必需品。 【單人】Lv.2 瞬間消除底層 2 排磚塊。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.9, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "silicon_dioxide",
+      "name": "幻影晶牆",
+      "formula": "SiO2(二氧化矽)",
+      "molecularWeight": 60,
+      "elements": { "Si": 1, "O": 2 },
+      "category": "特殊",
+      "description": "構成石英與玻璃的主要成分，堅硬透明。 【單人】Lv.2 獲得貫穿屬性 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 5 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "argon_fluorohydride",
+      "name": "躍遷閃爍",
+      "formula": "HArF(氟氫化氬)",
+      "molecularWeight": 60,
+      "elements": { "H": 1, "Ar": 1, "F": 1 },
+      "category": "特殊",
+      "description": "極低溫下才能短暫存在的惰性氣體化合物。 【單人】Lv.2 獲得貫穿屬性 5 秒。 【多人】Lv.2 反轉對手操作 4 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 5 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "carbonic_acid",
+      "name": "氣泡衝擊",
+      "formula": "H2CO3(碳酸)",
+      "molecularWeight": 62,
+      "elements": { "H": 2, "C": 1, "O": 3 },
+      "category": "特殊",
+      "description": "溶有二氧化碳的微酸性液體，易產生氣泡。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "nitric_acid",
+      "name": "酸蝕印記",
+      "formula": "HNO3(硝酸)",
+      "molecularWeight": 63,
+      "elements": { "H": 1, "N": 1, "O": 3 },
+      "category": "攻擊",
+      "description": "具強烈腐蝕性與氧化性的三大強酸之一。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 反轉對手操作 4 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "lithium_carbonate",
+      "name": "寧靜天秤",
+      "formula": "Li2CO3(碳酸鋰)",
+      "molecularWeight": 74,
+      "elements": { "Li": 2, "C": 1, "O": 3 },
+      "category": "輔助",
+      "description": "常用於穩定神經與情緒的鋰鹽製劑。 【單人】Lv.2 擋板寬度增加 20%，持續 6 秒。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.2, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.9, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "calcium_fluoride",
+      "name": "螢石光盾",
+      "formula": "CaF2(氟化鈣)",
+      "molecularWeight": 78,
+      "elements": { "Ca": 1, "F": 2 },
+      "category": "防禦",
+      "description": "天然的螢石礦物，在紫外光下會發光。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 獲得 1 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      }
+    },
+    {
+      "id": "titanium_dioxide",
+      "name": "光能閃耀",
+      "formula": "TiO2(二氧化鈦)",
+      "molecularWeight": 80,
+      "elements": { "Ti": 1, "O": 2 },
+      "category": "防禦",
+      "description": "優良的光催化劑與最白的天然顏料。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 1 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "copper_ii_oxide",
+      "name": "黑化侵蝕",
+      "formula": "CuO(氧化銅)",
+      "molecularWeight": 80,
+      "elements": { "Cu": 1, "O": 1 },
+      "category": "攻擊",
+      "description": "黑色的氧化銅粉末，具備催化特性。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "sodium_bicarbonate",
+      "name": "湧泉氣泡",
+      "formula": "NaHCO3(碳酸氫鈉)",
+      "molecularWeight": 84,
+      "elements": { "Na": 1, "H": 1, "C": 1, "O": 3 },
+      "category": "特殊",
+      "description": "俗稱小蘇打，遇酸會迅速產生二氧化碳氣泡。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "manganese_dioxide",
+      "name": "無盡連鎖",
+      "formula": "MnO2(二氧化錳)",
+      "molecularWeight": 87,
+      "elements": { "Mn": 1, "O": 2 },
+      "category": "輔助",
+      "description": "強效催化劑，能加速雙氧水分解。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 對手擋板減速 10%，持續 5 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 3, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.9, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "zinc_sulfide",
+      "name": "螢光標記",
+      "formula": "ZnS(硫化鋅)",
+      "molecularWeight": 97,
+      "elements": { "Zn": 1, "S": 1 },
+      "category": "特殊",
+      "description": "常見的磷光材料，吸收光能後會持續發光。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 3, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 3 }
+      }
+    },
+    {
+      "id": "sulfuric_acid",
+      "name": "毀滅酸雨",
+      "formula": "H2SO4(硫酸)",
+      "molecularWeight": 98,
+      "elements": { "H": 2, "S": 1, "O": 4 },
+      "category": "攻擊",
+      "description": "工業之母，具備強烈脫水性與腐蝕性的強酸。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.9, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "calcium_carbonate",
+      "name": "岩石甲殼",
+      "formula": "CaCO3(碳酸鈣)",
+      "molecularWeight": 100,
+      "elements": { "Ca": 1, "C": 1, "O": 3 },
+      "category": "防禦",
+      "description": "構成大自然中石灰岩與貝殼的堅硬構造。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 獲得 2 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "potassium_nitrate",
+      "name": "火藥爆破",
+      "formula": "KNO3(硝酸鉀)",
+      "molecularWeight": 101,
+      "elements": { "K": 1, "N": 1, "O": 3 },
+      "category": "攻擊",
+      "description": "俗稱硝石，製造黑火藥的核心成分。 【單人】Lv.3 瞬間消除底層 3 排磚塊。 【多人】Lv.3 扣除對手 9 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 9 }
+      }
+    },
+    {
+      "id": "aluminum_oxide",
+      "name": "藍寶石之壁",
+      "formula": "Al2O3(氧化鋁)",
+      "molecularWeight": 102,
+      "elements": { "Al": 2, "O": 3 },
+      "category": "防禦",
+      "description": "構成藍寶石與紅寶石的高硬度晶體。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 獲得 2 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "germanium_dioxide",
+      "name": "光纖視界",
+      "formula": "GeO2(二氧化鍺)",
+      "molecularWeight": 105,
+      "elements": { "Ge": 1, "O": 2 },
+      "category": "輔助",
+      "description": "具備高折射率，光纖通訊的核心材料。 【單人】Lv.3 擋板寬度增加 30%，持續 8 秒。 【多人】Lv.3 對手擋板縮小 15%，持續 8 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.3, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.85, "durationSec": 8 }
+      }
+    },
+    {
+      "id": "palladium_hydride",
+      "name": "海綿吸收",
+      "formula": "PdH(氫化鈀)",
+      "molecularWeight": 107,
+      "elements": { "Pd": 1, "H": 1 },
+      "category": "防禦",
+      "description": "鈀金屬能像海綿般吸附大量氫氣。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 回復 2 點生命。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "krypton_difluoride",
+      "name": "不穩定爆破",
+      "formula": "KrF2(二氟化氪)",
+      "molecularWeight": 122,
+      "elements": { "Kr": 1, "F": 2 },
+      "category": "攻擊",
+      "description": "極不穩定的惰性氣體化合物，易發生爆裂。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 扣除對手 9 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 9 }
+      }
+    },
+    {
+      "id": "zirconium_dioxide",
+      "name": "陶瓷利刃",
+      "formula": "ZrO2(二氧化鋯)",
+      "molecularWeight": 123,
+      "elements": { "Zr": 1, "O": 2 },
+      "category": "攻擊",
+      "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 扣除對手 9 點生命。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 9 }
+      }
+    },
+    {
+      "id": "neon_clathrate",
+      "name": "極寒冰牢",
+      "formula": "Ne·6H2O(氖籠形水合物)",
+      "molecularWeight": 128,
+      "elements": { "Ne": 1, "H": 12, "O": 6 },
+      "category": "特殊",
+      "description": "惰性氣體被冰晶籠困住的特殊水合物。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "cobalt_chloride",
+      "name": "真視之眼",
+      "formula": "CoCl2(氯化亞鈷)",
+      "molecularWeight": 130,
+      "elements": { "Co": 1, "Cl": 2 },
+      "category": "特殊",
+      "description": "隨濕度改變顏色的無機化合物，猶如真視之眼。 【單人】Lv.3 積分獲取變為 4 倍，持續 8 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 4, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "ruthenium_dioxide",
+      "name": "雷暴過載",
+      "formula": "RuO2(二氧化釕)",
+      "molecularWeight": 133,
+      "elements": { "Ru": 1, "O": 2 },
+      "category": "控制",
+      "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "scandium_oxide",
+      "name": "航太裝甲",
+      "formula": "Sc2O3(氧化鈧)",
+      "molecularWeight": 138,
+      "elements": { "Sc": 2, "O": 3 },
+      "category": "防禦",
+      "description": "提升合金強度的稀有航太材料。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 對手擋板縮小 15%，持續 8 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.85, "durationSec": 8 }
+      }
+    },
+    {
+      "id": "silver_chloride",
+      "name": "暗影殘跡",
+      "formula": "AgCl(氯化銀)",
+      "molecularWeight": 143,
+      "elements": { "Ag": 1, "Cl": 1 },
+      "category": "特殊",
+      "description": "遇光會分解變黑的感光材料。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "gallium_arsenide",
+      "name": "奪目強光",
+      "formula": "GaAs(砷化鎵)",
+      "molecularWeight": 145,
+      "elements": { "Ga": 1, "As": 1 },
+      "category": "控制",
+      "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "strontium_carbonate",
+      "name": "緋紅煙火",
+      "formula": "SrCO3(碳酸鍶)",
+      "molecularWeight": 148,
+      "elements": { "Sr": 1, "C": 1, "O": 3 },
+      "category": "攻擊",
+      "description": "燃燒時會發出耀眼紅光的煙火焰色劑。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 4 }
+      }
+    },
+    {
+      "id": "nickel_sulfate",
+      "name": "雷光麻痺",
+      "formula": "NiSO4(硫酸鎳)",
+      "molecularWeight": 155,
+      "elements": { "Ni": 1, "S": 1, "O": 4 },
+      "category": "控制",
+      "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 5 }
+      }
+    },
+    {
+      "id": "potassium_permanganate",
+      "name": "紫焰淨化",
+      "formula": "KMnO4(高錳酸鉀)",
+      "molecularWeight": 158,
+      "elements": { "K": 1, "Mn": 1, "O": 4 },
+      "category": "攻擊",
+      "description": "呈現深紫色的強效氧化劑與消毒劑。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 12 }
+      }
+    },
+    {
+      "id": "iron_iii_oxide",
+      "name": "鐵鏽護甲",
+      "formula": "Fe2O3(氧化鐵)",
+      "molecularWeight": 160,
+      "elements": { "Fe": 2, "O": 3 },
+      "category": "防禦",
+      "description": "常見的紅色鐵鏽，質地堅硬的氧化層。 【單人】Lv.4 擋板寬度增加 40%，持續 10 秒。 【多人】Lv.4 對手擋板縮小 20%，持續 10 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.4, "durationSec": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.8, "durationSec": 10 }
+      }
+    },
+    {
+      "id": "copper_sulfate",
+      "name": "蒼藍毒泉",
+      "formula": "CuSO4(硫酸銅)",
+      "molecularWeight": 160,
+      "elements": { "Cu": 1, "S": 1, "O": 4 },
+      "category": "攻擊",
+      "description": "呈現澄澈藍色的電解質溶液，具毒性。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 12 }
+      }
+    },
+    {
+      "id": "molybdenum_disulfide",
+      "name": "滑行穿透",
+      "formula": "MoS2(二硫化鉬)",
+      "molecularWeight": 160,
+      "elements": { "Mo": 1, "S": 2 },
+      "category": "輔助",
+      "description": "極佳的固態潤滑劑，能大幅降低摩擦力。 【單人】Lv.4 獲得貫穿屬性 9 秒。 【多人】Lv.4 反轉對手操作 6 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 9 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 6 }
+      }
+    },
+    {
+      "id": "zinc_sulfate",
+      "name": "生機縫合",
+      "formula": "ZnSO4(硫酸鋅)",
+      "molecularWeight": 161,
+      "elements": { "Zn": 1, "S": 1, "O": 4 },
+      "category": "輔助",
+      "description": "具收斂與防腐作用的無機鹽類。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 獲得 2 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "ferric_chloride",
+      "name": "深度腐蝕",
+      "formula": "FeCl3(氯化鐵)",
+      "molecularWeight": 162,
+      "elements": { "Fe": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "溶於水呈黃褐色，具備強烈腐蝕性的酸性鹽。 【單人】Lv.4 瞬間消除底層 4 排磚塊。 【多人】Lv.4 對手擋板減速 20%，持續 7 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.8, "durationSec": 7 }
+      }
+    },
+    {
+      "id": "cesium_chloride",
+      "name": "晶格禁錮",
+      "formula": "CsCl(氯化銫)",
+      "molecularWeight": 168.5,
+      "elements": { "Cs": 1, "Cl": 1 },
+      "category": "控制",
+      "description": "形成典型立方晶體結構的銫鹽。 【單人】Lv.4 減緩球速 40%，持續 7 秒。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 0.6, "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 5 }
+      }
+    },
+    {
+      "id": "silver_nitrate",
+      "name": "白銀烙印",
+      "formula": "AgNO3(硝酸銀)",
+      "molecularWeight": 170,
+      "elements": { "Ag": 1, "N": 1, "O": 3 },
+      "category": "攻擊",
+      "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 12 }
+      }
+    },
+    {
+      "id": "cerium_dioxide",
+      "name": "全知飛彈",
+      "formula": "CeO2(二氧化鈰)",
+      "molecularWeight": 172,
+      "elements": { "Ce": 1, "O": 2 },
+      "category": "特殊",
+      "description": "優良的拋光與光學催化劑。 【單人】Lv.4 獲得貫穿屬性 9 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 9 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 12 }
+      }
+    },
+    {
+      "id": "glucose_energy",
+      "name": "能量湧動",
+      "formula": "C6H12O6(葡萄糖)",
+      "molecularWeight": 180,
+      "elements": { "C": 6, "H": 12, "O": 6 },
+      "category": "輔助",
+      "description": "生物體內最重要的能量來源。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 5 }
+      }
+    },
+    {
+      "id": "vanadium_pentoxide",
+      "name": "催化火種",
+      "formula": "V2O5(五氧化二釩)",
+      "molecularWeight": 182,
+      "elements": { "V": 2, "O": 5 },
+      "category": "輔助",
+      "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 12 }
+      }
+    },
+    {
+      "id": "sodium_pertechnetate",
+      "name": "核子顯影",
+      "formula": "NaTcO4(高鎝酸鈉)",
+      "molecularWeight": 185,
+      "elements": { "Na": 1, "Tc": 1, "O": 4 },
+      "category": "特殊",
+      "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 遮蔽對手視線 5 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 5, "durationSec": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 5 }
+      }
+    },
+    {
+      "id": "silver_bromide",
+      "name": "顯影快門",
+      "formula": "AgBr(溴化銀)",
+      "molecularWeight": 188,
+      "elements": { "Ag": 1, "Br": 1 },
+      "category": "特殊",
+      "description": "傳統底片中最重要的感光乳劑成分。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 遮蔽對手視線 5 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 5, "durationSec": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 5 }
+      }
+    },
+    {
+      "id": "cadmium_selenide",
+      "name": "量子尋星",
+      "formula": "CdSe(硒化鎘)",
+      "molecularWeight": 191,
+      "elements": { "Cd": 1, "Se": 1 },
+      "category": "特殊",
+      "description": "應用於尖端顯示器技術的發光量子點。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 反轉對手操作 6 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 5, "durationSec": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 6 }
+      }
+    },
+    {
+      "id": "tungsten_carbide",
+      "name": "金剛不壞",
+      "formula": "WC(碳化鎢)",
+      "molecularWeight": 196,
+      "elements": { "W": 1, "C": 1 },
+      "category": "防禦",
+      "description": "硬度僅次於鑽石，廣泛用於工業切削。 【單人】Lv.4 獲得 2 層護盾。 【多人】Lv.4 獲得 2 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "barium_carbonate",
+      "name": "無敵重甲",
+      "formula": "BaCO3(碳酸鋇)",
+      "molecularWeight": 197,
+      "elements": { "Ba": 1, "C": 1, "O": 3 },
+      "category": "防禦",
+      "description": "用於製造光學玻璃與陶瓷的重型結構材料。 【單人】Lv.4 獲得 2 層護盾。 【多人】Lv.4 獲得 2 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2 }
+      }
+    },
+    {
+      "id": "xenon_tetrafluoride",
+      "name": "極地崩塌",
+      "formula": "XeF4(四氟化氙)",
+      "molecularWeight": 207,
+      "elements": { "Xe": 1, "F": 4 },
+      "category": "攻擊",
+      "description": "證明惰性氣體也能參與反應的強氧化劑。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 完全凍結對手擋板 6 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 6 }
+      }
+    },
+    {
+      "id": "rhodium_chloride",
+      "name": "時空催化",
+      "formula": "RhCl3(三氯化銠)",
+      "molecularWeight": 209.5,
+      "elements": { "Rh": 1, "Cl": 3 },
+      "category": "輔助",
+      "description": "貴金屬催化劑，能大幅加速化學反應。 【單人】Lv.5 球速提升 75%，持續 8 秒。 【多人】Lv.5 對手擋板減速 25%，持續 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 1.75, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.75, "durationSec": 8 }
+      }
+    },
+    {
+      "id": "hafnium_dioxide",
+      "name": "絕緣屏障",
+      "formula": "HfO2(二氧化鉿)",
+      "molecularWeight": 210,
+      "elements": { "Hf": 1, "O": 2 },
+      "category": "特殊",
+      "description": "半導體製程中關鍵的高介電絕緣材料。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "rubidium_carbonate",
+      "name": "豐饒賜福",
+      "formula": "Rb2CO3(碳酸銣)",
+      "molecularWeight": 230,
+      "elements": { "Rb": 2, "C": 1, "O": 3 },
+      "category": "輔助",
+      "description": "常見於特種玻璃與高能材料的銣鹽。 【單人】Lv.5 回復 3 點生命。 【多人】Lv.5 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "iron_oxide_magnetite",
+      "name": "磁極引力",
+      "formula": "Fe3O4(磁鐵礦)",
+      "molecularWeight": 232,
+      "elements": { "Fe": 3, "O": 4 },
+      "category": "控制",
+      "description": "天然具有磁性的黑色氧化鐵礦物。 【單人】Lv.5 擋板寬度增加 50%，持續 12 秒。 【多人】Lv.5 反轉對手操作 7 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.5, "durationSec": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 7 }
+      }
+    },
+    {
+      "id": "barium_sulfate",
+      "name": "透視之眼",
+      "formula": "BaSO4(硫酸鋇)",
+      "molecularWeight": 233,
+      "elements": { "Ba": 1, "S": 1, "O": 4 },
+      "category": "特殊",
+      "description": "醫學上常用作X光腸胃顯影劑的鋇餐。 【單人】Lv.5 積分獲取變為 6 倍，持續 12 秒。 【多人】Lv.5 遮蔽對手視線 6 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 6, "durationSec": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 6 }
+      }
+    },
+    {
+      "id": "mercury_sulfide",
+      "name": "血色疫病",
+      "formula": "HgS(硫化汞)",
+      "molecularWeight": 233,
+      "elements": { "Hg": 1, "S": 1 },
+      "category": "攻擊",
+      "description": "鮮紅色的劇毒礦物，俗稱辰砂。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 扣除對手 15 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 15 }
+      }
+    },
+    {
+      "id": "silver_iodide",
+      "name": "喚雨凝雲",
+      "formula": "AgI(碘化銀)",
+      "molecularWeight": 235,
+      "elements": { "Ag": 1, "I": 1 },
+      "category": "控制",
+      "description": "人工降雨時用作冰晶凝結核的核心試劑。 【單人】Lv.5 減緩球速 50%，持續 8 秒。 【多人】Lv.5 對手擋板減速 25%，持續 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 0.5, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.75, "durationSec": 8 }
+      }
+    },
+    {
+      "id": "cadmium_telluride",
+      "name": "光能轉換",
+      "formula": "CdTe(碲化鎘)",
+      "molecularWeight": 240,
+      "elements": { "Cd": 1, "Te": 1 },
+      "category": "輔助",
+      "description": "太陽能電池薄膜的高效光電材料。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "osmium_tetroxide",
+      "name": "猛毒蒸氣",
+      "formula": "OsO4(四氧化鋨)",
+      "molecularWeight": 254,
+      "elements": { "Os": 1, "O": 4 },
+      "category": "攻擊",
+      "description": "揮發性極強且毒性猛烈的金屬氧化物。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 扣除對手 15 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 15 }
+      }
+    },
+    {
+      "id": "niobium_pentoxide",
+      "name": "抗熱塗層",
+      "formula": "Nb2O5(五氧化二鈮)",
+      "molecularWeight": 266,
+      "elements": { "Nb": 2, "O": 5 },
+      "category": "防禦",
+      "description": "能提升合金耐熱與抗腐蝕性的保護層。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "flerovium_hydride",
+      "name": "生命昇華",
+      "formula": "FlH(氫化鈇)",
+      "molecularWeight": 290,
+      "elements": { "Fl": 1, "H": 1 },
+      "category": "防禦",
+      "description": "存在於理論預測中的超重元素氫化物。 【單人】Lv.5 回復 3 點生命。 【多人】Lv.5 回復 3 點生命。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "nobelium_oxide",
+      "name": "泰坦之盾",
+      "formula": "No2O(氧化諾)",
+      "molecularWeight": 291,
+      "elements": { "No": 1, "O": 2 },
+      "category": "防禦",
+      "description": "放射性人造元素構成的超重氧化物。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "rutherfordium_dioxide",
+      "name": "量子悖論",
+      "formula": "RfO2(二氧化鑪)",
+      "molecularWeight": 293,
+      "elements": { "Rf": 1, "O": 2 },
+      "category": "特殊",
+      "description": "極度不穩定，帶有未知量子特性的實驗化合物。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 遮蔽對手視線 6 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 10 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 6 }
+      }
+    },
+    {
+      "id": "potassium_dichromate",
+      "name": "赤炎狂流",
+      "formula": "K2Cr2O7(重鉻酸鉀)",
+      "molecularWeight": 294,
+      "elements": { "K": 2, "Cr": 2, "O": 7 },
+      "category": "攻擊",
+      "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。 【單人】Lv.5 瞬間消除底層 5 排磚塊。 【多人】Lv.5 扣除對手 15 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 5 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 15 }
+      }
+    },
+    {
+      "id": "roentgenium_fluoride",
+      "name": "雷射共鳴",
+      "formula": "RgF(氟化錀)",
+      "molecularWeight": 301,
+      "elements": { "Rg": 1, "F": 1 },
+      "category": "攻擊",
+      "description": "理論上存在的第111號元素氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 13 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "copernicium_oxide",
+      "name": "超重庇護",
+      "formula": "CnO(氧化鎶)",
+      "molecularWeight": 301,
+      "elements": { "Cn": 1, "O": 1 },
+      "category": "防禦",
+      "description": "半衰期極短的超重金屬氧化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "gold_chloride",
+      "name": "點石成金",
+      "formula": "AuCl3(三氯化金)",
+      "molecularWeight": 303.5,
+      "elements": { "Au": 1, "Cl": 3 },
+      "category": "輔助",
+      "description": "溶於水呈現黃色，為提煉純金的前驅物。 【單人】Lv.6 積分獲取變為 7 倍，持續 14 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "effectSingle": {
+        "target": "self",
+        "action": "multiply_score",
+        "params": { "power": 7, "durationSec": 14 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "berkelium_fluoride",
+      "name": "電磁脈衝",
+      "formula": "BkF3(氟化鉳)",
+      "molecularWeight": 304,
+      "elements": { "Bk": 1, "F": 3 },
+      "category": "攻擊",
+      "description": "具強烈放射性的人造阿克系元素氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 13 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "nihonium_fluoride",
+      "name": "電漿干擾",
+      "formula": "NhF(氟化鉨)",
+      "molecularWeight": 305,
+      "elements": { "Nh": 1, "F": 1 },
+      "category": "攻擊",
+      "description": "極端條件下短暫生成的高能放射性物質。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 13 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "moscovium_oxide",
+      "name": "高能裂變",
+      "formula": "McO(氧化鏌)",
+      "molecularWeight": 306,
+      "elements": { "Mc": 1, "O": 1 },
+      "category": "攻擊",
+      "description": "壽命僅在毫秒之間的第115號元素氧化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "meteorite_alloy",
+      "name": "天降巨石",
+      "formula": "Fe-Ni-Ir(隕石合金)",
+      "molecularWeight": 307,
+      "elements": { "Fe": 1, "Ni": 1, "Ir": 1 },
+      "category": "攻擊",
+      "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "meitnerium_oxide",
+      "name": "湮滅衝擊",
+      "formula": "MtO2(二氧化䥑)",
+      "molecularWeight": 310,
+      "elements": { "Mt": 1, "O": 2 },
+      "category": "攻擊",
+      "description": "放射性極強，存在時間以微秒計的超重氧化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "seaborgium_trioxide",
+      "name": "虛空塌縮",
+      "formula": "SgO3(三氧化𨭎)",
+      "molecularWeight": 314,
+      "elements": { "Sg": 1, "O": 3 },
+      "category": "特殊",
+      "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.7, "durationSec": 14 }
+      }
+    },
+    {
+      "id": "mendelevium_fluoride",
+      "name": "能量干擾",
+      "formula": "MdF3(氟化鍆)",
+      "molecularWeight": 315,
+      "elements": { "Md": 1, "F": 3 },
+      "category": "攻擊",
+      "description": "透過粒子加速器合成的極微量高能氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 13 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "dubnium_fluoride",
+      "name": "激能火花",
+      "formula": "DbF3(氟化𨧀)",
+      "molecularWeight": 325,
+      "elements": { "Db": 1, "F": 3 },
+      "category": "攻擊",
+      "description": "產生強烈電磁擾動的過渡金屬氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 13 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 7 }
+      }
+    },
+    {
+      "id": "livermorium_fluoride",
+      "name": "無盡屏障",
+      "formula": "LvF2(二氟化鉝)",
+      "molecularWeight": 331,
+      "elements": { "Lv": 1, "F": 2 },
+      "category": "防禦",
+      "description": "在粒子對撞中短暫現身的超重金屬鹵化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "oganesson_difluoride",
+      "name": "創世之盾",
+      "formula": "OgF2(二氟化鿫)",
+      "molecularWeight": 332,
+      "elements": { "Og": 1, "F": 2 },
+      "category": "防禦",
+      "description": "週期表最後一個元素的推測化合物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "antimony_trisulfide",
+      "name": "爆裂引信",
+      "formula": "Sb2S3(三硫化二銻)",
+      "molecularWeight": 340,
+      "elements": { "Sb": 2, "S": 3 },
+      "category": "攻擊",
+      "description": "呈現黑灰色的針狀晶體，早期煙火與火柴的原料。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "americium_chloride",
+      "name": "強酸突刺",
+      "formula": "AmCl3(氯化鋂)",
+      "molecularWeight": 349.5,
+      "elements": { "Am": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "呈現粉紅色的超鈾元素放射性鹽類。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.7, "durationSec": 14 }
+      }
+    },
+    {
+      "id": "darmstadtium_chloride",
+      "name": "銅牆鐵壁",
+      "formula": "DsCl2(二氯化鐽)",
+      "molecularWeight": 352,
+      "elements": { "Ds": 1, "Cl": 2 },
+      "category": "防禦",
+      "description": "科學家在加速器中費盡心血合成的短暫存在。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "einsteinium_chloride",
+      "name": "裂解強襲",
+      "formula": "EsCl3(氯化鑀)",
+      "molecularWeight": 358.5,
+      "elements": { "Es": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "用於研究超鈾元素特性的高放射性化合物。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.7, "durationSec": 14 }
+      }
+    },
+    {
+      "id": "bismuth_subsalicylate",
+      "name": "粉紅庇護",
+      "formula": "C7H5BiO4(次水楊酸鉍)",
+      "molecularWeight": 362,
+      "elements": { "C": 7, "H": 5, "Bi": 1, "O": 4 },
+      "category": "輔助",
+      "description": "常見於腸胃藥，呈現鮮明粉紅色的次水楊酸鉍。 【單人】Lv.6 回復 3 點生命。 【多人】Lv.6 回復 3 點生命。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "tennessine_chloride",
+      "name": "電磁風暴",
+      "formula": "TsCl2(二氯化鿬)",
+      "molecularWeight": 365,
+      "elements": { "Ts": 1, "Cl": 2 },
+      "category": "攻擊",
+      "description": "週期表第117號元素的鹵素同族化合物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 7 }
+      }
+    },
+    {
+      "id": "lawrencium_chloride",
+      "name": "狂怒穿刺",
+      "formula": "LrCl3(氯化鐒)",
+      "molecularWeight": 372.5,
+      "elements": { "Lr": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "錒系元素最後一個成員的高能放射鹽。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "bohrium_chloride",
+      "name": "腐朽打擊",
+      "formula": "BhCl3(氯化𨨏)",
+      "molecularWeight": 376.5,
+      "elements": { "Bh": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 18 }
+      }
+    },
+    {
+      "id": "erbium_oxide",
+      "name": "破曉光束",
+      "formula": "Er2O3(氧化鉺)",
+      "molecularWeight": 382,
+      "elements": { "Er": 2, "O": 3 },
+      "category": "特殊",
+      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 7 }
+      }
+    },
+    {
+      "id": "hassium_fluoride",
+      "name": "絕對防禦",
+      "formula": "HsF6(六氟化𨭆)",
+      "molecularWeight": 391,
+      "elements": { "Hs": 1, "F": 6 },
+      "category": "防禦",
+      "description": "揮發性極高的第108號元素六氟化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3 }
+      }
+    },
+    {
+      "id": "ytterbium_oxide",
+      "name": "凝滯領域",
+      "formula": "Yb2O3(氧化鐿)",
+      "molecularWeight": 394,
+      "elements": { "Yb": 2, "O": 3 },
+      "category": "特殊",
+      "description": "用於製造超高精度原子鐘的稀土材料。 【單人】Lv.6 減緩球速 60%，持續 9 秒。 【多人】Lv.6 完全凍結對手擋板 7 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 0.4, "durationSec": 9 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 7 }
+      }
+    },
+    {
+      "id": "indium_tin_oxide",
+      "name": "隱形迴廊",
+      "formula": "In2O3·SnO2(氧化銦錫)",
+      "molecularWeight": 429,
+      "elements": { "In": 2, "Sn": 1, "O": 4 },
+      "category": "特殊",
+      "description": "觸控螢幕中不可或缺的透明導電薄膜。 【單人】Lv.7 獲得貫穿屬性 15 秒。 【多人】Lv.7 遮蔽對手視線 8 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "enable_pierce",
+        "params": { "durationSec": 15 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 8 }
+      }
+    },
+    {
+      "id": "tantalum_pentoxide",
+      "name": "蓄能護盾",
+      "formula": "Ta2O5(五氧化二鉭)",
+      "molecularWeight": 442,
+      "elements": { "Ta": 2, "O": 5 },
+      "category": "輔助",
+      "description": "應用於高階電子設備電容器的關鍵儲能材料。 【單人】Lv.7 回復 4 點生命。 【多人】Lv.7 回復 4 點生命。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "power": 4 }
+      }
+    },
+    {
+      "id": "rhenium_oxide",
+      "name": "酸化侵蝕",
+      "formula": "Re2O7(七氧化二錸)",
+      "molecularWeight": 484,
+      "elements": { "Re": 2, "O": 7 },
+      "category": "攻擊",
+      "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。 【單人】Lv.7 瞬間消除底層 7 排磚塊。 【多人】Lv.7 對手擋板縮小 35%，持續 16 秒。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.65, "durationSec": 16 }
+      }
+    },
+    {
+      "id": "thallium_sulfate",
+      "name": "無形鴆毒",
+      "formula": "Tl2SO4(硫酸亞鉈)",
+      "molecularWeight": 504,
+      "elements": { "Tl": 2, "S": 1, "O": 4 },
+      "category": "攻擊",
+      "description": "無色無味，歷史上曾作為滅鼠藥的劇毒物質。 【單人】Lv.7 瞬間消除底層 7 排磚塊。 【多人】Lv.7 扣除對手 21 點生命。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 21 }
+      }
+    },
+    {
+      "id": "beryl",
+      "name": "翠綠折射",
+      "formula": "Be3Al2Si6O18(綠柱石)",
+      "molecularWeight": 537,
+      "elements": { "Be": 3, "Al": 2, "Si": 6, "O": 18 },
+      "category": "防禦",
+      "description": "構成祖母綠與海藍寶石的美麗矽酸鹽礦物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      }
+    },
+    {
+      "id": "curium_oxide",
+      "name": "堅壁清野",
+      "formula": "Cm2O3(氧化鋦)",
+      "molecularWeight": 542,
+      "elements": { "Cm": 2, "O": 3 },
+      "category": "防禦",
+      "description": "釋放強烈阿爾法射線的放射性稀土替代物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      }
+    },
+    {
+      "id": "californium_oxide",
+      "name": "耐火重甲",
+      "formula": "Cf2O3(氧化鉲)",
+      "molecularWeight": 550,
+      "elements": { "Cf": 2, "O": 3 },
+      "category": "防禦",
+      "description": "每微克價值連城，強大的中子放射源。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      }
+    },
+    {
+      "id": "fermium_oxide",
+      "name": "無懈可擊",
+      "formula": "Fm2O3(氧化鐨)",
+      "molecularWeight": 562,
+      "elements": { "Fm": 2, "O": 3 },
+      "category": "防禦",
+      "description": "僅能以極微量存在，實驗室中的極致造物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 4 }
+      }
+    },
+    {
+      "id": "ybco_superconductor",
+      "name": "超導奔流",
+      "formula": "YBa2Cu3O7(釔鋇銅氧化物)",
+      "molecularWeight": 667,
+      "elements": { "Y": 1, "Ba": 2, "Cu": 3, "O": 7 },
+      "category": "輔助",
+      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。 【單人】Lv.8 球速提升 120%，持續 11 秒。 【多人】Lv.8 完全凍結對手擋板 9 秒。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": { "power": 2.2, "durationSec": 11 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 9 }
+      }
+    },
+    {
+      "id": "ndfeb_magnet",
+      "name": "萬象牽引",
+      "formula": "Nd2Fe14B(釹鐵硼磁鐵)",
+      "molecularWeight": 1083,
+      "elements": { "Nd": 2, "Fe": 14, "B": 1 },
+      "category": "控制",
+      "description": "目前人類已知磁力最強的永久磁鐵。 【單人】Lv.9 擋板寬度增加 90%，持續 20 秒。 【多人】Lv.9 反轉對手操作 11 秒。",
+      "effectSingle": {
+        "target": "self_paddle",
+        "action": "modify_width",
+        "params": { "power": 1.9, "durationSec": 20 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 11 }
+      }
+    },
+    {
+      "id": "lanthanum_hexaboride",
+      "name": "極光放射",
+      "formula": "LaB6(六硼化鑭)",
+      "molecularWeight": 203.7,
+      "elements": { "La": 1, "B": 6 },
+      "category": "攻擊",
+      "description": "優異電子發射能力的材料，用於高性能電子發射元件。 【單人】使球進入高能穿透狀態，可連續穿透多個磚塊。 【多人】下一次球撞擊獲得強力穿透與加速。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "add_piercing",
+        "params": { "power": 3, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "power_speed_boost",
+        "params": { "power": 2, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "praseodymium_chloride",
+      "name": "翠焰干涉",
+      "formula": "PrCl3(氯化鐠)",
+      "molecularWeight": 247.4,
+      "elements": { "Pr": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "可用於特殊光學與材料研究。 【單人】球擊中磚塊時產生干涉波，波及周圍磚塊。 【多人】干擾對手視線與球的軌跡判斷。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "shockwave",
+        "params": { "power": 2, "durationSec": 5 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "visual_distortion",
+        "params": { "power": 1, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "promethium_chloride",
+      "name": "放射倒數",
+      "formula": "PmCl3(氯化鉕)",
+      "molecularWeight": 251.5,
+      "elements": { "Pm": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "含有不穩定的放射性元素鉕。 【單人】標記一批磚塊，倒數結束後產生能量爆發。 【多人】對對手施加不穩定倒數干擾。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "delayed_explosion",
+        "params": { "power": 3, "durationSec": 3 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "unstable_countdown",
+        "params": { "power": 1, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "samarium_hexaboride",
+      "name": "拓撲壁壘",
+      "formula": "SmB6(六硼化釤)",
+      "molecularWeight": 215.2,
+      "elements": { "Sm": 1, "B": 6 },
+      "category": "防禦",
+      "description": "特殊電子性質，低溫物理研究中受重視。 【單人】建立強化護盾，優先抵擋掉球傷害。 【多人】短時間抵擋一次負面狀態或攻擊。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 2, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "temporary_immunity",
+        "params": { "power": 1, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "europium_sulfide",
+      "name": "赤色螢光",
+      "formula": "EuS(硫化銪)",
+      "molecularWeight": 184.1,
+      "elements": { "Eu": 1, "S": 1 },
+      "category": "輔助",
+      "description": "特殊磁性與光學性質，呈現明顯的光學反應。 【單人】使球帶有發光軌跡，提升特殊磚塊的命中判斷。 【多人】以強烈光效短暫干擾對手視線。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "highlight_targets",
+        "params": { "power": 1, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "flash_blind",
+        "params": { "power": 1, "durationSec": 2 }
+      }
+    },
+    {
+      "id": "gadolinium_nitride",
+      "name": "磁域塌縮",
+      "formula": "GdN(氮化釓)",
+      "molecularWeight": 171.3,
+      "elements": { "Gd": 1, "N": 1 },
+      "category": "輔助",
+      "description": "可用於研究磁性與電子性質。 【單人】產生磁場，使球軌跡向附近磚塊偏轉。 【多人】干擾對手球的移動軌跡。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "magnetic_trajectory",
+        "params": { "power": 1.5, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_ball",
+        "action": "chaos_trajectory",
+        "params": { "power": 2, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "terbium_chloride",
+      "name": "翠光閃爆",
+      "formula": "TbCl3(氯化鋱)",
+      "molecularWeight": 265.4,
+      "elements": { "Tb": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "鋱常被應用於螢光與磁性材料。 【單人】產生閃爆，瞬間削弱範圍內磚塊。 【多人】以強烈閃光遮蔽對手畫面。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "area_damage",
+        "params": { "power": 3, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "flash_blind",
+        "params": { "power": 2, "durationSec": 2 }
+      }
+    },
+    {
+      "id": "dysprosium_fluoride",
+      "name": "磁暴牽引",
+      "formula": "DyF3(氟化鏑)",
+      "molecularWeight": 219.5,
+      "elements": { "Dy": 1, "F": 3 },
+      "category": "輔助",
+      "description": "含強磁性特徵的稀土元素鏑。 【單人】改變球的反彈角度，使其更容易攻擊死角。 【多人】使對手球的軌跡持續偏移。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "trajectory_guide",
+        "params": { "power": 2, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_ball",
+        "action": "magnetic_pull",
+        "params": { "power": 1, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "holmium_fluoride",
+      "name": "全息脈衝",
+      "formula": "HoF3(氟化鈥)",
+      "molecularWeight": 221.9,
+      "elements": { "Ho": 1, "F": 3 },
+      "category": "攻擊",
+      "description": "鈥具有特殊的磁性與光譜特徵。 【單人】產生幻影球，短時間增加額外攻擊路徑。 【多人】製造假球軌跡干擾對手判斷。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "create_ghost_ball",
+        "params": { "power": 2, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "fake_ball_illusion",
+        "params": { "power": 2, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "thulium_fluoride",
+      "name": "藍焰折射",
+      "formula": "TmF3(氟化銩)",
+      "molecularWeight": 225.9,
+      "elements": { "Tm": 1, "F": 3 },
+      "category": "攻擊",
+      "description": "可用於特殊光學與材料研究。 【單人】提升球速並增加反彈角度變化。 【多人】球高速移動，使對手更難預測。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "speed_and_randomize",
+        "params": { "power": 1.6, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "speed_boost",
+        "params": { "power": 1.8, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "lutetium_chloride",
+      "name": "稀土終焉",
+      "formula": "LuCl3(氯化鑥)",
+      "molecularWeight": 281.5,
+      "elements": { "Lu": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "鑥具有高密度與穩定的材料特性。 【單人】下一段時間內大幅提升球對磚塊的傷害。 【多人】提升自身進攻能力與球速。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "increase_brick_damage",
+        "params": { "power": 3, "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "power_speed_boost",
+        "params": { "power": 2.2, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "lead_iodide",
+      "name": "重鉛壓制",
+      "formula": "PbI2(碘化鉛)",
+      "molecularWeight": 461,
+      "elements": { "Pb": 1, "I": 2 },
+      "category": "攻擊",
+      "description": "具有明顯光電特性，可形成特殊的晶體結構。 【單人】使球進入重擊狀態，對磚塊造成高額傷害。 【多人】產生沉重壓制，使對手擋板移動變慢。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "heavy_ball",
+        "params": { "power": 4, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.4, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "polonium_dioxide",
+      "name": "放射崩解",
+      "formula": "PoO2(二氧化釙)",
+      "molecularWeight": 241,
+      "elements": { "Po": 1, "O": 2 },
+      "category": "攻擊",
+      "description": "含高度放射性的元素釙。 【單人】使磚塊持續崩解並受到額外傷害。 【多人】對對手施加持續性干擾。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "global_corrosion",
+        "params": { "power": 3, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "radiation_debuff",
+        "params": { "power": 2, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "astatine_chloride",
+      "name": "幽靈鹵化",
+      "formula": "AtCl(氯化砈)",
+      "molecularWeight": 245.5,
+      "elements": { "At": 1, "Cl": 1 },
+      "category": "攻擊",
+      "description": "含罕見且不穩定的元素砈，短暫存在、難以掌握。 【單人】使球短暫進入幽靈狀態，可無視部分特殊磚塊。 【多人】使對手受到不穩定干擾。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "phase_piercing",
+        "params": { "power": 2, "durationSec": 5 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "unstable_debuff",
+        "params": { "power": 2, "durationSec": 4 }
+      }
+    },
+    {
+      "id": "radon_difluoride",
+      "name": "幽冥逸散",
+      "formula": "RnF2(二氟化氡)",
+      "molecularWeight": 260,
+      "elements": { "Rn": 1, "F": 2 },
+      "category": "攻擊",
+      "description": "屬於極罕見且具有高度不穩定性的氡化合物。 【單人】在場上形成持續迷霧，使特殊磚塊失去防護效果。 【多人】產生濃霧遮蔽對手視線。",
+      "effectSingle": {
+        "target": "board_environment",
+        "action": "dispel_brick_effects",
+        "params": { "power": 2, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "fog_blind",
+        "params": { "power": 2, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "francium_chloride",
+      "name": "王者裂變",
+      "formula": "FrCl(氯化鍅)",
+      "molecularWeight": 258.5,
+      "elements": { "Fr": 1, "Cl": 1 },
+      "category": "攻擊",
+      "description": "含有極端稀有且高度不穩定的元素鍅。 【單人】觸發一次高風險能量爆發，造成大範圍傷害。 【多人】短時間大幅提升自身進攻壓力。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "massive_explosion",
+        "params": { "power": 5, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "berserk_boost",
+        "params": { "power": 2.5, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "radium_sulfate",
+      "name": "鐳光核心",
+      "formula": "RaSO4(硫酸鐳)",
+      "molecularWeight": 322.1,
+      "elements": { "Ra": 1, "S": 1, "O": 4 },
+      "category": "輔助",
+      "description": "放射性元素鐳的化合物，鐳會自發發光、具放射性。 【單人】持續提升球的能量與傷害。 【多人】進入能量核心狀態，提升移動與反應能力。",
+      "effectSingle": {
+        "target": "self_ball",
+        "action": "energy_overcharge",
+        "params": { "power": 2.5, "durationSec": 8 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "energy_boost",
+        "params": { "power": 1.5, "durationSec": 7 }
+      }
+    },
+    {
+      "id": "actinium_chloride",
+      "name": "原初核光",
+      "formula": "AcCl3(氯化錒)",
+      "molecularWeight": 333.5,
+      "elements": { "Ac": 1, "Cl": 3 },
+      "category": "攻擊",
+      "description": "錒系元素的起點，象徵強大的放射性能量。 【單人】釋放核能光束，貫穿直線上的磚塊。 【多人】使自己的球獲得短時間高能穿透。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "laser_pierce",
+        "params": { "power": 4, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "add_piercing",
+        "params": { "power": 4, "durationSec": 6 }
+      }
+    },
+    {
+      "id": "thorium_tetrafluoride",
+      "name": "核能壁壘",
+      "formula": "ThF4(四氟化釷)",
+      "molecularWeight": 308,
+      "elements": { "Th": 1, "F": 4 },
+      "category": "防禦",
+      "description": "重元素釷的穩定氟化物。 【單人】建立強力護盾，可抵擋多次掉球傷害。 【多人】短時間進入高強度防護狀態。",
+      "effectSingle": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "power": 3, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "temporary_immunity",
+        "params": { "power": 2, "durationSec": 8 }
+      }
+    },
+    {
+      "id": "protactinium_pentafluoride",
+      "name": "裂變前兆",
+      "formula": "PaF5(五氟化鏷)",
+      "molecularWeight": 326,
+      "elements": { "Pa": 1, "F": 5 },
+      "category": "攻擊",
+      "description": "極為稀有的錒系元素鏷，高階且不穩定。 【單人】累積短時間能量後產生大範圍爆發。 【多人】蓄能後使下一次攻擊獲得強化。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "charged_explosion",
+        "params": { "power": 5, "durationSec": 3 }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "charge_next_hit",
+        "params": { "power": 4, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "uranium_hexafluoride",
+      "name": "離心風暴",
+      "formula": "UF6(六氟化鈾)",
+      "molecularWeight": 352,
+      "elements": { "U": 1, "F": 6 },
+      "category": "攻擊",
+      "description": "其特殊物理性質而與鈾同位素分離技術相關。 【單人】產生能量風暴，使全場磚塊受到持續傷害。 【多人】高速風暴干擾對手的球路與視線。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "global_damage_over_time",
+        "params": { "power": 4, "durationSec": 7 }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "storm_disruption",
+        "params": { "power": 3, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "neptunium_dioxide",
+      "name": "中子迷霧",
+      "formula": "NpO2(二氧化鎿)",
+      "molecularWeight": 269,
+      "elements": { "Np": 1, "O": 2 },
+      "category": "輔助",
+      "description": "人工放射性元素鎿的氧化物，神秘且不穩定。 【單人】使特殊磚塊短時間失去部分能力。 【多人】產生不穩定迷霧，干擾對手判斷。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "disable_special_bricks",
+        "params": { "power": 2, "durationSec": 6 }
+      },
+      "effectMulti": {
+        "target": "opponent_screen",
+        "action": "visual_distortion",
+        "params": { "power": 2, "durationSec": 5 }
+      }
+    },
+    {
+      "id": "plutonium_dioxide",
+      "name": "超臨界爆發",
+      "formula": "PuO2(二氧化鈽)",
+      "molecularWeight": 276,
+      "elements": { "Pu": 1, "O": 2 },
+      "category": "攻擊",
+      "description": "可儲存大量核能相關的高密度能量概念。 【單人】釋放超臨界能量，對大範圍磚塊造成毀滅性傷害。 【多人】球進入超臨界狀態，大幅提升速度與攻擊力。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "massive_explosion",
+        "params": { "power": 6, "durationSec": null }
+      },
+      "effectMulti": {
+        "target": "self_ball",
+        "action": "berserk_boost",
+        "params": { "power": 3, "durationSec": 6 }
+      }
+    }
+  ]
+}

@@ -30,12 +30,24 @@ export function setRoomStatus(text, type = "info") {
 
 export function updateReadyButton() {
   const el = document.getElementById("btn-ready");
+  const shopBtn = document.getElementById("btn-lobby-shop"); // ★ 抓取商店按鈕
   if (!el) return;
+
   el.innerText = isReady ? "取消準備" : "準備完成";
   el.className =
     isReady ?
       "menu-item-macaron macaron-blue"
     : "menu-item-macaron macaron-pink";
+
+  if (shopBtn) {
+    // ★ 只要「準備完成」或是「未開啟 DLC」，就禁用商店按鈕
+    const isDlc = document.getElementById("enable-dlc")?.checked ?? true;
+    const shouldDisable = isReady || !isDlc;
+
+    shopBtn.disabled = shouldDisable;
+    shopBtn.style.opacity = shouldDisable ? "0.5" : "1";
+    shopBtn.style.cursor = shouldDisable ? "not-allowed" : "pointer";
+  }
 }
 
 export function createRoom() {
