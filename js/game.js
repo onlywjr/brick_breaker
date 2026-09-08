@@ -6,6 +6,8 @@ import {
   wishlist,
   chemSkills,
   calculateBrickHP,
+  levelStats,
+  resetLevelStats,
 } from "../mod/chemistry.js";
 
 window.setChemistryMode = setChemistryMode; // 讓 HTML 可以呼叫
@@ -211,6 +213,8 @@ function generateBrickSymbol(gameMode) {
 }
 
 function buildLevel(lv, cv) {
+  if (chemDLCEnabled && typeof resetLevelStats === "function")
+    resetLevelStats(); // ★ 關卡開始時重置統計
   bricks.length = 0;
   drops.length = 0;
   boss.active = false;
@@ -231,24 +235,28 @@ function buildLevel(lv, cv) {
     const memberIndex = (r * cols + c) % MEMBERS.length;
     let bX = c * (bw + pad) + offL;
 
-    // ★ 修正：先在這裡產生當前磚塊的化學元素符號
+    // 產生當前磚塊的化學元素符號
     const currentBrickSymbol =
       chemDLCEnabled ? generateBrickSymbol(mode) : null;
+
+    // ★ 修正：先將最終的 HP 結算出來，確保上下限一致
+    const finalBrickHp =
+      chemDLCEnabled ? calculateBrickHP(currentBrickSymbol, level) : hp;
 
     bricks.push({
       x: bX,
       y: r * (bh + pad) + offT,
       w: bw,
       h: bh,
-      // ★ 修正：將產生的符號傳入計算血量，若沒開 DLC 則使用原本傳入的參數 hp
-      hp: chemDLCEnabled ? calculateBrickHP(currentBrickSymbol, level) : hp,
-      maxHp: hp,
+      // ★ 修正：將 hp 與 maxHp 完全同步
+      hp: finalBrickHp,
+      maxHp: finalBrickHp,
       ci: memberIndex,
       isMoving: isMoving,
       dx: isMoving ? (Math.random() > 0.5 ? 1 : -1) * 1.5 : 0,
       minX: bX - 30,
       maxX: bX + 30,
-      symbol: currentBrickSymbol, // ★ 修正：將剛剛產生的符號存入磚塊中
+      symbol: currentBrickSymbol,
     });
   }
 
@@ -451,6 +459,17 @@ function executeStartGame(selectedMode, cv) {
   // ★ 確保模式正確設定 (這非常重要，物理引擎依賴這個)
   mode = selectedMode;
 
+  // ★ 啟動並設定 Event HUD 佈局
+  setupEventHUDs();
+  const centerHud = document.getElementById("center-event-hud");
+  const p1Hud = document.getElementById("p1-event-hud");
+  const p2Hud = document.getElementById("p2-event-hud");
+
+  if (centerHud)
+    centerHud.style.display = mode === 1 || onlineMode ? "flex" : "none"; // 改為 flex 以維持垂直置中
+  if (p1Hud) p1Hud.style.display = mode === 2 && !onlineMode ? "block" : "none";
+  if (p2Hud) p2Hud.style.display = mode === 2 && !onlineMode ? "block" : "none";
+
   document.getElementById("overlay").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
@@ -493,6 +512,124 @@ function executeStartGame(selectedMode, cv) {
   playSfx("music");
 }
 
+// ==========================================
+// ★ 乾淨的 HTML Event HUD 播報系統
+// ==========================================
+let eventTimers = { center: null, p1: null, p2: null };
+
+export function triggerGameEvent(msg, isMajor = false, pId = 0) {
+  if (isMajor) {
+    floatTexts.push({
+      t: msg,
+      life: 2.5,
+      x: 400,
+      y: 300,
+      c: pId === 1 ? "#5FA8D3" : "#E0576B",
+      big: true,
+    });
+    return;
+  }
+
+  const isLocalMulti = mode === 2 && !onlineMode;
+  // ★ 修正：單人模式改抓取內部的文字 span 進行淡入淡出，保留白底外框
+  const targetId =
+    isLocalMulti ?
+      pId === 0 ?
+        "p1-event-hud"
+      : "p2-event-hud"
+    : "center-event-text";
+  const timerKey =
+    isLocalMulti ?
+      pId === 0 ?
+        "p1"
+      : "p2"
+    : "center";
+
+  const hud = document.getElementById(targetId);
+  if (hud) {
+    hud.innerText = msg;
+    hud.style.opacity = "1";
+
+    clearTimeout(eventTimers[timerKey]);
+    eventTimers[timerKey] = setTimeout(() => {
+      hud.style.opacity = "0";
+    }, 2000);
+  }
+}
+
+function setupEventHUDs() {
+  const statusDiv = document.getElementById("status");
+
+  if (statusDiv) {
+    statusDiv.style.display = "flex";
+    //statusDiv.style.justifyContent = "space-between";
+    // 確保整體頂部欄向上對齊，避免互相拉扯高度
+    statusDiv.style.alignItems = "flex-start";
+  }
+
+  // ★ 修正 2 & 3：強制統整 1P/2P 面板的高度、間距與內距
+  ["p1-card", "p2-card"].forEach((id) => {
+    const card = document.getElementById(id);
+    if (card) {
+      card.style.display = "flex";
+      card.style.justifyContent = "center";
+      card.style.gap = "4px"; // 縮小上下行距
+      card.style.padding = "9px 16px"; // 縮小左右內距
+      card.style.boxSizing = "border-box";
+      card.style.height = "48px";
+      if (mode === 2) {
+        card.style.flexDirection = "column";
+        card.style.height = "80px"; // 強制固定高度，確保 1P/2P 絕對一致
+      }
+    }
+  });
+
+  // ★ 徹底解決雙人模式 1P 卡片偏高的問題：隱藏無用的愛心容器
+  const livesEl = document.getElementById("p1-lives");
+  if (livesEl) {
+    livesEl.style.display = mode === 1 ? "flex" : "none";
+  }
+
+  // A. 單人 / 連線模式：中央上方 HUD
+  if (statusDiv && !document.getElementById("center-event-hud")) {
+    const centerHud = document.createElement("div");
+    centerHud.id = "center-event-hud";
+
+    // ★ 關鍵修正 1：確保外框擁有 display: flex; align-items: center;
+    centerHud.style.cssText =
+      "background: rgba(255, 255, 255, 0.75); border-radius: 30px; padding: 0 20px; margin: 0 15px; flex: 1; max-width: 300px; height: 48px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; font-size: 16px; font-weight: 900; color: #DDA15E; z-index: 10; box-sizing: border-box;";
+
+    // ★ 關鍵修正 2：為內部的 span 也加上 flex 置中與 100% 高度，避免它縮在頂部
+    centerHud.innerHTML = `<span id="center-event-text" style="opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; margin: 0; padding: 0;"></span>`;
+
+    // 確保它獨立於玩家卡片之外，插在 1P 卡片與 Level 區塊的正中間
+    const p1Card = document.getElementById("p1-card");
+    if (p1Card) {
+      p1Card.insertAdjacentElement("afterend", centerHud);
+    } else {
+      statusDiv.appendChild(centerHud);
+    }
+  }
+
+  // B. 單機雙人模式：1P / 2P 獨立 HUD (包含能量回復)
+  ["p1", "p2"].forEach((p, idx) => {
+    if (!document.getElementById(`${p}-event-hud`)) {
+      const energyWrap = document.getElementById(`${p}-energy-wrap`);
+      const card = document.getElementById(`${p}-card`);
+
+      const hud = document.createElement("div");
+      hud.id = `${p}-event-hud`;
+      hud.style.cssText = `font-size: 12px; font-weight: 900; color: ${idx === 0 ? "#d96c8e" : "#5fa8d3"}; text-align: center; margin-top: 2px; opacity: 0; transition: opacity 0.3s; height: 16px; min-height: 16px; line-height: 16px; pointer-events: none; white-space: nowrap;`;
+
+      if (energyWrap) {
+        energyWrap.insertAdjacentElement("afterend", hud);
+      } else if (card) {
+        card.appendChild(hud);
+      }
+    }
+  });
+}
+
 export let nextLevelTimer = null; // ★ 宣告倒數計時器
 
 export function startOnlineGame(state, cv) {
@@ -515,6 +652,16 @@ export function startOnlineGame(state, cv) {
   document.getElementById("p1-label").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
+
+  // ★ 正確補上：在連線模式中啟動並顯示中央 HUD
+  if (typeof setupEventHUDs === "function") setupEventHUDs();
+  const centerHud = document.getElementById("center-event-hud");
+  if (centerHud) centerHud.style.display = "flex";
+  const p1Hud = document.getElementById("p1-event-hud");
+  if (p1Hud) p1Hud.style.display = "none";
+  const p2Hud = document.getElementById("p2-event-hud");
+  if (p2Hud) p2Hud.style.display = "none";
+
   document.getElementById("p2-card")?.style.setProperty("display", "none");
   document
     .getElementById("p1-energy-wrap")
@@ -553,7 +700,7 @@ export function startOnlineGame(state, cv) {
       ...p,
       alive: p.id === myPlayerId ? true : p.alive !== false,
     };
-  onlineShowStatus("⚔️ 大亂鬥開始！集滿能量自動干擾對手。", 2200);
+  triggerGameEvent("⚔️ 大亂鬥開始！", true);
 }
 
 export function endGame() {
@@ -678,23 +825,22 @@ export function onlineReceiveAttack(d) {
   // 解析來自對手的 14 種標準化 Action
   switch (type) {
     case "damage_hp":
-      // 多人模式以分數為判定標準，直接扣分
       p1.score = Math.max(0, p1.score - power * 5);
-      onlineShowStatus(`💥 ${name}：扣除 ${power * 5} 分！`, 1500);
+      triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, true); // 重大警告
       break;
 
     case "shrink_width":
       p1.w = Math.max(p1.minW, p1.w * power);
       p1.shrinkFx = 1;
-      onlineShowStatus(`💥 ${name}：擋板縮小！`, 1500);
+      triggerGameEvent(`⚠️ ${name} 使你擋板縮小！`, false); // 一般干擾 (HUD顯示)
       setTimeout(() => {
         p1.w = 120;
       }, duration * 1000);
       break;
 
     case "slow_speed":
-      p1.speed = 9 * power; // 基礎速度 9 乘上減速倍率 (如 0.8)
-      onlineShowStatus(`🐢 ${name}：擋板減速！`, 1500);
+      p1.speed = 9 * power;
+      triggerGameEvent(`🐢 ${name} 使你減速！`, false); // 一般干擾 (HUD顯示)
       setTimeout(() => {
         p1.speed = 9;
       }, duration * 1000);
@@ -702,7 +848,7 @@ export function onlineReceiveAttack(d) {
 
     case "freeze":
       p1.speed = 0;
-      onlineShowStatus(`❄️ ${name}：擋板完全凍結！`, 1500);
+      triggerGameEvent(`❄️ ${name} 將你完全凍結！`, true); // 重大警告
       setTimeout(() => {
         p1.speed = 9;
       }, duration * 1000);
@@ -711,14 +857,14 @@ export function onlineReceiveAttack(d) {
     case "reverse_controls":
       p1.reversed = true;
       p1.reversedTimer = duration;
-      onlineShowStatus(`🔄 ${name}：操作反轉！`, 1500);
+      triggerGameEvent(`🔄 ${name} 反轉了你的操作！`, true); // 重大警告
       break;
 
     case "blind_screen":
       onlineBlindTimer = duration;
       const blindEl = document.getElementById("online-blind");
       if (blindEl) blindEl.style.display = "block";
-      onlineShowStatus(`👁 ${name}：視線遮蔽！`, 1500);
+      triggerGameEvent(`👁 ${name} 遮蔽了你的視線！`, false); // 一般干擾 (HUD顯示)
       break;
   }
 }
@@ -839,24 +985,89 @@ export function updateGameState(dt, cv) {
 
     if (mode === 1) {
       running = false;
-      const shopBtn = document.querySelector(
-        "#level-clear-overlay button:nth-child(1)",
+
+      // ★ 1. 抓取覆蓋層與自動辨識按鈕
+      const overlay = document.getElementById("level-clear-overlay");
+      const buttons = Array.from(overlay.querySelectorAll("button"));
+      const shopBtn = buttons.find(
+        (b) =>
+          b.innerText.includes("商店")
+          || b.getAttribute("onclick")?.includes("Shop"),
       );
+      const nextBtn = buttons.find(
+        (b) =>
+          b.innerText.includes("下一關")
+          || b.getAttribute("onclick")?.includes("proceedToNextLevel"),
+      );
+
       if (shopBtn)
         shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
-      document.getElementById("level-clear-overlay").style.display = "flex";
+      overlay.style.display = "flex";
 
-      // ★ 啟動 10 秒倒數
-      if (chemDLCEnabled) {
+      // ★ 2. 注入並更新本關化學元素統計面板
+      let statsDiv = document.getElementById("level-chem-stats");
+      if (!statsDiv) {
+        statsDiv = document.createElement("div");
+        statsDiv.id = "level-chem-stats";
+        statsDiv.style.margin = "15px auto";
+        statsDiv.style.padding = "15px";
+        statsDiv.style.background = "rgba(255,255,255,0.85)";
+        statsDiv.style.border = "2px solid rgba(201, 177, 232, 0.4)";
+        statsDiv.style.borderRadius = "12px";
+        statsDiv.style.fontSize = "14px";
+        statsDiv.style.textAlign = "left";
+        statsDiv.style.width = "80%";
+        statsDiv.style.maxWidth = "300px";
+        statsDiv.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
+
+        // 將面板插入到按鈕容器之上
+        const btnsContainer =
+          shopBtn ? shopBtn.parentNode
+          : nextBtn ? nextBtn.parentNode
+          : overlay;
+        btnsContainer.parentNode.insertBefore(statsDiv, btnsContainer);
+      }
+
+      if (chemDLCEnabled && typeof levelStats !== "undefined") {
+        const { gained, used } = levelStats;
+        const formatElements = (obj, color) => {
+          const entries = Object.entries(obj).filter(([_, qty]) => qty > 0);
+          if (entries.length === 0)
+            return `<span style="color:#8a7e9c;">無</span>`;
+          return entries
+            .map(
+              ([sym, qty]) =>
+                `<span style="display:inline-block; margin-right:8px; color:${color}; font-family:serif; font-weight:900;">${sym} <span style="font-size:0.9em; opacity:0.8;">x${qty}</span></span>`,
+            )
+            .join("");
+        };
+
+        statsDiv.innerHTML = `
+          <div style="font-weight:900; margin-bottom:10px; color:#5D576B; text-align:center; font-size:16px;">📊 結算</div>
+          <div style="margin-bottom:6px;">📥 獲得：${formatElements(gained, "#2EB886")}</div>
+          <div>🔥 消耗：${formatElements(used, "#E0576B")}</div>
+        `;
+        statsDiv.style.display = "block";
+      } else {
+        statsDiv.style.display = "none";
+      }
+
+      // ★ 3. 將 10 秒自動進入下一關倒數綁定在「下一關」按鈕上
+      if (chemDLCEnabled && nextBtn) {
         let count = 10;
-        shopBtn.innerHTML = `🛒 進入商店 <span style="font-size:14px;">(${count}s)</span>`;
+        // 記憶原始按鈕文字 (防呆避免字串疊加)
+        if (!nextBtn.dataset.originalText) {
+          nextBtn.dataset.originalText = nextBtn.innerText.split("(")[0].trim();
+        }
+        const baseText = nextBtn.dataset.originalText;
+
+        nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
+
         clearInterval(nextLevelTimer);
         nextLevelTimer = setInterval(() => {
           count--;
-          shopBtn.innerHTML = `🛒 進入商店 <span style="font-size:14px;">(${count}s)</span>`;
-          if (count <= 0) {
-            window.proceedToNextLevel();
-          }
+          nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
+          if (count <= 0) window.proceedToNextLevel();
         }, 1000);
       }
     } else {

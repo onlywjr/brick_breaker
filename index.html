@@ -293,8 +293,8 @@
       </div>
 
       <div id="status">
-        <div class="stat-card">
-          <div style="display: flex; gap: 8px; align-items: center">
+        <div class="stat-card" id="p1-card">
+          <div style="display: flex; gap: 2px; align-items: center">
             <span
               class="stat-label"
               style="color: #dda15e; font-size: 16px"
@@ -323,8 +323,7 @@
         <div
           class="stat-card center-card"
           style="
-            background: rgba(255, 255, 255, 0.85);
-            border: 2px solid #f2c1d1;
+            background: rgba(255, 255, 255, 0.75);
             box-shadow: 0 4px 15px rgba(246, 166, 193, 0.2);
           ">
           <div
@@ -340,9 +339,9 @@
               background: rgba(246, 166, 193, 0.5);
             "></div>
           <div
-            style="display: flex; flex-direction: column; align-items: center">
+            style="display: flex; flex-direction: column; align-items: center;">
             <span class="stat-label" style="color: #7a728a">LEVEL</span
-            ><span id="level-txt" class="stat-value">1</span>
+            ><span id="level-txt" class="stat-value" style="color: #f46494">1</span>
           </div>
         </div>
         <div class="stat-card" id="p2-card">
@@ -511,30 +510,17 @@
                   dlcStatus.style.color = state.dlc ? "#DDA15E" : "#7A728A";
                 }
 
-                // ★ 接收到房主 DLC 變更時，同步刷新商店按鈕禁用狀態
-                if (typeof updateReadyButton === "function")
+                const lobbyShop = document.getElementById("btn-lobby-shop");
+                if (lobbyShop) {
+                  lobbyShop.style.display = state.dlc ? "flex" : "none";
+                }
+
+                if (typeof updateReadyButton === "function") {
                   updateReadyButton();
+                }
+
                 return;
               }
-              // ★ 新增：攔截大廳的 DLC 廣播，動態更新 UI 與隱藏商店按鈕
-              if (state?.isLobbySync !== undefined) {
-                const dlcCb = document.getElementById("enable-dlc");
-                if (dlcCb) dlcCb.checked = state.dlc;
-
-                const dlcStatus = document.getElementById("lobby-dlc-status");
-                if (dlcStatus) {
-                  dlcStatus.innerText =
-                    state.dlc ?
-                      "🧪 當前模式: 化學擴展 (DLC)"
-                    : "🎮 當前模式: 一般對戰";
-                  dlcStatus.style.color = state.dlc ? "#DDA15E" : "#7A728A";
-                }
-                const lobbyShop = document.getElementById("btn-lobby-shop");
-                if (lobbyShop)
-                  lobbyShop.style.display = state.dlc ? "flex" : "none";
-                return; // 這是大廳廣播，不進入下方物理引擎的渲染
-              }
-
               if (!onlineMode || !state?.id || state.id === myPlayerId) return;
               onlinePlayers[state.id] = {
                 ...(onlinePlayers[state.id] || {}),

@@ -56,15 +56,20 @@ export function createRoom() {
     return;
   }
   const name = document.getElementById("player-name-input").value.trim();
+  const isDlc = document.getElementById("enable-dlc")?.checked ?? false; // ★ 抓取 DLC 狀態
+
   if (name) socket.emit("setPlayerName", name);
   setRoomStatus("正在建立房間…");
-  socket.emit("createRoom");
+  // ★ 將 DLC 狀態打包發送給 Server
+  socket.emit("createRoom", { name, dlc: isDlc });
 }
 
 export function joinRoom() {
   const input = document.getElementById("room-code-input");
   const code = (input?.value || "").trim().toUpperCase();
   const name = document.getElementById("player-name-input").value.trim();
+  const isDlc = document.getElementById("enable-dlc")?.checked ?? false; // ★ 抓取 DLC 狀態
+
   if (!code) {
     alert("請輸入房間代碼");
     input?.focus();
@@ -76,7 +81,8 @@ export function joinRoom() {
   }
   if (name) socket.emit("setPlayerName", name);
   setRoomStatus(`正在加入房間 ${code}…`);
-  socket.emit("joinRoom", code);
+  // ★ 將 DLC 狀態與房間號碼一起發送給 Server
+  socket.emit("joinRoom", { code, name, dlc: isDlc });
 }
 
 export function toggleReady() {
@@ -117,6 +123,42 @@ export function setupSocketListeners(handlers) {
 
   socket.on("lobbyState", (state) => {
     lobbyState = state || {};
+
+    // ★ 核心防呆：直接檢查伺服器傳來的 dlc 狀態
+    if (state?.dlc !== undefined) {
+      const dlcCb = document.getElementById("enable-dlc");
+
+      // 1. 檢查是否與房主不同步 (若不符則踢出)
+      if (dlcCb && dlcCb.checked !== state.dlc) {
+        alert(
+          `⛔ 加入失敗！\n此房間設定為：${state.dlc ? "🧪 化學 DLC 模式" : "🎮 一般對戰"}\n您的設定與房間不符，請在首頁勾選或取消 DLC 後再重新加入。`,
+        );
+        socket.emit("leaveRoom");
+        currentRoomCode = null; // ★ 徹底清空本地端的房間代碼
+
+        // 隱藏大廳，退回首頁
+        const lobbyScreen = document.getElementById("lobby-screen");
+        const roomStatus = document.getElementById("room-status");
+        const menuBtns = document.getElementById("menu-btns");
+        if (lobbyScreen) lobbyScreen.style.display = "none";
+        if (roomStatus) roomStatus.style.display = "none";
+        if (menuBtns) menuBtns.style.display = "flex";
+
+        return; // ★ 阻斷後續程式，拒絕加入
+      }
+
+      // 2. 正常加入：更新大廳 UI
+      const dlcStatus = document.getElementById("lobby-dlc-status");
+      if (dlcStatus) {
+        dlcStatus.innerText = state.dlc ? "🧪 化學擴展 (DLC)" : "🎮 一般對戰";
+        dlcStatus.style.color = state.dlc ? "#DDA15E" : "#7A728A";
+      }
+      const lobbyShop = document.getElementById("btn-lobby-shop");
+      if (lobbyShop) {
+        lobbyShop.style.display = state.dlc ? "flex" : "none";
+      }
+    }
+
     handlers.onLobbyState(state);
     const me = (state?.players || []).find((p) => p.id === socket.id);
     isReady = !!me?.ready;

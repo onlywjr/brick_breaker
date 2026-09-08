@@ -172,6 +172,16 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   const { bricks, drops, particles, floatTexts, boss, p1, p2, activePlayers } =
     gameState;
 
+  // ★ 效能優化：在迴圈外提前計算當前幀的願望清單，並轉為 Set 提升查詢效能至 O(1)
+  const neededSet =
+    (
+      typeof chemDLCEnabled !== "undefined"
+      && chemDLCEnabled
+      && typeof getNeededElements === "function"
+    ) ?
+      new Set(getNeededElements())
+    : new Set();
+
   for (const b of bricks) {
     const set =
       b.hp >= 2 ? loadedImages.brickFull || [] : loadedImages.brickCrack || [];
@@ -214,6 +224,18 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       const gap = 5;
       const totalWidth = engWidth + gap + zhWidth;
       const startX = b.x + b.w / 2 - totalWidth / 2;
+
+      // ★ 效能優化：直接向迴圈外建立的 Set 進行高效查詢
+      if (neededSet.has(b.symbol)) {
+        ctx.beginPath();
+        // 位置放在英文起點向左推 10px，半徑 3px
+        ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#F6D98B"; // 亮黃色
+        ctx.shadowColor = "#F6D98B";
+        ctx.shadowBlur = 8; // 光暈效果
+        ctx.fill();
+        ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
+      }
 
       // ★ 新增：如果此元素是願望清單目標，在文字左邊畫一個發光小圓點
       const needed = getNeededElements();

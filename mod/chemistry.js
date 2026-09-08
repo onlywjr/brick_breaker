@@ -309,17 +309,25 @@ export async function initChemistrySystem() {
     console.error("❌ 化學系統載入失敗:", error);
   }
 }
+
 // ==========================================
-// 庫存管理 (Inventory) - 支援指定玩家 ID
+// 庫存管理 (Inventory) - 支援指定玩家 ID 與關卡統計
 // ==========================================
-// ==========================================
-// 庫存管理 (Inventory) - 支援指定玩家 ID
-// ==========================================
+export let levelStats = { gained: {}, used: {} }; // ★ 新增：關卡結算統計
+
+export function resetLevelStats() {
+  levelStats = { gained: {}, used: {} };
+}
+
 export function addAtom(element, amount = 1, pId = activePIdx) {
   const inv = chemStates[pId].inventory;
   if (!inv[element]) inv[element] = 0;
   inv[element] += amount;
-  if (pId === activePIdx) chemInventory = inv; // 若為當前視角則同步 UI
+  if (pId === activePIdx) chemInventory = inv;
+
+  // ★ 統計獲得量 (僅限 1P)
+  if (pId === 0)
+    levelStats.gained[element] = (levelStats.gained[element] || 0) + amount;
 }
 
 export function tryConsumeRecipe(elementsRequired, pId = activePIdx) {
@@ -329,6 +337,11 @@ export function tryConsumeRecipe(elementsRequired, pId = activePIdx) {
   }
   for (const [element, requiredCount] of Object.entries(elementsRequired)) {
     inv[element] -= requiredCount;
+
+    // ★ 統計消耗量 (僅限 1P)
+    if (pId === 0)
+      levelStats.used[element] =
+        (levelStats.used[element] || 0) + requiredCount;
   }
   if (pId === activePIdx) chemInventory = inv;
   return true;
@@ -342,6 +355,7 @@ export function clearInventory(pId = activePIdx) {
   chemStates[pId].inventory = {};
   if (pId === activePIdx) chemInventory = chemStates[pId].inventory;
 }
+
 // ==========================================
 // 裝備與牌組管理 (Equipment)
 // ==========================================

@@ -22,6 +22,7 @@ import {
   onlineChooseAttack,
   floatTexts,
   chemDLCEnabled,
+  triggerGameEvent,
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -280,13 +281,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           targetPl.w = Math.max(targetPl.minW, targetPl.w - 25);
           targetPl.shrinkFx = 0.6;
           burst(b.x, targetPl.y, "#D96C8E");
-          floatTexts.push({
-            t: "接到對手球! 縮小",
-            life: 1,
-            x: b.x,
-            y: targetPl.y - 10,
-            c: "#D96C8E",
-          });
+          // ★ 改用 HUD 播報
+          const pId = targetPl === p1 ? 0 : 1;
+          triggerGameEvent("接到對手球! 縮小", false, pId);
         } else if (targetPl === b.owner) {
           if (targetPl.w < 120) {
             targetPl.w = Math.min(120, targetPl.w + 15);
@@ -318,13 +315,13 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               playSfx("brk");
             } else {
               burst(b.x, targetPl.y, targetPl.lightColor);
-              floatTexts.push({
-                t: "能量 +1 (" + targetPl.energy + "/10)",
-                life: 0.8,
-                x: b.x,
-                y: targetPl.y - 20,
-                c: targetPl.lightColor,
-              });
+              // ★ 修正 2：一般雙人模式的能量回復改由 HUD 顯示
+              const pId = targetPl === p1 ? 0 : 1;
+              triggerGameEvent(
+                `⚡ 能量 +1 (${targetPl.energy}/10)`,
+                false,
+                pId,
+              );
             }
           }
         }
@@ -407,13 +404,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           if (comboCount >= 3) {
             let bonus = Math.floor(baseScore * 0.2 * comboCount);
             pl.score += baseScore + bonus;
-            floatTexts.push({
-              t: `COMBO x${comboCount}! +20%`,
-              life: 1,
-              x: br.x,
-              y: br.y - 15,
-              c: "#DDA15E",
-            });
+            // ★ 改用 HUD 播報
+            const pId = pl === p1 ? 0 : 1;
+            triggerGameEvent(`COMBO x${comboCount}!`, false, pId);
           } else {
             pl.score += baseScore;
           }
@@ -450,13 +443,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.y = cv.height - b.r - 5;
         b.dy *= -1;
         playSfx("bounce");
-        floatTexts.push({
-          t: "🛡️ 護盾發動!",
-          life: 1,
-          x: b.x,
-          y: b.y - 20,
-          c: "#9dd9e8",
-        });
+        const pId = pl === p1 ? 0 : 1;
+        triggerGameEvent("🛡️ 護盾發動!", false, pId);
         continue; // 護盾救回一命，跳過掉命邏輯
       }
       if (onlineMode || mode === 1) {
@@ -472,13 +460,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.dy = -4;
         comboCount = 0;
         burst(cv.width / 2, cv.height - 20, "#666");
-        floatTexts.push({
-          t: "失去一條命!",
-          life: 1,
-          x: cv.width / 2,
-          y: cv.height - 60,
-          c: "#D96C8E",
-        });
+        // ★ 重大警告播報
+        const pId = pl === p1 ? 0 : 1;
+        triggerGameEvent("失去一條命!", true, pId);
       } else {
         pl.score = Math.max(0, pl.score - 50);
         b.x = pl.x + pl.w / 2;
@@ -487,13 +471,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.dy = -4;
         comboCount = 0;
         burst(cv.width / 2, cv.height - 20, "#666");
-        floatTexts.push({
-          t: "掉球扣 50 分!",
-          life: 1,
-          x: cv.width / 2,
-          y: cv.height - 60,
-          c: "#D96C8E",
-        });
+        // ★ 重大警告播報
+        const pId = pl === p1 ? 0 : 1;
+        triggerGameEvent("失去一條命!", true, pId);
       }
     }
   }
@@ -535,6 +515,10 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
     const skillId = eq[i];
     if (!skillId) continue;
 
+    // ★ 補上這兩行：透過 ID 取得真實的技能資料物件
+    const skill = getSkillData(skillId);
+    if (!skill) continue;
+
     // ★ 取得當前技能等級，準備做為乘數放大效果
     const levelMult = chemStates[pId].levels[skillId] || 1;
 
@@ -557,27 +541,49 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
   }
 }
 
-export function executeSkillAction(skill, pl, gameState, cv) {
-  // ★ 修正：精準判斷多人模式 (連線模式的 mode 是 1，所以要加上 onlineMode 判斷)
+export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
   const isMulti = mode === 2 || onlineMode;
   const effect = isMulti ? skill.effectMulti : skill.effectSingle;
   if (!effect) return;
 
-  const action = effect.action;
   const params = effect.params || {};
+  const action = effect.action;
 
-  // 畫面中央高亮提示發動的技能
-  floatTexts.push({
-    t: `✨ ${skill.name} ✨`,
-    life: 2,
-    x: cv.width / 2,
-    y: pl.y - 80,
-    c: "#F6D98B",
-    big: true,
-  });
-  playSfx("star"); // 發動音效
+  // ★ 根據不同屬性，套用安全的升級成長公式
+  let power = params.power || 1;
+  let duration = params.durationSec || 0;
 
-  // --- 依照 Action 執行對應效果 ---
+  // A. 絕對數值類 (傷害、護盾、回血)：直接乘上等級倍率
+  if (
+    ["damage_hp", "damage_all", "heal_hp", "add_shield", "clear_rows"].includes(
+      action,
+    )
+  ) {
+    power = Math.round(power * levelMult);
+  }
+  // B. 正向增益倍率 (加速、變大)：基礎 1.0 + (額外增幅 × 倍率)
+  // 舉例：原 1.15 -> Lv.2 變 1.30
+  else if (
+    ["modify_speed", "modify_width", "multiply_score"].includes(action)
+    && power >= 1
+  ) {
+    power = 1 + (power - 1) * levelMult;
+  }
+  // C. 負向削弱倍率 (減速、縮小)：基礎 1.0 - (削減幅度 × 倍率)
+  // 舉例：原 0.9 -> Lv.2 變 0.8，設保底最低 0.2
+  else if (
+    ["shrink_width", "slow_speed", "modify_speed"].includes(action)
+    && power < 1
+  ) {
+    power = Math.max(0.2, 1 - (1 - power) * levelMult);
+  }
+
+  // D. 狀態持續時間 (致盲、反轉、凍結)：每升級 1 次延長 1 秒
+  if (duration > 0) {
+    duration = duration + (levelMult - 1) * 1;
+  }
+
+  // === 以下為原本的 switch(action) 區塊 ===
   switch (action) {
     // ---------------------------------
     // 單人模式 Buff & 物理效果
