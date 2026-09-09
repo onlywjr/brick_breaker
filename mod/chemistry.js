@@ -1988,3 +1988,31 @@ export function calculateBrickHP(symbol, currentLevel = 1) {
   // 回傳最終 HP (四捨五入，且最少為 1)
   return Math.max(1, Math.round(baseHp * levelMultiplier));
 }
+
+// ==========================================
+// ★ 新增：依據關卡難度隨機抽取元素
+// ==========================================
+export function getRandomElementForLevel(currentLevel = 1) {
+  // Lv 1 預設只開放最脆弱的氣體與非金屬 (基礎 1-2 HP)
+  let allowedCategories = ["nonmetal", "halogen", "noble"]; 
+
+  // 隨著關卡推進，逐步開放更硬的元素
+  if (currentLevel >= 3) {
+    allowedCategories.push("alkali", "alkaline", "main-metal", "metalloid"); // 加入主族 (4-6 HP)
+  }
+  if (currentLevel >= 8) {
+    allowedCategories.push("transition"); // 加入過渡金屬 (10-15 HP)
+  }
+  if (currentLevel >= 15) {
+    allowedCategories.push("lanthanide", "actinide", "unknown"); // 加入超重元素 (20-30 HP)
+  }
+
+  // 篩選出符合當前難度的元素池
+  const pool = Object.keys(ELEMENT_DATA).filter(sym => {
+    const category = ELEMENT_DATA[sym][1];
+    return allowedCategories.includes(category);
+  });
+
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}

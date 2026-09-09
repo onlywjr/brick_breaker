@@ -8,6 +8,7 @@ import {
   calculateBrickHP,
   levelStats,
   resetLevelStats,
+  ELEMENT_DATA,
 } from "../mod/chemistry.js";
 
 window.setChemistryMode = setChemistryMode; // 讓 HTML 可以呼叫
@@ -173,43 +174,55 @@ function makePlayer(color, lightColor) {
   };
 }
 
-function generateBrickSymbol(gameMode) {
+function generateBrickSymbol(gameMode, currentLevel) {
+  // ★ 新增 currentLevel 參數
   const basicPool = ["H", "C", "O", "N"];
   let rarePool = [];
 
-  // 從已裝備的技能中，找出需要的特殊元素
   equippedSkills.forEach((skillId) => {
     if (!skillId) return;
     const skill = chemSkills.find((s) => s.id === skillId);
-    if (skill) {
+    if (skill)
       Object.keys(skill.elements).forEach((sym) => {
         if (!basicPool.includes(sym)) rarePool.push(sym);
       });
-    }
   });
 
-  // 單人模式加入願望清單的元素
   if (gameMode === 1) {
     wishlist.forEach((skillId) => {
       const skill = chemSkills.find((s) => s.id === skillId);
-      if (skill) {
+      if (skill)
         Object.keys(skill.elements).forEach((sym) => {
           if (!basicPool.includes(sym)) rarePool.push(sym);
         });
-      }
     });
   }
 
-  // 去除重複，若玩家沒裝備任何技能，給予預設稀有池
   rarePool = [...new Set(rarePool)];
-  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Fe", "Mg"];
 
-  // 70% 基礎元素，30% 稀有元素
-  if (Math.random() < 0.7) {
+  // ★ 新增：根據關卡難度過濾高血量元素
+  rarePool = rarePool.filter((sym) => {
+    const category = ELEMENT_DATA[sym] ? ELEMENT_DATA[sym][1] : "unknown";
+    // 1~4 關：禁止出現過渡金屬與超重元素 (只會出 1~6 HP 的磚)
+    if (
+      currentLevel < 5
+      && ["transition", "lanthanide", "actinide", "unknown"].includes(category)
+    )
+      return false;
+    // 5~9 關：禁止出現超重元素 (最高只出 10~15 HP 的磚)
+    if (
+      currentLevel < 10
+      && ["lanthanide", "actinide", "unknown"].includes(category)
+    )
+      return false;
+    return true;
+  });
+
+  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Mg"];
+
+  if (Math.random() < 0.7)
     return basicPool[Math.floor(Math.random() * basicPool.length)];
-  } else {
-    return rarePool[Math.floor(Math.random() * rarePool.length)];
-  }
+  else return rarePool[Math.floor(Math.random() * rarePool.length)];
 }
 
 function buildLevel(lv, cv) {
@@ -237,7 +250,7 @@ function buildLevel(lv, cv) {
 
     // 產生當前磚塊的化學元素符號
     const currentBrickSymbol =
-      chemDLCEnabled ? generateBrickSymbol(mode) : null;
+      chemDLCEnabled ? generateBrickSymbol(mode, lv) : null; // ★ 傳入 lv
 
     // ★ 修正：先將最終的 HP 結算出來，確保上下限一致
     const finalBrickHp =
@@ -1146,6 +1159,27 @@ export function loop(ts, cv) {
       },
       loadedImages,
     );
+
+    // ★ 修改：將血量數字移至磚塊右側 (中文旁邊) 並加上陰影
+    ctx.font = "900 11px serif"; // 稍微縮小字體避免太擁擠
+    ctx.textAlign = "right"; // 設為靠右對齊
+    ctx.textBaseline = "middle";
+
+    bricks.forEach((b) => {
+      if (b.hp > 0) {
+        // 數字位置：X 軸在磚塊最右邊往左縮 6px，Y 軸在正中間微調
+        const textX = b.x + b.w - 5;
+        const textY = b.y + b.h / 2 + 1;
+
+        // 1. 先畫出深色陰影增加辨識度
+        //ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+        //ctx.fillText(Math.ceil(b.hp), textX + 1, textY + 1);
+
+        // 2. 畫出白色主體數字
+        ctx.fillStyle = "rgba(255, 255, 255, 1)";
+        ctx.fillText(Math.ceil(b.hp), textX, textY);
+      }
+    });
 
     if (onlineMode) {
       onlineRenderPlayers(
