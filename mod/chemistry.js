@@ -78,7 +78,7 @@ export function openChemistryShop(
   if (titleEl) titleEl.innerText = `🛒 ${title}`;
   const btnEl = document.getElementById("chem-close-btn");
   if (btnEl) btnEl.innerText = "✖ 關閉";
-// 確保每次進商店都是顯示卡片區
+  // 確保每次進商店都是顯示卡片區
   document.getElementById("chem-ui-overlay").classList.remove("show-pt-mobile");
   document.getElementById("chem-ui-overlay").style.display = "flex";
   shopCloseCallback = callback;
@@ -345,10 +345,63 @@ export async function initChemistrySystem() {
 
     renderChemistryUI();
 
+    // ★ 啟動等比自適應縮放引擎
+    initResponsiveScaler();
+
     console.log("✅ 化學技能系統與 UI 載入完成", chemSkills);
   } catch (error) {
     console.error("❌ 化學系統載入失敗:", error);
   }
+}
+
+// ★ 新增的等比縮放算法
+function initResponsiveScaler() {
+  const overlay = document.getElementById("chem-ui-overlay");
+  if (!overlay) return;
+
+  // 建立一個縮放外掛容器，把原本的 UI 全部包進去
+  const scaler = document.createElement("div");
+  scaler.id = "chem-ui-scaler";
+
+  // 搬移現有子元素
+  while (overlay.firstChild) {
+    scaler.appendChild(overlay.firstChild);
+  }
+  overlay.appendChild(scaler);
+
+  function applyScale() {
+    const BASE_WIDTH = 900;
+    const BASE_HEIGHT = 400;
+
+    // 同步採用長寬比判定
+    const isMobileLayout =
+      window.innerWidth / window.innerHeight < 1.7
+      || window.innerWidth <= 1024
+      || window.innerHeight <= 600;
+
+    if (isMobileLayout) {
+      const scaleX = window.innerWidth / BASE_WIDTH;
+      const scaleY = window.innerHeight / BASE_HEIGHT;
+      const finalScale = Math.min(scaleX, scaleY) * 0.98; // 乘 0.98 留出一點點安全邊距
+
+      // ★ 強制絕對置中，並從正中央向外縮放，解決偏左偏上問題
+      scaler.style.position = "absolute";
+      scaler.style.left = "50%";
+      scaler.style.top = "50%";
+      scaler.style.transform = `translate(-50%, -50%) scale(${finalScale})`;
+    } else {
+      // 桌面版恢復原狀
+      scaler.style.position = "relative";
+      scaler.style.left = "auto";
+      scaler.style.top = "auto";
+      scaler.style.transform = "none";
+    }
+  }
+
+  // 綁定視窗大小改變事件
+  window.addEventListener("resize", applyScale);
+  // 初次開啟時計算一次
+  applyScale();
 }
 
 // ==========================================
@@ -1288,8 +1341,11 @@ function renderShopCards() {
     );
   }
 
-  // 3. 計算總頁數並防呆 (同步 CSS 的判定條件：寬度 <= 1000 或 高度 <= 500)
-  const isMobileLayout = window.innerWidth <= 1000 || window.innerHeight <= 500;
+  // 3. 計算總頁數並防呆 (使用長寬比 < 1.7 完美捕捉所有 iPad 與平板)
+  const isMobileLayout =
+    window.innerWidth / window.innerHeight < 1.7
+    || window.innerWidth <= 1024
+    || window.innerHeight <= 600;
   const cardsPerPage = isMobileLayout ? 6 : CARDS_PER_PAGE;
   const totalPages = Math.max(
     1,

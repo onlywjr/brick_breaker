@@ -772,23 +772,17 @@
 }
 
 /* =========================================================================
-   行動裝置專屬：卡片區與元素表完美切換 (適用於手機與橫屏)
+   行動裝置專屬：卡片區與元素表完美切換 (適用於手機、小平板與橫屏)
 ========================================================================= */
-@media (max-width: 1000px), (max-height: 500px) {
-  /* ------------------------------------------
-     A. 基礎重置與強制滿版覆蓋
-  ------------------------------------------ */
-  /* 徹底隱藏捲軸，但保持可滑動 */
-  #chem-ui-overlay * {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
-  #chem-ui-overlay *::-webkit-scrollbar {
-    display: none !important;
-  }
+@media (max-width: 1024px), (max-height: 600px), (max-aspect-ratio: 17/10) {
 
-  /* 強制維持 fixed 滿版覆蓋大廳 */
+  /* ==========================================
+     等比縮放畫布設定與滿版覆蓋
+  ========================================== */
   #chem-ui-overlay {
+    /* ⚠️ 已移除 display: flex !important，讓關閉按鈕可以正常運作 */
+    align-items: center !important;
+    justify-content: center !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -798,11 +792,35 @@
     z-index: 9999 !important;
   }
 
+/* 鎖死基礎解析度，由 JS 的 transform 接管縮放 */
+  #chem-ui-scaler {
+    width: 900px !important;
+    height: 400px !important;
+    position: absolute !important; /* ★ 致命錯誤修正：改為絕對定位 */
+    top: 50% !important;           /* ★ 強制把畫布頂部推到螢幕一半 */
+    left: 50% !important;          /* ★ 強制把畫布左側推到螢幕一半 */
+    transform-origin: center center !important; 
+    background: transparent !important;
+  }
+  
+  #chem-ui-scaler > * {
+    max-width: 100% !important;
+  }
+
+  /* 徹底隱藏捲軸，但保持可滑動 */
+  #chem-ui-overlay * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  #chem-ui-overlay *::-webkit-scrollbar {
+    display: none !important;
+  }
+
   /* 隱藏原本桌面版的關閉按鈕 */
   #chem-close-btn {
     display: none !important;
   }
-
+  
   /* ------------------------------------------
      B. 手機專屬按鈕容器 (支援「購買」、「返回」、「關閉」三態切換)
   ------------------------------------------ */
