@@ -41,6 +41,32 @@ let shopCloseCallback = null;
 export let currentShopPage = 0;
 const CARDS_PER_PAGE = 10;
 
+// ==========================================
+// ★ 更新：強制重置所有玩家的化學進度 (徹底清空記憶體)
+// ==========================================
+export function resetChemistryState() {
+  // 1. 嚴格使用 Mutation (清空原陣列與物件) 避免記憶體參照丟失
+  chemStates.forEach((state) => {
+    for (let k in state.inventory) delete state.inventory[k];
+    state.equipped.length = 0;
+    state.unlocked.length = 0;
+    state.wishlist.length = 0;
+    for (let k in state.levels) delete state.levels[k];
+    state.points = 1000;
+  });
+
+  // 2. 清空當前畫面綁定的參照變數
+  activePIdx = 0;
+  multiPlayerPoints = 1000;
+  for (let k in chemInventory) delete chemInventory[k];
+  equippedSkills.length = 0;
+  unlockedSkills.length = 0;
+  wishlist.length = 0;
+  for (let k in skillLevels) delete skillLevels[k];
+
+  if (typeof resetLevelStats === "function") resetLevelStats();
+}
+
 // ★ 核心狀態切換引擎：進商店時切換變數參照
 export function switchChemState(pId) {
   chemStates[activePIdx].points = multiPlayerPoints;

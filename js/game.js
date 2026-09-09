@@ -9,6 +9,7 @@ import {
   levelStats,
   resetLevelStats,
   ELEMENT_DATA,
+  resetChemistryState,
 } from "../mod/chemistry.js";
 
 window.setChemistryMode = setChemistryMode; // 讓 HTML 可以呼叫
@@ -454,6 +455,7 @@ export function startGameGlobal(selectedMode, cv) {
 function executeStartGame(selectedMode, cv) {
   // 在 executeStartGame 開頭加入：
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
+  if (chemDLCEnabled) resetChemistryState(); // ★ 新增：開局強制清空所有化學進度
   onlineMode = false;
   document.getElementById("p1-label").style.display = "inline";
   document.body.classList.remove("online-battle-mode");
@@ -650,6 +652,7 @@ export function startOnlineGame(state, cv) {
   mode = 1; // 底層模式
   // ★ 強制讀取大廳同步好的 DLC 狀態
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
+  if (chemDLCEnabled) resetChemistryState(); // ★ 新增：連線開局也強制清空進度
   myPlayerId = socket.id;
   Object.keys(onlinePlayers).forEach((k) => delete onlinePlayers[k]);
   onlineEliminated = false;
@@ -1253,10 +1256,13 @@ export function initGlobalBindings() {
   window.addEventListener("resize", resizeGame);
   window.addEventListener("orientationchange", resizeGame);
 }
-
 export function resetMatchState() {
   onlineEliminated = false;
   onlineMatchFinished = false;
+  // ★ 確保每次重置連線房間狀態時，立刻清空化學系統
+  if (chemDLCEnabled && typeof resetChemistryState === "function") {
+    resetChemistryState();
+  }
 }
 
 export function clearAttackPending() {
@@ -1288,3 +1294,38 @@ window.addEventListener("keydown", (e) => {
     }
   }
 });
+
+// ==========================================
+// ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據
+// ==========================================
+const originalBackToMain = window.backToMainMenu;
+window.backToMainMenu = function (...args) {
+  if (chemDLCEnabled && typeof resetChemistryState === "function") {
+    resetChemistryState();
+  }
+  if (originalBackToMain) originalBackToMain(...args);
+};
+
+const originalReturnToLobby = window.returnToLobby;
+window.returnToLobby = function (...args) {
+  if (chemDLCEnabled && typeof resetChemistryState === "function") {
+    resetChemistryState();
+  }
+  if (originalReturnToLobby) originalReturnToLobby(...args);
+};
+
+// ==========================================
+// ★ 終極攔截器：偵測玩家建立或加入大廳的瞬間，強制洗白
+// ==========================================
+if (socket) {
+  const originalEmit = socket.emit;
+  socket.emit = function (eventName, ...args) {
+    // 只要系統一發送「建房」或「加房」等相關網路請求，瞬間將化學背包清零！
+    if (["createRoom", "joinRoom", "hostRoom", "join", "host"].includes(eventName)) {
+      if (chemDLCEnabled && typeof resetChemistryState === "function") {
+        resetChemistryState();
+      }
+    }
+    return originalEmit.apply(this, [eventName, ...args]);
+  };
+}
