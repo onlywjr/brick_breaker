@@ -1189,3 +1189,46 @@
     gap: 4px !important;
   }
 }
+
+/* ==========================================
+   強制橫向模式 (Portrait 攔截)
+========================================== */
+#chem-rotate-prompt {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(244, 237, 231, 0.98); /* 配合原本的柔和色系 */
+  backdrop-filter: blur(15px);
+  z-index: 999999; /* 絕對置頂 */
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-size: 24px;
+  font-weight: 900;
+  color: #d96c8e;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+#chem-rotate-prompt::before {
+  content: "📱";
+  font-size: 60px;
+  margin-bottom: 15px;
+  animation: tiltPhone 1.5s infinite ease-in-out alternate;
+}
+
+@keyframes tiltPhone {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-90deg); }
+}
+
+/* ★ 當行動裝置且處於「直向 (Portrait)」時，顯示提示並強制隱藏商店 UI */
+@media (max-width: 1024px) and (orientation: portrait) {
+  #chem-rotate-prompt {
+    display: flex !important;
+  }
+  #chem-ui-overlay {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}

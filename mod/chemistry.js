@@ -301,6 +301,15 @@ export async function initChemistrySystem() {
 
     document.body.appendChild(uiContainer.firstElementChild);
 
+    // ★ 注入強制橫向提示層
+    if (!document.getElementById("chem-rotate-prompt")) {
+      const rotatePrompt = document.createElement("div");
+      rotatePrompt.id = "chem-rotate-prompt";
+      rotatePrompt.innerHTML =
+        "🔄<br>請將設備轉為「橫向」<br><span style='font-size:14px; color:#8a7e9c; font-weight:normal; margin-top:8px; display:block;'>以獲得最佳的商店體驗</span>";
+      document.body.appendChild(rotatePrompt);
+    }
+
     // ★ 為手機版建立獨立的懸浮按鈕容器
     const overlay = document.getElementById("chem-ui-overlay");
     if (overlay && !document.getElementById("mobile-btn-container")) {
