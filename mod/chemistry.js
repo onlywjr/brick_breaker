@@ -76,9 +76,10 @@ export function openChemistryShop(
   switchChemState(pId);
   const titleEl = document.querySelector(".shop-header h2");
   if (titleEl) titleEl.innerText = `🛒 ${title}`;
-  const btnEl = document.querySelector(".chem-return-btn");
-  if (btnEl) btnEl.innerText = "↩️ 關閉商店";
-
+  const btnEl = document.getElementById("chem-close-btn");
+  if (btnEl) btnEl.innerText = "✖ 關閉";
+// 確保每次進商店都是顯示卡片區
+  document.getElementById("chem-ui-overlay").classList.remove("show-pt-mobile");
   document.getElementById("chem-ui-overlay").style.display = "flex";
   shopCloseCallback = callback;
   if (typeof renderChemistryUI === "function") renderChemistryUI();
@@ -297,13 +298,53 @@ export async function initChemistrySystem() {
 
     const uiContainer = document.createElement("div");
     uiContainer.innerHTML = uiHtml;
+
     document.body.appendChild(uiContainer.firstElementChild);
 
-    // ★ 覆寫原本 HTML 寫死的關閉事件，接上我們剛寫的 API
-    const closeBtn = document.querySelector(".chem-return-btn");
-    if (closeBtn) closeBtn.onclick = window.closeChemistryShop;
+    // ★ 為手機版建立獨立的懸浮按鈕容器
+    const overlay = document.getElementById("chem-ui-overlay");
+    if (overlay && !document.getElementById("mobile-btn-container")) {
+      const btnContainer = document.createElement("div");
+      btnContainer.id = "mobile-btn-container";
+
+      // 1. 購買元素 (卡片頁專用：點擊顯示元素表)
+      const buyBtn = document.createElement("button");
+      buyBtn.id = "mobile-buy-btn";
+      buyBtn.className = "chem-return-btn";
+      buyBtn.innerText = "🛒 購買元素";
+      buyBtn.onclick = () => overlay.classList.add("show-pt-mobile");
+
+      // 2. 返回按鈕 (元素表專用：點擊顯示卡片區)
+      const returnBtn = document.createElement("button");
+      returnBtn.id = "mobile-return-btn";
+      returnBtn.className = "chem-return-btn";
+      returnBtn.innerText = "↩ 返回";
+      returnBtn.onclick = () => overlay.classList.remove("show-pt-mobile");
+
+      // 3. 關閉按鈕 (卡片頁專用：關閉整個商店)
+      const closeBtn = document.createElement("button");
+      closeBtn.id = "mobile-close-btn";
+      closeBtn.className = "chem-return-btn";
+      closeBtn.innerText = "✖ 關閉";
+      closeBtn.onclick = window.closeChemistryShop;
+
+      btnContainer.appendChild(buyBtn);
+      btnContainer.appendChild(returnBtn);
+      btnContainer.appendChild(closeBtn);
+      overlay.appendChild(btnContainer);
+    }
+
+    // 隱藏原本的桌面版關閉按鈕
+    const desktopCloseBtn = document.querySelector(
+      ".shop-header .chem-return-btn",
+    );
+    if (desktopCloseBtn) {
+      desktopCloseBtn.id = "chem-close-btn";
+      desktopCloseBtn.onclick = window.closeChemistryShop;
+    }
 
     renderChemistryUI();
+
     console.log("✅ 化學技能系統與 UI 載入完成", chemSkills);
   } catch (error) {
     console.error("❌ 化學系統載入失敗:", error);
@@ -1015,7 +1056,7 @@ window.renderPeriodicTable = function () {
     if (currentGameMode === 2) {
       dashboard.innerHTML = `
         <div class="conv-col conv-col-1" id="conv-selected-area">
-          <div class="conv-title"><span class="conv-icon">🛒</span>元素購買</div>
+          <div class="conv-title"><span class="conv-icon">🛒</span><span class="conv-text">元素購買</span></div>
           <div id="conv-element-wrapper" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%;">
             <div style="color:#a39ead; font-size:16px; font-weight:900; opacity:0.3; pointer-events:none;">目標元素</div>
           </div>
@@ -1042,7 +1083,7 @@ window.renderPeriodicTable = function () {
       // 保持原本的轉換爐介面...
       dashboard.innerHTML = `
         <div class="conv-col conv-col-1" id="conv-selected-area">
-          <div class="conv-title"><span class="conv-icon">♻️</span>轉換爐</div>
+          <div class="conv-title"><span class="conv-icon">♻️</span><span class="conv-text">轉換爐</span></div>
           <div id="conv-element-wrapper" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%;">
             <div style="color:#a39ead; font-size:16px; font-weight:900; opacity:0.3; pointer-events:none;">目標元素</div>
           </div>
@@ -1247,10 +1288,12 @@ function renderShopCards() {
     );
   }
 
-  // 3. 計算總頁數並防呆
+  // 3. 計算總頁數並防呆 (同步 CSS 的判定條件：寬度 <= 1000 或 高度 <= 500)
+  const isMobileLayout = window.innerWidth <= 1000 || window.innerHeight <= 500;
+  const cardsPerPage = isMobileLayout ? 6 : CARDS_PER_PAGE;
   const totalPages = Math.max(
     1,
-    Math.ceil(displaySkills.length / CARDS_PER_PAGE),
+    Math.ceil(displaySkills.length / cardsPerPage),
   );
   if (currentShopPage >= totalPages) currentShopPage = totalPages - 1;
 
@@ -1260,10 +1303,10 @@ function renderShopCards() {
   if (prevBtn) prevBtn.disabled = currentShopPage === 0;
   if (nextBtn) nextBtn.disabled = currentShopPage >= totalPages - 1;
 
-  // 5. 切割出當前頁面的 10 張卡片
+  // 5. 切割出當前頁面的卡片
   const paginatedSkills = displaySkills.slice(
-    currentShopPage * CARDS_PER_PAGE,
-    (currentShopPage + 1) * CARDS_PER_PAGE,
+    currentShopPage * cardsPerPage,
+    (currentShopPage + 1) * cardsPerPage,
   );
 
   // 6. 渲染卡片
@@ -1331,7 +1374,10 @@ function renderShopCards() {
     const card = document.createElement("div");
     card.className = `chem-skill-card ${cardStateClass}`;
     const colorizedFormulaHTML = formatColorizedFormula(pureFormula);
-    const tooltipDirectionClass = pageIndex < 5 ? "show-down" : "show-up";
+    // ★ 自動計算上下排的臨界點 (電腦版 10/2=5，手機版 6/2=3)
+    const halfIndex = Math.ceil(cardsPerPage / 2);
+    const tooltipDirectionClass =
+      pageIndex < halfIndex ? "show-down" : "show-up";
 
     // ==========================================
     // ★ 新增：產生右下角的狀態按鈕或圖示 HTML

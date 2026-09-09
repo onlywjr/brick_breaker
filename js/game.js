@@ -34,7 +34,7 @@ window.enterShopFromLevelClear = () => {
   clearInterval(nextLevelTimer);
   document.getElementById("level-clear-overlay").style.display = "none";
   // ★ 單人模式永遠是 1P (0)
-  openChemistryShop("單人配方商店", 0, window.proceedToNextLevel);
+  openChemistryShop("配方商店", 0, window.proceedToNextLevel);
 };
 
 import { loadAudio, loadedAudio, playSfx } from "./audio.js";

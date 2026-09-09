@@ -1,7 +1,11 @@
 /* ==========================================
    BRICK RUSH 99 - 化學擴展 UI 完整樣式表
+   包含桌面版與行動裝置 (橫屏) 最佳化
 ========================================== */
 
+/* ------------------------------------------
+   1. 全域與基礎彈出視窗設定
+------------------------------------------ */
 #chem-ui-overlay {
   position: fixed;
   inset: 0;
@@ -15,27 +19,16 @@
   font-family: "Noto Sans TC", sans-serif;
 }
 
-/* ==========================================
-   上半部佈局：左右雙欄 (商店與裝備)
-========================================== */
-.shop-two-column {
-  display: flex;
-  flex: 0 0 43vh;
-  border-bottom: 2px solid rgba(201, 177, 232, 0.5);
-  padding-bottom: 15px;
-  overflow: hidden;
+/* 預設在桌面版隱藏手機專屬的三顆切換按鈕 */
+#mobile-buy-btn,
+#mobile-return-btn,
+#mobile-close-btn {
+  display: none;
 }
 
-.shop-left-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ==========================================
-   上半部標題列、分類頁籤與返回按鈕
-========================================== */
+/* ------------------------------------------
+   2. 商店上半部：標題、頁籤與關閉按鈕
+------------------------------------------ */
 .shop-header {
   display: flex;
   align-items: center;
@@ -55,7 +48,6 @@
   gap: 8px;
 }
 
-/* ★ 修復：補回缺失的基礎頁籤樣式 */
 .chem-tab {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid transparent;
@@ -80,7 +72,6 @@
   box-shadow: 0 4px 5px rgb(0 0 0 / 20%);
 }
 
-/* 標題列專屬返回按鈕 */
 .chem-return-btn {
   margin-left: auto;
   margin-right: 70px;
@@ -100,9 +91,24 @@
   color: #fff;
 }
 
-/* ==========================================
-   商店卡片：左右翻頁輪播佈局
-========================================== */
+/* ------------------------------------------
+   3. 商店卡片區塊佈局 (包含左右切換)
+------------------------------------------ */
+.shop-two-column {
+  display: flex;
+  flex: 0 0 43vh;
+  border-bottom: 2px solid rgba(201, 177, 232, 0.5);
+  padding-bottom: 15px;
+  overflow: hidden;
+}
+
+.shop-left-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .shop-carousel-wrapper {
   display: flex;
   align-items: stretch;
@@ -115,13 +121,11 @@
 .chem-card-grid-page {
   flex: 1;
   display: grid;
-  /* 固定 2 列 5 欄，每頁剛好 10 張卡片 */
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, 1fr); /* 電腦版固定一排 5 張 */
   grid-template-rows: repeat(2, 1fr);
   gap: 12px;
 }
 
-/* 左右翻頁按鈕 */
 .shop-nav-btn {
   width: 40px;
   background: rgba(255, 255, 255, 1);
@@ -150,9 +154,189 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-  transform: scale(0.75);
 }
 
+/* ------------------------------------------
+   4. 單張技能卡片樣式與狀態
+------------------------------------------ */
+.chem-skill-card {
+  min-height: 110px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #9dd9e8;
+  border-radius: 16px;
+  padding: 5px 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(157, 217, 232, 0.2);
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.chem-skill-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(157, 217, 232, 0.4);
+  z-index: 999;
+}
+
+.chem-skill-card.unaffordable {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+  border-color: rgba(24, 24, 24, 0.1);
+}
+.chem-skill-card.unaffordable:hover {
+  opacity: 1;
+}
+.chem-skill-card.unaffordable .chem-card-cost {
+  color: #a39ead;
+}
+.chem-skill-card.equipped {
+  border-color: #9ccc65;
+  background: rgba(156, 204, 101, 0.1);
+}
+.chem-skill-card.equipped .chem-card-index {
+  background: #9ccc65;
+  color: #3e2723;
+}
+.chem-skill-card.unlocked .chem-card-index {
+  background: #69d7ff;
+  color: #3e2723;
+}
+.chem-skill-card.selected {
+  border-color: #f6d98b;
+  box-shadow: 0 0 15px rgba(246, 217, 139, 0.6);
+  transform: translateY(-4px);
+}
+
+.chem-card-title {
+  font-weight: 900;
+  color: #5d576b;
+}
+.chem-card-cost {
+  font-family: "sans-serif";
+  font-weight: 800;
+  color: #d96c8e;
+}
+.chem-card-desc {
+  font-size: 12px;
+  color: #8a7e9c;
+  line-height: 1.4;
+}
+
+.chem-card-index {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background: #5d576b;
+  color: #fff;
+  border-radius: 50%;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 2px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-family: sans-serif;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.chem-card-equipped-mark {
+  position: absolute;
+  bottom: 2px;
+  right: 8px;
+  font-size: 20px;
+  color: #9ccc65;
+  font-weight: 900;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(156, 204, 101, 0.4));
+}
+
+@keyframes affordableGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(246, 217, 139, 0.4);
+    border-color: rgba(246, 217, 139, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(246, 217, 139, 1);
+    border-color: rgba(246, 217, 139, 1);
+  }
+}
+.chem-skill-card.affordable {
+  animation: affordableGlow 1.5s infinite alternate ease-in-out;
+  opacity: 0.75;
+}
+.chem-skill-card.affordable:hover {
+  opacity: 1;
+}
+.chem-skill-card.affordable .chem-card-index {
+  background: #ffb74d;
+  color: #3e2723;
+  z-index: 5;
+}
+
+/* 卡片浮動說明 (Tooltip) */
+.chem-card-tooltip {
+  visibility: hidden;
+  width: 120%;
+  left: -10% !important;
+  box-sizing: border-box;
+  background-color: #5d576b;
+  color: #fff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  position: absolute;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.chem-card-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+}
+
+.chem-skill-card:hover .chem-card-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.chem-card-tooltip.show-down {
+  top: 105%;
+  bottom: auto;
+}
+.chem-card-tooltip.show-down::after {
+  bottom: 100%;
+  top: auto;
+  border-color: transparent transparent #5d576b transparent;
+}
+.chem-card-tooltip.show-up {
+  bottom: 105%;
+  top: auto;
+}
+.chem-card-tooltip.show-up::after {
+  top: 100%;
+  bottom: auto;
+  border-color: #5d576b transparent transparent transparent;
+}
+
+/* ------------------------------------------
+   5. 右上角裝備槽
+------------------------------------------ */
 .shop-right-col {
   display: flex;
   flex-direction: column;
@@ -166,7 +350,6 @@
   padding: 8px 5px 10px 8px;
 }
 
-/* 修改原有的 .chem-slot，加上游標 */
 .chem-slot {
   width: 120px;
   height: 50px;
@@ -178,35 +361,8 @@
   justify-content: center;
   position: relative;
   flex-shrink: 0;
-  cursor: pointer; /* ★ 新增點擊提示 */
+  cursor: pointer;
   transition: all 0.2s;
-}
-
-/* ★ 新增：當進入「選擇裝備模式」時，該槽位會發光提示 */
-@keyframes slotPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(246, 166, 193, 0.7);
-    border-color: #f6a6c1;
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(246, 166, 193, 0);
-    border-color: #d96c8e;
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(246, 166, 193, 0);
-    border-color: #f6a6c1;
-  }
-}
-.chem-slot.equipping-active {
-  animation: slotPulse 1.5s infinite;
-  background: rgba(255, 255, 255, 0.95);
-}
-
-/* 確保未能購買的卡片有灰暗感 */
-.chem-skill-card.unaffordable {
-  opacity: 0.5;
-  filter: grayscale(0.6);
-  border-color: rgba(24, 24, 24, 0.1);
 }
 
 .chem-slot.filled {
@@ -232,76 +388,31 @@
   z-index: 2;
 }
 
-.chem-skill-card {
-  min-height: 110px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 2px solid #9dd9e8;
-  border-radius: 16px;
-  padding: 5px 10px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(157, 217, 232, 0.2);
-  transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  position: relative;
+@keyframes slotPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(246, 166, 193, 0.7);
+    border-color: #f6a6c1;
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(246, 166, 193, 0);
+    border-color: #d96c8e;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(246, 166, 193, 0);
+    border-color: #f6a6c1;
+  }
 }
-.chem-skill-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(157, 217, 232, 0.4);
-}
-.chem-skill-card.unaffordable {
-  opacity: 0.5;
-}
-.chem-skill-card.unaffordable:hover {
-  opacity: 1;
+.chem-slot.equipping-active {
+  animation: slotPulse 1.5s infinite;
+  background: rgba(255, 255, 255, 0.95);
 }
 
-.chem-skill-card.unaffordable .chem-card-cost {
-  color: #a39ead;
-}
-.chem-skill-card.equipped {
-  border-color: #9ccc65;
-  background: rgba(156, 204, 101, 0.1);
-}
-
-.chem-skill-card.equipped .chem-card-index {
-  background: #9ccc65;
-  color: #3e2723;
-}
-
-.chem-skill-card.unlocked .chem-card-index {
-  background: #69d7ff;
-  color: #3e2723;
-}
-
-.chem-skill-card.selected {
-  border-color: #f6d98b;
-  box-shadow: 0 0 15px rgba(246, 217, 139, 0.6);
-  transform: translateY(-4px);
-}
-.chem-card-title {
-  font-weight: 900;
-  color: #5d576b;
-}
-.chem-card-cost {
-  font-family: "sans-serif";
-  font-weight: 800;
-  color: #d96c8e;
-}
-.chem-card-desc {
-  font-size: 12px;
-  color: #8a7e9c;
-  line-height: 1.4;
-}
-
-/* ==========================================
-   下半部佈局：主週期表 + 5x3 側邊區塊
-========================================== */
+/* ------------------------------------------
+   6. 週期表與元素轉換區域
+------------------------------------------ */
 .pt-layout-wrapper {
   flex: 1;
   display: grid;
-  /* ★ 將原本的 repeat(24, 1fr) 拆分為三段：左18等份、中間自訂寬度、右5等份 */
   grid-template-columns: repeat(18, 1fr) 5px repeat(5, 1fr);
   gap: 3px;
   align-items: stretch;
@@ -311,7 +422,7 @@
 }
 
 .pt-main-grid {
-  grid-column: 1 / 19; /* ★ 佔據前 18 欄 (第 1 到 19 條格線) */
+  grid-column: 1 / 19;
   display: grid;
   grid-template-columns: repeat(18, 1fr);
   grid-template-rows: repeat(7, 1fr);
@@ -320,18 +431,16 @@
 }
 
 .pt-side-blocks {
-  grid-column: 20 / 25; /* ★ 佔據最後 5 欄，中間第 19 欄會自動變成等寬的空白間距 */
+  grid-column: 20 / 25;
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
-
 .pt-block {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
-
 .pt-block-title {
   font-size: 13px;
   font-weight: 900;
@@ -340,16 +449,19 @@
   margin-bottom: 6px;
   font-family: "Orbitron", sans-serif;
 }
-
 .pt-sub-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* ★ 改為 5 列 */
-  grid-template-rows: repeat(3, 1fr); /* ★ 改為 3 行 */
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: 5px;
   flex: 1;
 }
 
-/* ★ 取消固定高度，讓 grid-template-rows 接管撐滿 100% 空間 */
+#chem-pt-grid {
+  position: relative;
+}
+
+/* 元素方塊樣式 */
 .pt-element {
   border-radius: 4px;
   width: 100%;
@@ -363,20 +475,28 @@
   transition: all 0.3s;
   color: #fff;
   overflow: hidden;
+  cursor: pointer;
 }
-
-/* ==========================================
-   滑鼠懸停：轉換按鈕特效與元素文字
-========================================== */
-
+.pt-element:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 .pt-element.owned:hover {
   display: flex;
 }
+.pt-element.empty {
+  filter: grayscale(0.95);
+  opacity: 0.75;
+  color: #5d576b;
+}
+.pt-element.empty:hover {
+  opacity: 1;
+}
+.pt-element.owned .pt-badge {
+  display: block;
+}
 
-/* ==========================================
-   元素內部排版：直式三列
-========================================== */
-/* 1. 頂部列：滿寬、雙欄 3:7 */
 .pt-top-row {
   display: grid;
   grid-template-columns: 3fr 7fr;
@@ -385,16 +505,12 @@
   border-top-right-radius: 3px;
   overflow: hidden;
 }
-
-/* 1-1 左上角：原子序 (3等份背景色) */
 .pt-atomic-num {
   background: rgba(255, 255, 255, 0.15);
   text-align: center;
   font-size: 9px;
   font-family: sans-serif;
 }
-
-/* 1-2 右上角：原子量 (7等份背景色) */
 .pt-atomic-weight {
   background: rgba(255, 255, 255, 0.75);
   text-align: right;
@@ -403,8 +519,6 @@
   color: #666666;
   padding-right: 3px;
 }
-
-/* 2. 中央：中文與英文並排 */
 .pt-center-content {
   display: flex;
   align-items: baseline;
@@ -412,23 +526,19 @@
   margin-top: 4px;
   gap: 2px;
   width: 100%;
-  flex: 1; /* 佔滿中間垂直剩餘空間，將上下兩列推開 */
+  flex: 1;
 }
-
 .pt-name {
   font-size: 13px;
   line-height: 1;
 }
-
 .pt-symbol {
   font-family: sans-serif;
   font-size: 11px;
 }
-
-/* 3. 下方：持有數量 (滿寬背景色) */
 .pt-quantity {
   width: 100%;
-  background: rgba(0, 0, 0, 0.15); /* 底部預設背景色 */
+  background: rgba(0, 0, 0, 0.15);
   text-align: center;
   font-family: sans-serif;
   font-size: 9px;
@@ -436,28 +546,9 @@
   border-bottom-right-radius: 3px;
   padding: 1.5px 0 2.5px 0;
 }
-
-/* 獲得元素時的底部數量列強調 */
 .pt-element.owned .pt-quantity {
   background: rgba(255, 255, 255, 0.5);
   color: #a14b4b;
-}
-
-/* ==========================================
-   週期表狀態與分類顏色
-========================================== */
-
-.pt-element.empty {
-  filter: grayscale(0.95);
-  opacity: 0.75;
-  color: #5d576b;
-}
-
-.pt-element.empty:hover {
-  opacity: 1;
-}
-.pt-element.owned .pt-badge {
-  display: block;
 }
 
 @keyframes chemBreathe {
@@ -476,6 +567,7 @@
   z-index: 10;
 }
 
+/* 元素分類底色 */
 .alkali {
   background: #c5a3cd;
 }
@@ -510,81 +602,9 @@
   background: #e1bee7;
 }
 
-/* ==========================================
-   全域美化：自訂柔和捲軸
-========================================== */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(201, 177, 232, 0.15);
-  border-radius: 10px;
-  margin: 5px 0;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(201, 177, 232, 0.6);
-  border-radius: 10px;
-  border: 2px solid rgba(244, 237, 231, 0.5);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 177, 232, 0.9);
-}
-
-/* ==========================================
-   提示框 (Tooltip) 樣式
-========================================== */
-.chem-tooltip-container {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: help;
-}
-
-.chem-tooltip-text {
-  visibility: hidden;
-  width: max-content;
-  background-color: #5d576b;
-  color: #fff;
-  text-align: right; /* 直式排版靠右對齊較為整齊 */
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-family: "Orbitron", "Noto Sans TC", sans-serif;
-  font-weight: normal;
-  letter-spacing: 0.5px;
-  line-height: 1.5; /* 增加行距讓直式更易讀 */
-
-  /* 改為向下彈出，並對齊卡片右側，避免被上方容器邊界裁切 */
-  position: absolute;
-  z-index: 100;
-  top: 130%;
-  right: 0;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* 提示框上方的小三角形 (指向上方) */
-.chem-tooltip-text::after {
-  content: "";
-  position: absolute;
-  bottom: 100%; /* 箭頭改在提示框上方 */
-  right: 15px; /* 讓箭頭對準 $ 符號的位置 */
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent #5d576b transparent;
-}
-
-.chem-tooltip-container:hover .chem-tooltip-text {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* ==========================================
-   轉換儀表板 (嵌入週期表 3~12 欄空缺處)
-========================================== */
+/* ------------------------------------------
+   7. 轉換爐 Dashboard
+------------------------------------------ */
 .chem-conversion-dashboard {
   position: absolute;
   top: 25px;
@@ -592,13 +612,11 @@
   width: 52%;
   height: 30%;
   backdrop-filter: blur(5px);
-  /* border: 2px dashed rgba(201, 177, 232); */
   border-radius: 12px;
   display: flex;
   padding: 10px 15px;
   box-sizing: border-box;
   z-index: 20;
-  /* background-color: rgba(0, 0, 0, 0.05); */
 }
 
 .conv-col {
@@ -611,7 +629,6 @@
   overflow: hidden;
 }
 
-/* 第一欄：3:7 網格，佔據約 30% 寬度 */
 .conv-col-1 {
   flex: 1.4;
   display: grid;
@@ -619,8 +636,6 @@
   align-items: center;
   padding: 5px;
 }
-
-/* 左側垂直文字 */
 .conv-title {
   letter-spacing: 2px;
   font-weight: 900;
@@ -629,7 +644,6 @@
   text-align: center;
   margin: auto;
 }
-
 .conv-icon {
   display: block;
   font-size: 40px;
@@ -637,13 +651,9 @@
 }
 
 #conv-selected-area > div:first-child {
-  background: #333;
   color: white;
   border-radius: 6px;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   padding: 5px 0 5px 6px;
   margin: -5px;
 }
@@ -657,7 +667,6 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* 第二欄：壓縮按鈕區，佔據約 20% 寬度 */
 .conv-col-2 {
   flex: 0.6;
   justify-content: center;
@@ -665,14 +674,10 @@
   background: none;
   box-shadow: none;
 }
-
-/* 第三欄：結果區，佔據約 50% 寬度 */
 .conv-col-3 {
   flex: 2;
   justify-content: center;
 }
-
-/* 第三欄內部的 3欄2列 網格 */
 .conv-result-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -682,7 +687,6 @@
   height: 100%;
   align-items: center;
 }
-
 .conv-result-item {
   display: flex;
   justify-content: space-between;
@@ -693,7 +697,6 @@
   color: #5d576b;
 }
 
-/* 讓原本的輸入框佔滿較小的第二欄 */
 #conv-qty-input {
   width: 75%;
   padding: 5px;
@@ -708,7 +711,6 @@
   background: rgba(255, 255, 255, 0.9);
   outline: none;
 }
-
 #conv-qty-input:focus {
   border-color: #f6a6c1;
 }
@@ -717,9 +719,8 @@
   font-size: 14px;
 }
 
-/* 買賣共用按鈕樣式 */
 .conv-action-btn {
-  width: 90%; /* 配合你原本輸入框的寬度 */
+  width: 90%;
   background: #972222;
   color: #fff;
   border: none;
@@ -741,7 +742,6 @@
   cursor: not-allowed;
 }
 
-/* 出售按鈕專屬樣式 (綠色系區隔) */
 .conv-action-btn.sell-btn {
   background: #7cb342;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -750,157 +750,420 @@
   background: #333;
 }
 
-/* 讓所有的元素方塊具備點擊回饋 */
-.pt-element {
-  cursor: pointer;
+/* ------------------------------------------
+   8. 全域捲軸美化
+------------------------------------------ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-.pt-element:hover {
-  transform: scale(1.05);
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+::-webkit-scrollbar-track {
+  background: rgba(201, 177, 232, 0.15);
+  border-radius: 10px;
+  margin: 5px 0;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 177, 232, 0.6);
+  border-radius: 10px;
+  border: 2px solid rgba(244, 237, 231, 0.5);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 177, 232, 0.9);
 }
 
-#chem-pt-grid {
-  position: relative; /* 讓內部絕對定位的元素以這個網格為基準 */
-}
-
-/* ==========================================
-   可購買卡片的光暈呼吸燈特效
-========================================== */
-@keyframes affordableGlow {
-  0% {
-    box-shadow: 0 0 5px rgba(246, 217, 139, 0.4);
-    border-color: rgba(246, 217, 139, 0.6);
+/* =========================================================================
+   行動裝置專屬：卡片區與元素表完美切換 (適用於手機與橫屏)
+========================================================================= */
+@media (max-width: 1000px), (max-height: 500px) {
+  /* ------------------------------------------
+     A. 基礎重置與強制滿版覆蓋
+  ------------------------------------------ */
+  /* 徹底隱藏捲軸，但保持可滑動 */
+  #chem-ui-overlay * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
   }
-  100% {
-    box-shadow: 0 0 16px rgba(246, 217, 139, 1);
-    border-color: rgba(246, 217, 139, 1);
+  #chem-ui-overlay *::-webkit-scrollbar {
+    display: none !important;
   }
-}
 
-.chem-skill-card.affordable {
-  animation: affordableGlow 1.5s infinite alternate ease-in-out;
-  opacity: 0.75;
-}
+  /* 強制維持 fixed 滿版覆蓋大廳 */
+  #chem-ui-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    z-index: 9999 !important;
+  }
 
-.chem-skill-card.affordable:hover {
-  opacity: 1;
-}
+  /* 隱藏原本桌面版的關閉按鈕 */
+  #chem-close-btn {
+    display: none !important;
+  }
 
-/* ==========================================
-   卡片懸停效果與 z-index 提昇 (解決被遮擋問題)
-========================================== */
-.chem-skill-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(157, 217, 232, 0.4);
-  z-index: 999; /* 將正在查看的卡片拉到最上層 */
-}
+  /* ------------------------------------------
+     B. 手機專屬按鈕容器 (支援「購買」、「返回」、「關閉」三態切換)
+  ------------------------------------------ */
+  #mobile-btn-container {
+    display: flex !important;
+    position: absolute !important;
+    top: 10px !important;
+    right: 0px !important;
+    z-index: 300 !important;
+    pointer-events: none !important;
+  }
 
-/* ==========================================
-   卡片專屬說明 Tooltip (支援動態上下彈出)
-========================================== */
-.chem-card-tooltip {
-  visibility: hidden;
-  width: 120%;
-  left: -10% !important;
-  box-sizing: border-box;
-  background-color: #5d576b;
-  color: #fff;
-  text-align: left;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 12px;
-  line-height: 1.6;
+  /* 手機按鈕共用外觀 */
+  #mobile-buy-btn,
+  #mobile-return-btn,
+  #mobile-close-btn {
+    pointer-events: auto !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    margin: 5px 15px 0 0 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 20px !important;
+    color: #8a7e9c;
+  }
 
-  position: absolute;
-  z-index: 1000;
-  left: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
+  /* 卡片頁預設：顯示購買與關閉 */
+  #mobile-buy-btn,
+  #mobile-close-btn {
+    display: inline-block !important;
+  }
+  #mobile-return-btn {
+    display: none !important;
+  }
 
-.chem-card-tooltip::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-}
+  /* ------------------------------------------
+     C. 卡片頁排版 (標題、頁籤與裝備槽)
+  ------------------------------------------ */
+  .shop-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 15px 20px 0 20px !important;
+  }
 
-.chem-skill-card:hover .chem-card-tooltip {
-  visibility: visible;
-  opacity: 1;
-}
+  .shop-header h2 {
+    font-size: 20px !important;
+    margin: 0 0 0 5px !important;
+    line-height: 32px !important;
+  }
 
-/* ==========================================
-   動態方向控制 Class
-========================================== */
-/* 向下顯示 (預留空間充足時) */
-.chem-card-tooltip.show-down {
-  top: 105%;
-  bottom: auto;
-}
-.chem-card-tooltip.show-down::after {
-  bottom: 100%;
-  top: auto;
-  border-color: transparent transparent #5d576b transparent;
-}
+  .chem-tabs {
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding: 15px 0 15px 15px !important;
+  }
+  .chem-tab {
+    padding: 5px 12px !important;
+    font-size: 13px !important;
+    flex-shrink: 0 !important;
+  }
 
-/* 向上顯示 (靠近螢幕底部時) */
-.chem-card-tooltip.show-up {
-  bottom: 105%;
-  top: auto;
-}
-.chem-card-tooltip.show-up::after {
-  top: 100%;
-  bottom: auto;
-  border-color: #5d576b transparent transparent transparent;
-}
+  /* 裝備槽：絕對置中於頂部 */
+  .shop-right-col {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 10px !important;
+    display: flex !important;
+    z-index: 100 !important;
+  }
+  .chem-equipped-container-vertical {
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+  .chem-slot {
+    width: 55px !important;
+    height: 45px !important;
+  }
+  .chem-slot .slot-priority {
+    transform: scale(0.75);
+    left: -4px;
+    top: -4px;
+  }
+  .chem-slot span {
+    font-size: 12px !important;
+  }
 
-/* ==========================================
-   卡片底部資訊：左下編號與右下裝備打勾
-========================================== */
-.chem-card-index {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  background: #5d576b;
-  color: #fff;
-  border-radius: 50%;
-  min-width: 28px; /* 使用 min-width 確保 3 位數也能塞得下 */
-  height: 28px;
-  padding: 0 2px;
-  box-sizing: border-box;
-  font-size: 12px;
-  font-family: sans-serif;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
+  /* ------------------------------------------
+     D. 卡片區網格 (上3下3滿版配置)
+  ------------------------------------------ */
+  .shop-two-column {
+    flex-direction: column !important;
+    flex: 1 !important;
+    border-bottom: none !important;
+    height: 100% !important;
+  }
 
-.chem-card-equipped-mark {
-  position: absolute;
-  bottom: 2px;
-  right: 8px;
-  font-size: 20px;
-  color: #9ccc65;
-  font-weight: 900;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(156, 204, 101, 0.4));
-}
+  .chem-card-grid-page {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 0 10px 0 !important;
+    height: 100% !important; /* 強制撐滿剩餘高度 */
+    margin-bottom: 0 !important;
+  }
 
-/* ==========================================
-   可解鎖卡片 (Affordable) 專屬左上角編號樣式
-========================================== */
-.chem-skill-card.affordable .chem-card-index {
-  background: #ffb74d; /* 亮橘金底色 */
-  color: #3e2723; /* 深色文字增加對比 */
-  z-index: 5;
+  /* 內部卡片壓縮設定 */
+  .chem-skill-card {
+    height: auto !important;
+    min-width: 0 !important;
+    padding: 8px !important;
+    border-radius: 8px !important;
+  }
+  .chem-skill-card .chem-card-title {
+    font-size: 13px !important;
+  }
+  .chem-skill-card > div:nth-child(2) {
+    margin: 6px 0 !important;
+  }
+  .chem-skill-card > div:nth-child(2) span:first-child {
+    font-size: 18px !important;
+  }
+  .chem-skill-card > div:nth-child(2) span:last-child {
+    font-size: 11px !important;
+  }
+  .chem-skill-card .chem-card-index {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 10px !important;
+    min-width: 18px !important;
+    left: 6px !important;
+    bottom: 6px !important;
+  }
+  .chem-skill-card button,
+  .chem-skill-card > div[style*="bottom: 8px; right: 8px"] {
+    bottom: 6px !important;
+    right: 6px !important;
+    font-size: 11px !important;
+    transform: scale(0.9);
+    transform-origin: right bottom;
+  }
+  .chem-skill-card span[onclick*="toggleWishlist"] {
+    font-size: 16px !important;
+    top: 6px !important;
+    right: 6px !important;
+    line-height: 1 !important;
+    padding: 2px !important;
+  }
+
+  /* 隱藏過長的翻頁按鈕，將點擊區域限制在卡片兩側 */
+  .shop-carousel-wrapper {
+    position: relative !important;
+    padding: 0 40px !important;
+  }
+  .shop-nav-btn {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: 35% !important;
+    width: 30px !important;
+    z-index: 200 !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
+  }
+  #shop-prev-btn {
+    left: -5px !important;
+    border-radius: 0 8px 8px 0 !important;
+    color: #333;
+  }
+  #shop-next-btn {
+    right: -5px !important;
+    border-radius: 8px 0 0 8px !important;
+    color: #333;
+  }
+
+  .shop-nav-btn:hover:not(:disabled) {
+    color: #333;
+  }
+
+  /* ------------------------------------------
+     E. 預設隱藏元素表
+  ------------------------------------------ */
+  .pt-layout-wrapper {
+    display: none !important;
+  }
+
+  /* ==========================================
+     當進入【元素表模式】 (觸發 show-pt-mobile 類別)
+     ★ 橫屏雙欄版：左欄操作 (按鈕+轉換爐)，右欄週期表 (無Y捲軸)
+  ========================================== */
+  #chem-ui-overlay.show-pt-mobile {
+    display: block !important;
+    overflow: hidden !important; /* ★ 徹底鎖定外層，取消捲軸 */
+    padding: 0 !important;
+  }
+
+  /* 隱藏不要的卡片區與標題 */
+  #chem-ui-overlay.show-pt-mobile .shop-header,
+  #chem-ui-overlay.show-pt-mobile .shop-two-column,
+  #chem-ui-overlay.show-pt-mobile .shop-right-col {
+    display: none !important;
+  }
+
+  /* ------------------------------------------
+     【左欄設定】獨立容器，固定於畫面左側
+  ------------------------------------------ */
+  /* 1. 獨立按鈕容器：移至左上角，只顯示返回按鈕 */
+  #chem-ui-overlay.show-pt-mobile #mobile-btn-container {
+    position: fixed !important;
+    top: 15px !important;
+    left: 15px !important;
+    right: auto !important;
+    width: 180px !important;
+    display: flex !important;
+    z-index: 400 !important;
+  }
+  #chem-ui-overlay.show-pt-mobile #mobile-buy-btn,
+  #chem-ui-overlay.show-pt-mobile #mobile-close-btn {
+    display: none !important;
+  }
+  #chem-ui-overlay.show-pt-mobile #mobile-return-btn {
+    display: inline-block !important;
+    width: 150px !important; /* 填滿左欄 */
+    text-align: center !important;
+    margin: 0 !important;
+  }
+
+  /* 2. 轉換爐：強制拔出週期表定位，釘在左側 */
+
+  #chem-ui-overlay.show-pt-mobile .chem-conversion-dashboard {
+    position: fixed !important;
+    top: 50px !important;
+    left: 0px !important;
+    bottom: 0px !important;
+    width: 180px !important;
+    height: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 400 !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* 修復轉換爐內部的擠壓變形 */
+  #chem-ui-overlay.show-pt-mobile .conv-icon {
+    margin: 10px 0 0 -10px;
+    font-size: 30px;
+  } /* 隱藏大圖示省空間 */
+  #chem-ui-overlay.show-pt-mobile .conv-title {
+    display: block !important;
+    font-size: 15px !important;
+  }
+  #chem-ui-overlay.show-pt-mobile .conv-text {
+    display: none !important;
+  }
+  #chem-ui-overlay.show-pt-mobile .conv-col {
+    box-shadow: none !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    flex: none !important;
+  }
+
+  /* 第一欄：目標元素 */
+  #chem-ui-overlay.show-pt-mobile .conv-col-1 {
+    justify-content: space-between !important;
+    height: 20%;
+  }
+  #chem-ui-overlay.show-pt-mobile #conv-element-wrapper .pt-element {
+    margin: 0 !important;
+    width: 60px !important;
+    height: 50px !important;
+  }
+
+  /* 第二欄：數量輸入框 */
+  #chem-ui-overlay.show-pt-mobile .conv-col-2 {
+    padding: 6px 10px !important;
+  }
+  #chem-ui-overlay.show-pt-mobile #conv-qty-input {
+    width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 第三欄：購買/點數/出售 (維持橫排) */
+  #chem-ui-overlay.show-pt-mobile .conv-col-3 {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px;
+    padding: 15px 0 !important;
+    flex: 1 !important;
+  }
+  #chem-ui-overlay.show-pt-mobile .conv-action-btn {
+    width: 75% !important;
+    padding: 10px !important;
+  }
+  #conv-execute-btn {
+    width: 100% !important;
+    margin-top: 10px !important;
+  }
+
+  #chem-ui-overlay.show-pt-mobile #conv-result-area > div {
+    transform: scale(0.9) !important;
+  }
+
+  .conv-result-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  /* ------------------------------------------
+     【右欄設定】強制貼合視窗，取消 Y 捲軸，恢復 X 捲動
+  ------------------------------------------ */
+  #chem-ui-overlay.show-pt-mobile .pt-layout-wrapper {
+    position: absolute !important;
+    top: 15px !important;
+    left: 180px !important;
+    right: 15px !important;
+    bottom: 15px !important;
+    display: flex !important;
+    gap: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 0 0 15px !important;
+    margin: 0 !important;
+    overflow-y: hidden !important;
+    overflow-x: auto !important;
+    border-left: 1px solid #0000003b;
+  }
+
+  /* 左半部主週期表：給予最小寬度強制撐開 */
+  #chem-ui-overlay.show-pt-mobile .pt-main-grid {
+    display: grid !important;
+    grid-template-columns: repeat(18, 1fr) !important;
+    grid-template-rows: repeat(7, 1fr) !important;
+    height: 100% !important;
+    min-width: 650px !important; /* ★ 強制撐開內容，讓外層產生捲軸 */
+    flex: 0 0 auto !important; /* 防止被 Flex 壓縮 */
+  }
+
+  /* 右半部側邊區塊 (鑭系/錒系) */
+  #chem-ui-overlay.show-pt-mobile .pt-side-blocks {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    min-width: 180px !important; /* ★ 強制撐開內容 */
+    flex: 0 0 auto !important; /* 防止被 Flex 壓縮 */
+  }
+
+  #chem-ui-overlay.show-pt-mobile .pt-block {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+  #chem-ui-overlay.show-pt-mobile .pt-sub-grid {
+    height: 85% !important;
+    gap: 4px !important;
+  }
 }
