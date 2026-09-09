@@ -234,13 +234,13 @@ function buildLevel(lv, cv) {
   boss.bullets.length = 0;
   resetBackground();
   document.getElementById("level-txt").textContent = lv >= 5 ? `∞ ${lv}` : lv;
-  const bw = 72,
-    bh = 24,
+  const bw = 80,
+    bh = 28,
     pad = 8;
 
   function push(c, r, hp, isMoving = false, forceOffT = null) {
     const cols = 9,
-      offL = (cv.width - cols * (bw + pad) - pad) / 2;
+      offL = (cv.width - (cols * bw + (cols - 1) * pad)) / 2;
     const offT =
       forceOffT !== null ? forceOffT
       : mode === 2 ? 80

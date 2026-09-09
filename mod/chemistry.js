@@ -1463,10 +1463,20 @@ function renderShopCards() {
         </button>`;
     } else {
       // 單人模式：原子解鎖/升級
-      statusHtml =
-        isUnlocked ?
-          `<div style="position: absolute; bottom: 8px; right: 8px; font-size: 13px; opacity: 0.8;">${isEquipped ? "🟢" : "🧬"}${skill.cost}</div>`
-        : `<div style="position: absolute; bottom: 8px; right: 8px; font-size: 13px; opacity: 0.5;">🔒${skill.cost}</div>`;
+      if (isUnlocked && canAfford) {
+        // ★ 當可升級且元素足夠時，將右下角替換為專屬升級按鈕
+        statusHtml = `
+          <button style="position: absolute;bottom: 8px;right: 8px;background: #83e6cf;color: white;border: none;border-radius: 4px; padding: 1px 5px 3px 3px; font-size: 12px;font-weight: 500;cursor: pointer;z-index: 10;font-family: 'Noto Sans TC';" 
+                  onclick="window.quickUpgradeSinglePlayer('${skill.id}', event)">
+            ⤴️ 升級
+          </button>`;
+      } else {
+        // 否則恢復原本的分子量顯示狀態
+        statusHtml =
+          isUnlocked ?
+            `<div style="position: absolute; bottom: 8px; right: 8px; font-size: 13px; opacity: 0.8;">${isEquipped ? "🟢" : "🧬"}${skill.cost}</div>`
+          : `<div style="position: absolute; bottom: 8px; right: 8px; font-size: 13px; opacity: 0.5;">🔒${skill.cost}</div>`;
+      }
     }
 
     // ★ 補回遺失的願望清單星星狀態計算
@@ -1994,7 +2004,7 @@ export function calculateBrickHP(symbol, currentLevel = 1) {
 // ==========================================
 export function getRandomElementForLevel(currentLevel = 1) {
   // Lv 1 預設只開放最脆弱的氣體與非金屬 (基礎 1-2 HP)
-  let allowedCategories = ["nonmetal", "halogen", "noble"]; 
+  let allowedCategories = ["nonmetal", "halogen", "noble"];
 
   // 隨著關卡推進，逐步開放更硬的元素
   if (currentLevel >= 3) {
@@ -2008,7 +2018,7 @@ export function getRandomElementForLevel(currentLevel = 1) {
   }
 
   // 篩選出符合當前難度的元素池
-  const pool = Object.keys(ELEMENT_DATA).filter(sym => {
+  const pool = Object.keys(ELEMENT_DATA).filter((sym) => {
     const category = ELEMENT_DATA[sym][1];
     return allowedCategories.includes(category);
   });

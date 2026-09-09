@@ -194,13 +194,18 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.shadowBlur = 10;
 
     ctx.fillStyle = paleColor;
-    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.beginPath();
+    ctx.roundRect(b.x, b.y, b.w, b.h, 4); 
+    ctx.fill();
 
     if (b.isMoving) {
       ctx.strokeStyle = "rgba(255,255,255,0.8)";
       ctx.setLineDash([4, 4]);
       ctx.lineWidth = 2;
-      ctx.strokeRect(b.x, b.y, b.w, b.h);
+      // ★ 將虛線外框也改為圓角
+      ctx.beginPath();
+      ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+      ctx.stroke();
       ctx.setLineDash([]);
       ctx.font = "14px Arial";
       ctx.fillStyle = "rgba(255,255,255,0.9)";
