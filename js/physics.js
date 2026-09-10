@@ -83,8 +83,19 @@ export function applyDrop(
   switch (type) {
     case "slow":
       pl.timers = pl.timers || {};
-      if (pl.timers.slowDrop) clearTimeout(pl.timers.slowDrop); // 防止連續吃到產生多重計時器
 
+      // ★ 修正：如果已經在減速狀態，先取消計時器並「還原速度」
+      if (pl.timers.slowDrop) {
+        clearTimeout(pl.timers.slowDrop);
+        [p1.ball, p2.ball].forEach((b) => {
+          if (b) {
+            b.dx /= 0.6;
+            b.dy /= 0.6;
+          }
+        });
+      }
+
+      // ★ 重新套上減速狀態
       [p1.ball, p2.ball].forEach((b) => {
         if (b) {
           b.dx *= 0.6;
@@ -92,7 +103,7 @@ export function applyDrop(
         }
       });
 
-      // ★ 將慢速狀態計時器註冊到 pl.timers 中
+      // ★ 重新啟動 5 秒倒數計時
       pl.timers.slowDrop = setTimeout(() => {
         [p1.ball, p2.ball].forEach((b) => {
           if (b) {
