@@ -482,10 +482,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
     for (const br of bricks) {
       if (!br.hp) continue;
-      if (br.isMoving) {
-        br.x += br.dx * dt;
-        if (br.x < br.minX || br.x > br.maxX) br.dx *= -1;
-      }
+
       if (
         b.x > br.x - b.r
         && b.x < br.x + br.w + b.r
@@ -532,7 +529,6 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         } else {
           br.hp--;
         }
-
 
         // ★ 球在貫穿狀態下擊碎磚塊，產生連續微震動
         if (b.isPiercing) triggerVFX(3);
@@ -1011,13 +1007,15 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "delayed_explosion":
-      // Set a timer to explode later
-      setTimeout(() => {
+      // ★ 將延遲爆炸註冊到 pl.timers 裡，確保換關/死亡時能被精準清除
+      if (pl.timers.delayed) clearTimeout(pl.timers.delayed);
+      pl.timers.delayed = setTimeout(() => {
         triggerVFX(10, "255, 100, 100", 0.4);
         gameState.bricks.forEach((b) => {
           b.hp = Math.max(0, b.hp - power);
           burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
         });
+        pl.timers.delayed = null;
       }, duration * 1000);
       break;
   }

@@ -416,6 +416,28 @@ function spawnBoss(lv, cv) {
 }
 
 function resetRound(cv) {
+  // ★ 徹底清空雙方所有跨回合/跨關卡的殘留技能狀態與計時器
+  [p1, p2].forEach((pl) => {
+    if (!pl) return;
+
+    // 取消所有尚未引爆或結束的 setTimeout
+    if (pl.timers) {
+      Object.values(pl.timers).forEach((timer) => clearTimeout(timer));
+      pl.timers = {};
+    }
+
+    // 強制重置物理與視覺狀態
+    pl.activeBuffs = {};
+    pl.speedBuffRatio = 1;
+    pl.scoreMultiplier = 1;
+    pl.shield = 0;
+    pl.reversed = false;
+    pl.reversedTimer = 0;
+    pl.chaosTimer = 0;
+    pl.magneticDebuffTimer = 0;
+    pl.invincibleTimer = 0;
+    pl.speed = 9; // 確保冰凍/減速被解除
+  });
   p1.w = 120;
   p1.x = mode === 1 ? (cv.width - p1.w) / 2 : 120 - p1.w / 2;
   p1.shrinkFx = 0;
