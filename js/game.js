@@ -50,6 +50,7 @@ import {
   maybeDrop,
   resetSkillCooldowns,
   resetGlobalDotState,
+  applyLocalDebuff,
 } from "./physics.js";
 import {
   setupVirtualControls,
@@ -909,48 +910,50 @@ export function onlineReceiveAttack(d) {
 
   burst(400, 300, "#D96C8E"); // 畫面震動爆點
 
+  // ★ 1. 統一呼叫底層處理物理狀態 (扣血、減速、計時器等都在這裡處理)
+  applyLocalDebuff(p1, type, power, duration);
+
+  // ★ 2. 保留您生動的 Switch 播報設計 (拿掉物理運算，只留文字)
   switch (type) {
     case "damage_hp":
-      p1.score = Math.max(0, p1.score - power * 5);
-      triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, false); // ★ 改為 false
+    case "radiation_debuff":
+    case "unstable_debuff":
+      triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, false);
       break;
 
     case "shrink_width":
-      p1.w = Math.max(p1.minW, p1.w * power);
-      p1.shrinkFx = 1;
       triggerGameEvent(`⚠️ ${name} 使你擋板縮小！`, false);
-      setTimeout(() => {
-        p1.w = 120;
-      }, duration * 1000);
       break;
 
     case "slow_speed":
-      p1.speed = 9 * power;
       triggerGameEvent(`🐢 ${name} 使你減速！`, false);
-      setTimeout(() => {
-        p1.speed = 9;
-      }, duration * 1000);
       break;
 
     case "freeze":
-      p1.speed = 0;
-      triggerGameEvent(`❄️ ${name} 將你完全凍結！`, false); // ★ 改為 false
-      setTimeout(() => {
-        p1.speed = 9;
-      }, duration * 1000);
+      triggerGameEvent(`❄️ ${name} 將你完全凍結！`, false);
       break;
 
     case "reverse_controls":
-      p1.reversed = true;
-      p1.reversedTimer = duration;
-      triggerGameEvent(`🔄 ${name} 反轉了你的操作！`, false); // ★ 改為 false
+      triggerGameEvent(`🔄 ${name} 反轉了你的操作！`, false);
       break;
 
     case "blind_screen":
-      onlineBlindTimer = duration;
-      const blindEl = document.getElementById("online-blind");
-      if (blindEl) blindEl.style.display = "block";
+    case "visual_distortion":
+    case "fog_blind":
       triggerGameEvent(`👁 ${name} 遮蔽了你的視線！`, false);
+      break;
+
+    case "chaos_trajectory":
+      triggerGameEvent(`🌀 ${name} 擾亂了球的軌跡！`, false);
+      break;
+
+    case "magnetic_pull":
+      triggerGameEvent(`🧲 ${name} 發動了磁力干擾！`, false);
+      break;
+
+    default:
+      // ★ 您提議的完美兜底：沒寫到專屬文字的，統一用這句
+      triggerGameEvent(`⚠️ ${name} 發動了干擾！`, false);
       break;
   }
 }

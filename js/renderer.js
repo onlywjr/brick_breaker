@@ -988,21 +988,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   let isBlinded = false;
   let blindTarget = null;
 
-  // 判斷致盲目標 (連線模式看全域計時器，單機雙人看 pl.timers)
-  if (
-    onlineMode
-    && typeof onlineBlindTimer !== "undefined"
-    && onlineBlindTimer > 0
-  ) {
-    isBlinded = true;
-    blindTarget = p1;
-  } else if (mode === 2) {
-    if (p1.timers && p1.timers.blind) {
+  // ★ 統一改為檢查玩家身上的 timers.blind，再也不用區分單機或連線模式
+  for (const pl of activePlayers) {
+    if (pl.timers && pl.timers.blind) {
       isBlinded = true;
-      blindTarget = p1;
-    } else if (p2.timers && p2.timers.blind) {
-      isBlinded = true;
-      blindTarget = p2;
+      blindTarget = pl;
+      break;
     }
   }
 

@@ -83,34 +83,18 @@ export function applyDrop(
   switch (type) {
     case "slow":
       pl.timers = pl.timers || {};
+      if (pl.timers.slowDrop) clearTimeout(pl.timers.slowDrop);
 
-      // ★ 修正：如果已經在減速狀態，先取消計時器並「還原速度」
-      if (pl.timers.slowDrop) {
-        clearTimeout(pl.timers.slowDrop);
-        [p1.ball, p2.ball].forEach((b) => {
-          if (b) {
-            b.dx /= 0.6;
-            b.dy /= 0.6;
-          }
-        });
+      if (pl.ball) {
+        pl.ball.dx *= 0.6;
+        pl.ball.dy *= 0.6;
       }
 
-      // ★ 重新套上減速狀態
-      [p1.ball, p2.ball].forEach((b) => {
-        if (b) {
-          b.dx *= 0.6;
-          b.dy *= 0.6;
-        }
-      });
-
-      // ★ 重新啟動 5 秒倒數計時
       pl.timers.slowDrop = setTimeout(() => {
-        [p1.ball, p2.ball].forEach((b) => {
-          if (b) {
-            b.dx /= 0.6;
-            b.dy /= 0.6;
-          }
-        });
+        if (pl.ball) {
+          pl.ball.dx /= 0.6;
+          pl.ball.dy /= 0.6;
+        }
         pl.timers.slowDrop = null;
       }, 5000);
       break;
@@ -166,8 +150,20 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     } else if (now - globalDotState.lastTick > 1000) {
       globalDotState.lastTick = now;
       bricks.forEach((b) => {
-        b.hp = Math.max(0, b.hp - globalDotState.power);
-        burst(b.x + b.w / 2, b.y + b.h / 2, "#9C27B0");
+        if (b.hp > 0) {
+          b.hp = Math.max(0, b.hp - globalDotState.power);
+          burst(b.x + b.w / 2, b.y + b.h / 2, "#9C27B0");
+          // ★ 毒死磚塊照樣給予元素與分數
+          if (b.hp <= 0) {
+            if (b.symbol && chemDLCEnabled) {
+              addAtom(b.symbol, 1, 0); // 毒霧擊殺統一給 1P
+              updateInventoryUI();
+            } else if (!chemDLCEnabled) {
+              maybeDrop(b, null, drops);
+            }
+            p1.score += 10 * (p1.scoreMultiplier || 1);
+          }
+        }
       });
     }
   }
@@ -524,7 +520,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           const explosionRadius = 60 * (b.heavyPower || 1);
           bricks.forEach((otherBr) => {
             if (
-              otherBr.hp > 0
+              otherBr !== br
+              && otherBr.hp > 0
               && Math.hypot(
                 otherBr.x + otherBr.w / 2 - b.x,
                 otherBr.y + otherBr.h / 2 - b.y,
@@ -1049,7 +1046,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
 }
 
 // ★ 專給單機雙人模式用的在地受擊邏輯
-function applyLocalDebuff(targetPl, type, power, duration) {
+export function applyLocalDebuff(targetPl, type, power, duration) {
   targetPl.timers = targetPl.timers || {};
 
   // Check Immunity
