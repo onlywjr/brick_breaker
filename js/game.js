@@ -45,7 +45,7 @@ import {
   drawGameEntities,
   resetBackground,
 } from "./renderer.js";
-import { handleCollisions, maybeDrop } from "./physics.js";
+import { handleCollisions, maybeDrop, resetSkillCooldowns } from "./physics.js";
 import {
   setupVirtualControls,
   updateVirtualButtonsVisibility,
@@ -91,7 +91,6 @@ export let drops = [];
 export let particles = [];
 export let floatTexts = [];
 export let ghostBalls = [];
-
 
 // ==========================================
 // ★ 新增：全域視覺特效控制器 (VFX)
@@ -469,6 +468,7 @@ export function startGameGlobal(selectedMode, cv) {
   // ★ 修正：在進入商店「之前」清空進度，而不是之後
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
+    resetSkillCooldowns();
   }
 
   if (selectedMode === 2 && chemDLCEnabled) {
@@ -1311,6 +1311,7 @@ export function resetMatchState() {
   // ★ 確保每次重置連線房間狀態時，立刻清空化學系統
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
+    resetSkillCooldowns();
   }
 }
 
@@ -1351,6 +1352,7 @@ const originalBackToMain = window.backToMainMenu;
 window.backToMainMenu = function (...args) {
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
+    resetSkillCooldowns();
   }
   if (originalBackToMain) originalBackToMain(...args);
 };
@@ -1359,6 +1361,7 @@ const originalReturnToLobby = window.returnToLobby;
 window.returnToLobby = function (...args) {
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
+    resetSkillCooldowns();
   }
   if (originalReturnToLobby) originalReturnToLobby(...args);
 };
@@ -1375,6 +1378,7 @@ if (socket) {
     ) {
       if (chemDLCEnabled && typeof resetChemistryState === "function") {
         resetChemistryState();
+        resetSkillCooldowns();
       }
     }
     return originalEmit.apply(this, [eventName, ...args]);

@@ -473,7 +473,17 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         && b.y > br.y - b.r
         && b.y < br.y + br.h + b.r
       ) {
-        if (!b.fire && !b.isPiercing && !b.isHeavy) b.dy *= -1;
+        // ★ 修正：利用球心與磚塊中心的距離比例，完美判定撞擊面是側邊還是上下
+        if (!b.fire && !b.isPiercing && !b.isHeavy) {
+          const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
+          const overlapY = Math.abs(br.y + br.h / 2 - b.y) / br.h;
+
+          if (overlapX > overlapY) {
+            b.dx *= -1; // 撞擊左右兩側
+          } else {
+            b.dy *= -1; // 撞擊上下兩側
+          }
+        }
 
         // ★ 5. 重擊爆炸 (Heavy Ball Splash Damage)
         if (b.isHeavy) {
@@ -660,6 +670,9 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
       baseDuration > 0 ? baseDuration + (levelMult - 1) * 1 : 0;
     const cdMs = Math.max(5000, (actualDuration + 2) * 1000);
 
+    // ★ 修正 3：加入 pId 作為複合 Key，避免 1P/2P 技能互相干擾
+    const cdKey = `${pId}_${skillId}`;
+
     if (skillCooldowns[skillId] && now - skillCooldowns[skillId] < cdMs) {
       continue;
     }
@@ -667,9 +680,16 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
     if (tryConsumeRecipe(skill.elements, pId)) {
       updateInventoryUI();
       executeSkillAction(skill, pl, gameState, cv, levelMult);
-      skillCooldowns[skillId] = now;
+      skillCooldowns[cdKey] = now; // ★ 使用複合 Key 記錄
       break;
     }
+  }
+}
+
+// ★ 修正 4：建立專屬的 Cooldown 重置函式
+export function resetSkillCooldowns() {
+  for (let key in skillCooldowns) {
+    delete skillCooldowns[key];
   }
 }
 
