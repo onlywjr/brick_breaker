@@ -45,7 +45,12 @@ import {
   drawGameEntities,
   resetBackground,
 } from "./renderer.js";
-import { handleCollisions, maybeDrop, resetSkillCooldowns } from "./physics.js";
+import {
+  handleCollisions,
+  maybeDrop,
+  resetSkillCooldowns,
+  resetGlobalDotState,
+} from "./physics.js";
 import {
   setupVirtualControls,
   updateVirtualButtonsVisibility,
@@ -416,6 +421,10 @@ function spawnBoss(lv, cv) {
 }
 
 function resetRound(cv) {
+  // ★ 強制清洗跨關卡的 Global DOT 毒霧狀態
+  if (typeof resetGlobalDotState === "function") {
+    resetGlobalDotState();
+  }
   // ★ 徹底清空雙方所有跨回合/跨關卡的殘留技能狀態與計時器
   [p1, p2].forEach((pl) => {
     if (!pl) return;

@@ -82,27 +82,38 @@ export function applyDrop(
 ) {
   switch (type) {
     case "slow":
+      pl.timers = pl.timers || {};
+      if (pl.timers.slowDrop) clearTimeout(pl.timers.slowDrop); // 防止連續吃到產生多重計時器
+
       [p1.ball, p2.ball].forEach((b) => {
         if (b) {
           b.dx *= 0.6;
           b.dy *= 0.6;
         }
       });
-      setTimeout(
-        () =>
-          [p1.ball, p2.ball].forEach((b) => {
-            if (b) {
-              b.dx /= 0.6;
-              b.dy /= 0.6;
-            }
-          }),
-        5000,
-      );
+
+      // ★ 將慢速狀態計時器註冊到 pl.timers 中
+      pl.timers.slowDrop = setTimeout(() => {
+        [p1.ball, p2.ball].forEach((b) => {
+          if (b) {
+            b.dx /= 0.6;
+            b.dy /= 0.6;
+          }
+        });
+        pl.timers.slowDrop = null;
+      }, 5000);
       break;
+
     case "fire":
+      pl.timers = pl.timers || {};
+      if (pl.timers.fireDrop) clearTimeout(pl.timers.fireDrop);
+
       pl.ball.fire = true;
-      setTimeout(() => {
+
+      // ★ 將火球狀態計時器註冊到 pl.timers 中
+      pl.timers.fireDrop = setTimeout(() => {
         if (pl.ball) pl.ball.fire = false;
+        pl.timers.fireDrop = null;
       }, 8000);
       break;
     case "grow":
@@ -715,6 +726,11 @@ export function resetSkillCooldowns() {
   for (let key in skillCooldowns) {
     delete skillCooldowns[key];
   }
+}
+
+// ★ 新增：重置全域 DOT 狀態的函式
+export function resetGlobalDotState() {
+  globalDotState = { active: false, power: 0, end: 0, lastTick: 0 };
 }
 
 export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
