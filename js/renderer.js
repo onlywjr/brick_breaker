@@ -787,62 +787,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     const isP1 = pl === p1;
     ctx.translate(b.x, b.y);
 
-    if (isP1) {
-      ctx.fillStyle = "#A89CB8";
-      ctx.fillRect(-3, 0, 6, 12);
-      ctx.fillStyle = "#8B7F9E";
-      ctx.fillRect(-2, 11, 4, 2);
-      const grad = ctx.createRadialGradient(-1, -4, 1, 0, -4, 8);
-      grad.addColorStop(0, "#FFFDFB");
-      grad.addColorStop(0.7, "#FFFDFB");
-      grad.addColorStop(1, "#cbd5e1");
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(0, -4, 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#ec4899";
-      ctx.beginPath();
-      ctx.moveTo(-6, -8);
-      ctx.quadraticCurveTo(-11, -14, -13, -8);
-      ctx.quadraticCurveTo(-9, -5, -6, -8);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(6, -8);
-      ctx.quadraticCurveTo(11, -14, 13, -8);
-      ctx.quadraticCurveTo(9, -5, 6, -8);
-      ctx.fill();
-    } else {
-      ctx.strokeStyle = "#9DD9E8";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, 9, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = "#eab308";
-      ctx.beginPath();
-      ctx.moveTo(0, -7);
-      ctx.lineTo(3, -2);
-      ctx.lineTo(8, -2);
-      ctx.lineTo(4, 1);
-      ctx.lineTo(6, 6);
-      ctx.lineTo(0, 3);
-      ctx.lineTo(-6, 6);
-      ctx.lineTo(-4, 1);
-      ctx.lineTo(-8, -2);
-      ctx.lineTo(-3, -2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = "#FFFDFB";
-      ctx.beginPath();
-      ctx.arc(0, 0, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
     // ==========================================
-    // ★ 實作 2：球體變異的 Emoji 伴隨特效
+    // 1. 優先計算：當前是否帶有技能 Emoji
     // ==========================================
     let ballEmoji = "";
-
-    // 優先讀取化學技能的分類來決定圖示
     if (pl.activeBuffs) {
       const now = performance.now();
       for (const key in pl.activeBuffs) {
@@ -857,17 +805,88 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         }
       }
     }
-
-    // 若沒有吃到化學分類 (舊版技能或膠囊掉落物)，退回預設圖示
+    // 若無化學分類，退回舊版物理狀態圖示
     if (!ballEmoji) {
       if (b.isPiercing) ballEmoji = "☄️";
       else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
       else if (b.fire) ballEmoji = "🔥";
     }
 
+    // ==========================================
+    // 2. 畫出專屬的 1P/2P 圓形背景光環框
+    // ==========================================
+    ctx.beginPath();
+    ctx.arc(0, 0, 14, 0, Math.PI * 2); // 半徑 14 剛剛好包覆球體
+    // 1P 為粉紅色系，2P 為藍色系
+    ctx.fillStyle =
+      isP1 ? "rgb(255, 122, 166)" : "rgb(0, 168, 210)";
+    ctx.fill();
+
+
+    // ==========================================
+    // 3. 決定內容：用 Emoji 取代，或畫出預設圖形
+    // ==========================================
     if (ballEmoji) {
-      ctx.font = "20px Arial";
-      ctx.fillText(ballEmoji, 0, -18);
+      // 有技能時，直接將 Emoji 置中畫在圓框內，取代預設圖形
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(ballEmoji, 0, 1); // Y 軸微調 1px 讓視覺絕對置中
+    } else {
+      // 沒技能時，畫原本的 1P / 2P 專屬圖形
+      ctx.save();
+      ctx.scale(0.85, 0.85); // 稍微縮小 85%，讓它完美塞進圓框裡
+
+      if (isP1) {
+        ctx.fillStyle = "#A89CB8";
+        ctx.fillRect(-3, 0, 6, 12);
+        ctx.fillStyle = "#8B7F9E";
+        ctx.fillRect(-2, 11, 4, 2);
+        const grad = ctx.createRadialGradient(-1, -4, 1, 0, -4, 8);
+        grad.addColorStop(0, "#FFFDFB");
+        grad.addColorStop(0.7, "#FFFDFB");
+        grad.addColorStop(1, "#cbd5e1");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, -4, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ec4899";
+        ctx.beginPath();
+        ctx.moveTo(-6, -8);
+        ctx.quadraticCurveTo(-11, -14, -13, -8);
+        ctx.quadraticCurveTo(-9, -5, -6, -8);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(6, -8);
+        ctx.quadraticCurveTo(11, -14, 13, -8);
+        ctx.quadraticCurveTo(9, -5, 6, -8);
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = "#9DD9E8";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = "#eab308";
+        ctx.beginPath();
+        ctx.moveTo(0, -7);
+        ctx.lineTo(3, -2);
+        ctx.lineTo(8, -2);
+        ctx.lineTo(4, 1);
+        ctx.lineTo(6, 6);
+        ctx.lineTo(0, 3);
+        ctx.lineTo(-6, 6);
+        ctx.lineTo(-4, 1);
+        ctx.lineTo(-8, -2);
+        ctx.lineTo(-3, -2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#FFFDFB";
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
     }
 
     ctx.restore();
@@ -1054,7 +1073,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
             const bgColor = isCoolingDown ? "#CBD5E1" : `${color}20`;
             const textColor = isCoolingDown ? "#64748B" : color;
 
-            return `<span style="position: relative; display: inline-flex; align-items: center; background: ${bgColor}; color: ${textColor}; padding: 2px 10px; border-radius: 12px; margin: 0 4px; border: 1px solid ${isCoolingDown ? "#94A3B8" : color}; overflow: hidden;">
+            return `<span style="position: relative; display: inline-flex; align-items: center; background: ${bgColor}; color: ${textColor}; padding: 2px 10px; border-radius: 12px; margin: 0 4px; overflow: hidden;">
                     <!-- ★ 更深色的黑底遮罩層，縮減時平滑過渡 -->
                     <span style="position: absolute; top: 0; left: 0; height: 100%; width: ${maskWidth}; background: rgba(0, 0, 0, 0.45); z-index: 1; transition: width 0.1s linear;"></span>
                     <span style="position: relative; z-index: 2; font-family: serif; font-weight: 900; letter-spacing: 0.5px; ${isCoolingDown ? "color: #FFF;" : ""}">${subscripted}</span>
