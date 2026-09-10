@@ -90,6 +90,8 @@ export let bricks = [];
 export let drops = [];
 export let particles = [];
 export let floatTexts = [];
+export let ghostBalls = [];
+
 
 // ==========================================
 // ★ 新增：全域視覺特效控制器 (VFX)
@@ -194,6 +196,7 @@ function makePlayer(color, lightColor) {
     maxEnergy: 10,
     reversed: false,
     reversedTimer: 0,
+    invincibleTimer: 0,
     lives: 3,
   };
 }
@@ -254,6 +257,7 @@ function buildLevel(lv, cv) {
     resetLevelStats(); // ★ 關卡開始時重置統計
   bricks.length = 0;
   drops.length = 0;
+  ghostBalls.length = 0;
   boss.active = false;
   boss.bullets.length = 0;
   resetBackground();
@@ -958,6 +962,7 @@ export function updateGameState(dt, cv) {
     drops,
     particles,
     floatTexts,
+    ghostBalls,
     boss,
     p1,
     p2,

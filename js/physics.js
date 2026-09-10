@@ -126,8 +126,65 @@ export function applyDrop(
 }
 
 export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
-  let { bricks, drops, activePlayers, boss, comboCount, comboTimer } =
-    gameState;
+  // ★ 補上 ghostBalls，把它從 gameState 裡面解構出來
+  let {
+    bricks,
+    drops,
+    activePlayers,
+    boss,
+    comboCount,
+    comboTimer,
+    ghostBalls,
+  } = gameState;
+
+  const now = performance.now();
+
+  // ★ 1. 全域 DOT 毒霧扣血 (每秒固定觸發一次)
+  if (gameState.globalDot && gameState.globalDot.active) {
+    if (now > gameState.globalDot.end) gameState.globalDot.active = false;
+    else if (!gameState.lastDotTick || now - gameState.lastDotTick > 1000) {
+      gameState.lastDotTick = now;
+      bricks.forEach((b) => {
+        b.hp = Math.max(0, b.hp - gameState.globalDot.power);
+        burst(b.x + b.w / 2, b.y + b.h / 2, "#9C27B0");
+      });
+    }
+  }
+
+  // ★ 2. 更新免疫計時器
+  activePlayers.forEach((pl) => {
+    if (pl.invincibleTimer > 0) pl.invincibleTimer -= dt / 60;
+  });
+
+  // ★ 3. 幽靈球物理碰撞 (會反彈，無視特殊方塊防護，撞擊扣血但不轉向)
+  if (ghostBalls) {
+    for (let i = ghostBalls.length - 1; i >= 0; i--) {
+      let gb = ghostBalls[i];
+      gb.x += gb.dx * dt;
+      gb.y += gb.dy * dt;
+      gb.life -= dt / 60;
+      if (gb.life <= 0 || gb.y > cv.height) {
+        ghostBalls.splice(i, 1);
+        continue;
+      }
+      if (gb.x < gb.r || gb.x > cv.width - gb.r) {
+        gb.dx *= -1;
+        gb.x = Math.max(gb.r, Math.min(gb.x, cv.width - gb.r)); // ★ 防止卡牆
+      }
+      for (const br of bricks) {
+        if (br.hp <= 0) continue;
+        if (
+          gb.x > br.x - gb.r
+          && gb.x < br.x + br.w + gb.r
+          && gb.y > br.y - gb.r
+          && gb.y < br.y + br.h + gb.r
+        ) {
+          br.hp--;
+          burst(gb.x, gb.y, "rgba(200,200,200,0.5)");
+        }
+      }
+    }
+  }
 
   // Boss update
   if (boss.active) {
@@ -249,8 +306,10 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
   // Player loop
   for (const pl of activePlayers) {
-    // ★ 修正 1：將技能觸發改為「每幀自動檢查」
-    // 只要冷卻完畢且包包裡元素足夠，就算沒打到新磚塊也會自動扣除並施放！
+    // ★ 新增：遞減專屬干擾計時器
+    if (pl.chaosTimer > 0) pl.chaosTimer -= dt / 60;
+    if (pl.magneticDebuffTimer > 0) pl.magneticDebuffTimer -= dt / 60;
+
     if (chemDLCEnabled) {
       const pId = pl === p1 ? 0 : 1;
       checkAndFireEquippedSkills(pl, gameState, cv, pId);
@@ -258,6 +317,38 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
     const b = pl.ball;
     if (!b) continue;
+
+    // ★ 1. 計算混亂與被動磁力干擾 (改變 dx, dy)
+    if (pl.chaosTimer > 0) {
+      b.dx += (Math.random() - 0.5) * 2 * dt;
+      b.dy += (Math.random() - 0.5) * 2 * dt;
+    }
+    if (pl.magneticDebuffTimer > 0) {
+      b.dx += (b.x > cv.width / 2 ? 0.6 : -0.6) * dt;
+    }
+
+    // ★ 2. 計算主動磁力牽引 (改變 dx)
+    let hasMagnetic = Object.values(pl.activeBuffs || {}).some(
+      (buff) => buff.end > now && buff.action === "trajectory_guide",
+    );
+    if (hasMagnetic && bricks.length > 0) {
+      let nearest = null;
+      let minDist = Infinity;
+      bricks.forEach((br) => {
+        if (br.y < b.y) {
+          let d = Math.hypot(br.x - b.x, br.y - b.y);
+          if (d < minDist) {
+            minDist = d;
+            nearest = br;
+          }
+        }
+      });
+      if (nearest && b.dy < 0) {
+        b.dx += (nearest.x + nearest.w / 2 - b.x) * 0.005 * dt;
+      }
+    }
+
+    // ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
     b.x += b.dx * dt;
     b.y += b.dy * dt;
 
@@ -382,8 +473,31 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         && b.y > br.y - b.r
         && b.y < br.y + br.h + b.r
       ) {
-        if (!b.fire && !b.isPiercing) b.dy *= -1; // ★ 新增 isPiercing 判斷，穿透狀態不反彈
-        br.hp--;
+        if (!b.fire && !b.isPiercing && !b.isHeavy) b.dy *= -1;
+
+        // ★ 5. 重擊爆炸 (Heavy Ball Splash Damage)
+        if (b.isHeavy) {
+          triggerVFX(5);
+          const explosionRadius = 60 * (b.heavyPower || 1);
+          bricks.forEach((otherBr) => {
+            if (
+              Math.hypot(
+                otherBr.x + otherBr.w / 2 - b.x,
+                otherBr.y + otherBr.h / 2 - b.y,
+              ) < explosionRadius
+            ) {
+              otherBr.hp -= 2; // 範圍濺射傷害
+              burst(
+                otherBr.x + otherBr.w / 2,
+                otherBr.y + otherBr.h / 2,
+                "#5D576B",
+              );
+            }
+          });
+        } else {
+          br.hp--;
+        }
+
         // ★ 球在貫穿狀態下擊碎磚塊，產生連續微震動
         if (b.isPiercing) triggerVFX(3);
         burst(b.x, b.y);
@@ -402,6 +516,19 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           comboCount++;
           comboTimer = 2.0;
           let baseScore = 10 * (pl.scoreMultiplier || 1);
+
+          // ★ 新增：當積分倍率生效時，打碎每一塊磚都觸發大字體的金色爆分飄字！
+          if (pl.scoreMultiplier && pl.scoreMultiplier > 1) {
+            floatTexts.push({
+              t: `+${baseScore}`,
+              life: 0.8,
+              x: br.x + br.w / 2,
+              y: br.y,
+              c: "#FBBF24", // 耀眼金
+              big: true,
+            });
+          }
+
           if (comboCount >= 3) {
             let bonus = Math.floor(baseScore * 0.2 * comboCount);
             pl.score += baseScore + bonus;
@@ -558,23 +685,28 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
   let duration = params.durationSec || 0;
 
   // ==========================================
-  // ★ 關鍵修正：將「技能映射 (Alias Map)」移到最前面！
-  // 必須先將 36 種新技能轉為底層代碼，後續的數值放大公式才能成功攔截
+  // Apply Scaling based on the EXACT action
   // ==========================================
-  let mappedAction = action;
-
   if (
     [
-      "add_piercing",
-      "phase_piercing",
-      "laser_pierce",
-      "heavy_ball",
-      "charge_next_hit",
+      "damage_hp",
+      "damage_all",
+      "heal_hp",
+      "add_shield",
+      "clear_rows",
+      "massive_explosion",
+      "charged_explosion",
+      "global_damage_over_time",
+      "increase_brick_damage",
+      "global_corrosion",
     ].includes(action)
-  )
-    mappedAction = "enable_pierce";
-  if (
+  ) {
+    power = Math.round(power * levelMult);
+  } else if (
     [
+      "modify_speed",
+      "modify_width",
+      "multiply_score",
       "power_speed_boost",
       "speed_boost",
       "speed_and_randomize",
@@ -582,101 +714,46 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       "energy_overcharge",
       "energy_boost",
     ].includes(action)
-  )
-    mappedAction = "modify_speed";
-  if (
-    [
-      "shockwave",
-      "delayed_explosion",
-      "area_damage",
-      "massive_explosion",
-      "charged_explosion",
-      "global_damage_over_time",
-      "global_corrosion",
-    ].includes(action)
-  )
-    mappedAction = "damage_all";
-  if (["temporary_immunity"].includes(action)) mappedAction = "add_shield";
-  if (
-    [
-      "visual_distortion",
-      "flash_blind",
-      "fake_ball_illusion",
-      "fog_blind",
-      "storm_disruption",
-    ].includes(action)
-  )
-    mappedAction = "blind_screen";
-  if (
-    ["unstable_countdown", "radiation_debuff", "unstable_debuff"].includes(
-      action,
-    )
-  )
-    mappedAction = "damage_hp";
-  if (["chaos_trajectory", "magnetic_pull"].includes(action))
-    mappedAction = "reverse_controls";
-  if (
-    [
-      "create_ghost_ball",
-      "highlight_targets",
-      "magnetic_trajectory",
-      "trajectory_guide",
-      "increase_brick_damage",
-    ].includes(action)
-  )
-    mappedAction = "multiply_score";
-  if (["dispel_brick_effects", "disable_special_bricks"].includes(action))
-    mappedAction = "clear_rows";
-
-  // ==========================================
-  // ★ 根據不同屬性，套用安全的升級成長公式 (改用 mappedAction 判定)
-  // ==========================================
-  if (
-    ["damage_hp", "damage_all", "heal_hp", "add_shield", "clear_rows"].includes(
-      mappedAction,
-    )
-  ) {
-    power = Math.round(power * levelMult);
-  } else if (
-    ["modify_speed", "modify_width", "multiply_score"].includes(mappedAction)
     && power >= 1
   ) {
     power = 1 + (power - 1) * levelMult;
   } else if (
-    ["shrink_width", "slow_speed", "modify_speed"].includes(mappedAction)
+    ["shrink_width", "slow_speed", "modify_speed"].includes(action)
     && power < 1
   ) {
     power = Math.max(0.2, 1 - (1 - power) * levelMult);
+  } else if (["create_ghost_ball"].includes(action)) {
+    // Ghost balls count scales with level
+    power = Math.round(power + (levelMult - 1));
   }
 
-  // 狀態持續時間 (致盲、反轉、凍結)：每升級 1 次延長 1 秒
   if (duration > 0) {
     duration = duration + (levelMult - 1) * 1;
   }
 
   pl.timers = pl.timers || {};
-
-  // ==========================================
-  // ★ 關鍵修正：讓「所有類型」的技能（包含瞬間攻擊與干擾）都進入 HUD 輪播陣列
-  // ==========================================
   pl.activeBuffs = pl.activeBuffs || {};
 
-  // 即使是瞬間爆發技能，也強制讓它在上方 HUD 顯示輪播 3 秒
   const uiDisplayDuration = duration > 0 ? duration : 3;
 
-  // 改用 skill.id 作為獨立 Key，這樣同時發動 3 個技能才不會互相覆蓋！
   pl.activeBuffs[skill.id] = {
     end: performance.now() + uiDisplayDuration * 1000,
     total: uiDisplayDuration * 1000,
     category: skill.category,
     name: skill.name,
+    action: action, // Store action for renderer to use
+    power: power, // Store power for continuous effects
   };
 
   // ==========================================
-  // ★ 使用算好的倍率與時間執行底層物理邏輯
+  // Execute Core Physics Actions
   // ==========================================
-  switch (mappedAction) {
+  switch (action) {
+    // --- Standard Actions ---
     case "enable_pierce":
+    case "add_piercing":
+    case "phase_piercing":
+    case "laser_pierce":
       if (pl.ball) {
         pl.ball.isPiercing = true;
         if (pl.timers.pierce) clearTimeout(pl.timers.pierce);
@@ -688,6 +765,12 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "modify_speed":
+    case "power_speed_boost":
+    case "speed_boost":
+    case "speed_and_randomize":
+    case "berserk_boost":
+    case "energy_overcharge":
+    case "energy_boost":
       if (pl.ball) {
         if (pl.timers.speed) clearTimeout(pl.timers.speed);
         else pl.speedBuffRatio = 1;
@@ -698,6 +781,11 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
         pl.speedBuffRatio = power;
         pl.ball.dx *= pl.speedBuffRatio;
         pl.ball.dy *= pl.speedBuffRatio;
+
+        // Add some randomization for specific skills
+        if (action === "speed_and_randomize" || action === "chaos_trajectory") {
+          pl.ball.dx += (Math.random() - 0.5) * 2;
+        }
 
         pl.timers.speed = setTimeout(() => {
           if (pl.ball) {
@@ -728,7 +816,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "heal_hp":
-      const pIdHeal = pl === p1 ? 0 : 1; // 取得發動者 ID
+      const pIdHeal = pl === p1 ? 0 : 1;
       if (isMulti) {
         pl.shield = (pl.shield || 0) + power;
         triggerGameEvent(`🛡️ 護盾 +${power}`, false, pIdHeal);
@@ -745,10 +833,12 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "damage_all":
-      // ★ 全場爆發：依據威力決定震動強度與閃光顏色
-      if (power >= 10)
-        triggerVFX(15, "255, 80, 80", 0.6); // 核爆級別 (紅閃光 + 強震)
-      else triggerVFX(8, "255, 255, 255", 0.3); // 一般爆發 (白閃光 + 中震)
+    case "shockwave":
+    case "area_damage":
+    case "massive_explosion":
+    case "charged_explosion":
+      if (power >= 10) triggerVFX(15, "255, 80, 80", 0.6);
+      else triggerVFX(8, "255, 255, 255", 0.3);
 
       gameState.bricks.forEach((b) => {
         b.hp = Math.max(0, b.hp - power);
@@ -761,10 +851,10 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "clear_rows":
-      // ★ 地裂崩塌：清除底排時產生強烈物理震動感
-      if (power >= 5)
-        triggerVFX(12, "253, 186, 116", 0.4); // 橘色閃光 + 大震動
-      else triggerVFX(5); // 只有微震動，不閃光
+    case "dispel_brick_effects":
+    case "disable_special_bricks":
+      if (power >= 5) triggerVFX(12, "253, 186, 116", 0.4);
+      else triggerVFX(5);
 
       const uniqueYs = [...new Set(gameState.bricks.map((b) => b.y))].sort(
         (a, b) => b - a,
@@ -779,6 +869,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "multiply_score":
+    case "increase_brick_damage": // Reusing score multiplier logic for damage multiplier in renderer/physics
       if (pl.timers.score) clearTimeout(pl.timers.score);
       pl.scoreMultiplier = power;
 
@@ -788,30 +879,97 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       }, duration * 1000);
       break;
 
+    // --- New Heavy Element Actions ---
+
+    case "heavy_ball":
+      if (pl.ball) {
+        pl.ball.isHeavy = true;
+        pl.ball.heavyPower = power;
+        if (pl.timers.heavy) clearTimeout(pl.timers.heavy);
+        pl.timers.heavy = setTimeout(() => {
+          if (pl.ball) pl.ball.isHeavy = false;
+          pl.timers.heavy = null;
+        }, duration * 1000);
+      }
+      break;
+
+    case "create_ghost_ball":
+      for (let i = 0; i < power; i++) {
+        gameState.ghostBalls.push({
+          x: pl.ball.x,
+          y: pl.ball.y,
+          r: 8,
+          dx: (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 2),
+          dy: -(4 + Math.random() * 2),
+          life: duration,
+          owner: pl,
+        });
+      }
+      triggerGameEvent(`👻 產生 ${power} 顆幽靈球！`, false, pl === p1 ? 0 : 1);
+      break;
+
+    case "temporary_immunity":
+      pl.invincibleTimer = duration;
+      triggerGameEvent(
+        `🛡️ 絕對免疫 ${duration} 秒！`,
+        false,
+        pl === p1 ? 0 : 1,
+      );
+      break;
+
+    // Debuffs directed at opponent
     case "damage_hp":
     case "shrink_width":
     case "slow_speed":
     case "freeze":
     case "reverse_controls":
     case "blind_screen":
+    case "unstable_countdown":
+    case "radiation_debuff":
+    case "unstable_debuff":
+    case "chaos_trajectory":
+    case "magnetic_pull":
+    case "fake_ball_illusion":
+    case "storm_disruption":
+    case "visual_distortion":
+    case "fog_blind":
       const attackerId = pl === p1 ? 0 : 1;
       if (onlineMode && socket && socket.connected) {
         socket.emit("attackPlayer", {
-          type: mappedAction,
+          type: action, // Send the specific action
           power: power,
           durationSec: duration,
           attackerName:
             document.getElementById("player-name-input")?.value || "對手",
           attackId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         });
-        // ★ 移至 HUD
         triggerGameEvent(`🚀 發射: ${skill.name}`, false, attackerId);
       } else if (mode === 2) {
         const opponent = pl === p1 ? p2 : p1;
-        applyLocalDebuff(opponent, mappedAction, power, duration);
-        // ★ 移至 HUD
+        applyLocalDebuff(opponent, action, power, duration);
         triggerGameEvent(`🚀 發射: ${skill.name}`, false, attackerId);
       }
+      break;
+
+    case "global_damage_over_time":
+    case "global_corrosion":
+      // This is handled by a tick in handleCollisions, we just set a global state variable
+      gameState.globalDot = {
+        power: power,
+        end: performance.now() + duration * 1000,
+        active: true,
+      };
+      break;
+
+    case "delayed_explosion":
+      // Set a timer to explode later
+      setTimeout(() => {
+        triggerVFX(10, "255, 100, 100", 0.4);
+        gameState.bricks.forEach((b) => {
+          b.hp = Math.max(0, b.hp - power);
+          burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+        });
+      }, duration * 1000);
       break;
   }
 }
@@ -820,7 +978,13 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
 function applyLocalDebuff(targetPl, type, power, duration) {
   targetPl.timers = targetPl.timers || {};
 
-  if (type === "damage_hp") {
+  // Check Immunity
+  if (targetPl.invincibleTimer > 0) {
+    triggerGameEvent("🛡️ 免疫攻擊！", false, targetPl === p1 ? 0 : 1);
+    return;
+  }
+
+  if (["damage_hp", "radiation_debuff", "unstable_debuff"].includes(type)) {
     targetPl.score = Math.max(0, targetPl.score - power * 5);
   } else if (type === "shrink_width") {
     if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);
@@ -851,10 +1015,26 @@ function applyLocalDebuff(targetPl, type, power, duration) {
       targetPl.speed = 9;
       targetPl.timers.freeze = null;
     }, duration * 1000);
-  } else if (type === "reverse_controls") {
+  } else if (
+    ["reverse_controls", "chaos_trajectory", "magnetic_pull"].includes(type)
+  ) {
     targetPl.reversed = true;
-    targetPl.reversedTimer = duration; // 原本就是逐幀遞減，不需 clearTimeout
-  } else if (type === "blind_screen") {
+    targetPl.reversedTimer = duration;
+  } else if (type === "chaos_trajectory") {
+    // ★ 專屬分支：軌跡混亂
+    targetPl.chaosTimer = duration;
+  } else if (type === "magnetic_pull") {
+    // ★ 專屬分支：磁力偏移
+    targetPl.magneticDebuffTimer = duration;
+  } else if (
+    [
+      "blind_screen",
+      "visual_distortion",
+      "fog_blind",
+      "fake_ball_illusion",
+      "storm_disruption",
+    ].includes(type)
+  ) {
     const blindEl = document.getElementById("online-blind");
     if (blindEl) {
       blindEl.style.display = "block";

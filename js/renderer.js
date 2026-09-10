@@ -597,6 +597,44 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.globalAlpha = 1;
       pl.shrinkFx -= 0.03;
     }
+    // ==========================================
+    // ★ 實裝：實體冰塊外框 (絕對凍結)
+    // ==========================================
+    if (pl.speed === 0) {
+      ctx.save();
+      ctx.fillStyle = "rgba(165, 243, 252, 0.55)"; // 半透明冰藍色
+      ctx.strokeStyle = "#22d3ee";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(pl.x - 4, pl.y - 4, pl.w + 8, pl.h + 8, 6);
+      ctx.fill();
+      ctx.stroke();
+      // 冰塊頂部高光反光
+      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.beginPath();
+      ctx.roundRect(pl.x + 2, pl.y, pl.w - 4, 4, 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ==========================================
+    // ★ 實裝：巨大霓虹旋轉符號 (方向反轉)
+    // ==========================================
+    if (pl.reversedTimer > 0) {
+      ctx.save();
+      ctx.translate(pl.x + pl.w / 2, pl.y + pl.h / 2); // 定位在擋板正中央
+      ctx.rotate(performance.now() / 200); // 隨著時間不斷狂轉
+      ctx.font = "bold 36px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#d8b4fe"; // 霓虹紫
+      ctx.shadowColor = "#a855f7";
+      ctx.shadowBlur = 15;
+      ctx.globalAlpha = 0.85;
+      ctx.fillText("🔄", 0, 0);
+      ctx.fillText("🔄", 0, 0); // 疊加字體增強發光感
+      ctx.restore();
+    }
 
     // ==========================================
     // ★ 實作 1：燃燒的狀態引信條與技能名稱輪播
@@ -653,13 +691,23 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     // ==========================================
     // ★ 實作：六角幾何護盾 (Hex-Shield)
     // ==========================================
-    if (pl.shield > 0) {
+
+    if (pl.shield > 0 || pl.invincibleTimer > 0) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
-      // 根據護盾層數變換顏色：1層藍 -> 2層綠 -> 3層橘 -> 4層紫
-      const shieldColors = ["#9DD9E8", "#86EFAC", "#FDBA74", "#D8B4FE"];
-      const sColor =
-        shieldColors[Math.min(pl.shield - 1, shieldColors.length - 1)];
+
+      let sColor = "#9DD9E8";
+      let shieldStrength = pl.shield;
+
+      if (pl.invincibleTimer > 0) {
+        // ★ 免疫狀態顯示為急速脈衝的金色加厚護盾
+        sColor =
+          Math.floor(performance.now() / 100) % 2 === 0 ? "#FBBF24" : "#FDE68A";
+        shieldStrength = 4;
+      } else {
+        const shieldColors = ["#9DD9E8", "#86EFAC", "#FDBA74", "#D8B4FE"];
+        sColor = shieldColors[Math.min(pl.shield - 1, shieldColors.length - 1)];
+      }
 
       ctx.shadowColor = sColor;
       ctx.shadowBlur = 15;
@@ -704,6 +752,14 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       statusEmoji = "😵‍💫";
       statusText = "方向反轉";
       textColor = "#D8B4FE"; // 混亂紫
+    } else if (pl.chaosTimer > 0) {
+      statusEmoji = "🌀";
+      statusText = "軌跡混亂";
+      textColor = "#F87171";
+    } else if (pl.magneticDebuffTimer > 0) {
+      statusEmoji = "🧲";
+      statusText = "磁力偏移";
+      textColor = "#A78BFA";
     } else if (pl.shield > 0) {
       statusEmoji = "🛡️";
       statusText = `x${pl.shield}`;
@@ -748,7 +804,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       b.history.length > 0
       && (b.isPiercing
         || (pl.speedBuffRatio && pl.speedBuffRatio > 1)
-        || b.fire)
+        || b.fire
+        || (pl.scoreMultiplier && pl.scoreMultiplier > 1)) // ★ 判定積分倍率
     ) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
@@ -757,6 +814,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       let rgbColor =
         b.isPiercing ? "216, 180, 254"
         : b.fire ? "249, 115, 22"
+        : pl.scoreMultiplier && pl.scoreMultiplier > 1 ? "253, 224, 71"
         : "134, 239, 172";
 
       // 從最舊的歷史座標畫到最新，產生漸隱效果
@@ -819,9 +877,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.arc(0, 0, 14, 0, Math.PI * 2); // 半徑 14 剛剛好包覆球體
     // 1P 為粉紅色系，2P 為藍色系
     ctx.fillStyle =
-      isP1 ? "rgb(255, 122, 166)" : "rgb(0, 168, 210)";
+      isP1 ? "rgba(255, 122, 166, 0.25)" : "rgba(0, 168, 210, 0.25)";
     ctx.fill();
-
 
     // ==========================================
     // 3. 決定內容：用 Emoji 取代，或畫出預設圖形
@@ -848,7 +905,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         grad.addColorStop(1, "#cbd5e1");
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(0, -4, 9, 0, Math.PI * 2);
+        ctx.arc(0, -2, 9, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#ec4899";
         ctx.beginPath();
@@ -862,12 +919,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         ctx.quadraticCurveTo(9, -5, 6, -8);
         ctx.fill();
       } else {
-        ctx.strokeStyle = "#9DD9E8";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(0, 0, 9, 0, Math.PI * 2);
+        ctx.arc(0, 0, 11, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.fillStyle = "#eab308";
+        ctx.fillStyle = "#ffea61";
         ctx.beginPath();
         ctx.moveTo(0, -7);
         ctx.lineTo(3, -2);
@@ -881,14 +938,25 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         ctx.lineTo(-3, -2);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = "#FFFDFB";
-        ctx.beginPath();
-        ctx.arc(0, 0, 2, 0, Math.PI * 2);
-        ctx.fill();
       }
       ctx.restore();
     }
 
+    ctx.restore();
+  }
+
+  // ★ 繪製半透明幽靈球
+  if (gameState.ghostBalls) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (const gb of gameState.ghostBalls) {
+      ctx.beginPath();
+      ctx.arc(gb.x, gb.y, gb.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(163, 158, 173, ${Math.min(0.6, gb.life)})`; // 隨時間淡出
+      ctx.shadowColor = "#A39EAD";
+      ctx.shadowBlur = 10;
+      ctx.fill();
+    }
     ctx.restore();
   }
 
