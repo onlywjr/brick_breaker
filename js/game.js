@@ -426,6 +426,11 @@ function resetRound(cv) {
   if (typeof resetGlobalDotState === "function") {
     resetGlobalDotState();
   }
+
+  // ★ 確保換關或死亡時，強制解除畫面迷霧
+  const blindEl = document.getElementById("online-blind");
+  if (blindEl) blindEl.style.display = "none";
+
   // ★ 徹底清空雙方所有跨回合/跨關卡的殘留技能狀態與計時器
   [p1, p2].forEach((pl) => {
     if (!pl) return;
@@ -879,14 +884,21 @@ export function onlineChooseAttack() {
     || p1.energy < p1.maxEnergy
   )
     return;
-  const pool = ["reverse", "shrink", "garbage", "blind", "speed"],
-    type = pool[Math.floor(Math.random() * pool.length)],
-    power =
-      type === "garbage" ?
-        Math.random() < 0.55 ?
-          1
-        : 2
-      : 1;
+  // ★ 替換為與 DLC 共通的標準 action 命名
+  const pool = [
+    "reverse_controls",
+    "shrink_width",
+    "damage_hp",
+    "blind_screen",
+    "slow_speed",
+  ];
+  const type = pool[Math.floor(Math.random() * pool.length)];
+  const power =
+    type === "damage_hp" ?
+      Math.random() < 0.55 ?
+        1
+      : 2
+    : 1;
   onlineAttackPending = true;
   socket.emit("attackPlayer", {
     type,
@@ -918,6 +930,7 @@ export function onlineReceiveAttack(d) {
     case "damage_hp":
     case "radiation_debuff":
     case "unstable_debuff":
+    case "unstable_countdown":
       triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, false);
       break;
 

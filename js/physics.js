@@ -1055,7 +1055,7 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
     return;
   }
 
-  if (["damage_hp", "radiation_debuff", "unstable_debuff"].includes(type)) {
+  if (["damage_hp", "radiation_debuff", "unstable_debuff", "unstable_countdown"].includes(type)) {
     targetPl.score = Math.max(0, targetPl.score - power * 5);
   } else if (type === "shrink_width") {
     if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);
