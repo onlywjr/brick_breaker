@@ -74,6 +74,7 @@ body.single-layout .energy-bar {
 
 body.single-layout .center-card {
   flex-direction: row;
+  padding: 8px 20px;
 }
 
 body.single-layout .center-card > div {

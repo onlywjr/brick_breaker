@@ -338,10 +338,13 @@
               height: 40px;
               background: rgba(246, 166, 193, 0.5);
             "></div>
+  
           <div
-            style="display: flex; flex-direction: column; align-items: center;">
+            style="display: flex; flex-direction: column; align-items: center">
             <span class="stat-label" style="color: #7a728a">LEVEL</span
-            ><span id="level-txt" class="stat-value" style="color: #f46494">1</span>
+            ><span id="level-txt" class="stat-value" style="color: #f46494"
+              >1</span
+            >
           </div>
         </div>
         <div class="stat-card" id="p2-card">
@@ -393,7 +396,40 @@
       <div id="online-opponents-left" class="side-opponents"></div>
       <div id="online-opponents-right" class="side-opponents"></div>
       <div id="online-opponents-bottom" class="bottom-opponents"></div>
-      <div id="online-blind"></div>
+      <!-- 替換原本的 online-blind -->
+      <div
+        id="online-blind"
+        style="
+          display: none;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 99;
+          pointer-events: none;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          color: white;
+        ">
+        <div style="font-size: 80px; animation: pulse 1s infinite alternate">
+          👁️‍🗨️
+        </div>
+        <div
+          style="
+            font-size: 24px;
+            font-weight: 900;
+            color: #e57373;
+            letter-spacing: 4px;
+            margin-top: 15px;
+          ">
+          視野遭到遮蔽
+        </div>
+        <div style="font-size: 14px; color: #a39ead; margin-top: 5px">
+          「請依靠直覺接球...」
+        </div>
+      </div>
       <div id="online-attack-status"></div>
     </div>
 

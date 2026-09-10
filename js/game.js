@@ -91,6 +91,29 @@ export let drops = [];
 export let particles = [];
 export let floatTexts = [];
 
+// ==========================================
+// ★ 新增：全域視覺特效控制器 (VFX)
+// ==========================================
+export let vfx = {
+  shakeTime: 0,
+  shakeMag: 0,
+  flashTime: 0,
+  flashMax: 0,
+  flashColor: "255,255,255", // RGB 格式字串
+};
+
+export function triggerVFX(shakeMagnitude, flashC = null, flashDuration = 0) {
+  if (shakeMagnitude > 0) {
+    vfx.shakeTime = 0.5; // 固定震動 0.5 秒
+    vfx.shakeMag = shakeMagnitude;
+  }
+  if (flashC && flashDuration > 0) {
+    vfx.flashColor = flashC;
+    vfx.flashTime = flashDuration;
+    vfx.flashMax = flashDuration;
+  }
+}
+
 // 假設基礎 Boss 血量定為 200
 const baseBossHp = 200;
 const bossMultiplier = 1 + (level - 1) * 0.15;
@@ -439,8 +462,13 @@ export function startGameGlobal(selectedMode, cv) {
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
   setChemistryMode(selectedMode);
 
+  // ★ 修正：在進入商店「之前」清空進度，而不是之後
+  if (chemDLCEnabled && typeof resetChemistryState === "function") {
+    resetChemistryState();
+  }
+
   if (selectedMode === 2 && chemDLCEnabled) {
-    // ★ 依序傳入 0 與 1
+    // 依序傳入 0 與 1
     openChemistryShop("1P 配方商店", 0, () => {
       openChemistryShop("2P 配方商店", 1, () => {
         executeStartGame(selectedMode, cv);
@@ -455,7 +483,6 @@ export function startGameGlobal(selectedMode, cv) {
 function executeStartGame(selectedMode, cv) {
   // 在 executeStartGame 開頭加入：
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
-  if (chemDLCEnabled) resetChemistryState(); // ★ 新增：開局強制清空所有化學進度
   onlineMode = false;
   document.getElementById("p1-label").style.display = "inline";
   document.body.classList.remove("online-battle-mode");
@@ -610,12 +637,22 @@ function setupEventHUDs() {
     const centerHud = document.createElement("div");
     centerHud.id = "center-event-hud";
 
-    // ★ 關鍵修正 1：確保外框擁有 display: flex; align-items: center;
+    // ★ 放寬 max-width 讓左右雙欄有足夠空間，並使用 flex 佈局
     centerHud.style.cssText =
-      "background: rgba(255, 255, 255, 0.75); border-radius: 30px; padding: 0 20px; margin: 0 15px; flex: 1; max-width: 300px; height: 48px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; font-size: 16px; font-weight: 900; color: #DDA15E; z-index: 10; box-sizing: border-box;";
+      "background: rgba(255, 255, 255, 0.75); border-radius: 30px; padding: 0; margin: 0 15px; flex: 1; max-width: 400px; height: 48px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; font-size: 14px; font-weight: 900; color: #DDA15E; z-index: 10; box-sizing: border-box; overflow: hidden;";
 
-    // ★ 關鍵修正 2：為內部的 span 也加上 flex 置中與 100% 高度，避免它縮在頂部
-    centerHud.innerHTML = `<span id="center-event-text" style="opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; margin: 0; padding: 0;"></span>`;
+    // ★ 切分左右雙欄：
+    // 左欄用來放「系統事件 (Combo / 回復等)」
+    // 右欄用來放「技能輪播 (top-hud-buff-display)」
+    // 中間加上一條淡淡的紫色分隔線
+    centerHud.innerHTML = `
+      <div style="flex: 1; height: 100%; display: flex; align-items: center; justify-content: center;  padding: 0 10px;">
+        <span id="center-event-text" style="opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 4px rgba(255,255,255,0.8);"></span>
+      </div>
+      <div style="flex: 0.5; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10px;">
+        <div id="top-hud-buff-display" style="display: none; align-items: center; justify-content: center; width: 100%;"></div>
+      </div>
+    `;
 
     // 確保它獨立於玩家卡片之外，插在 1P 卡片與 Level 區塊的正中間
     const p1Card = document.getElementById("p1-card");
@@ -652,7 +689,6 @@ export function startOnlineGame(state, cv) {
   mode = 1; // 底層模式
   // ★ 強制讀取大廳同步好的 DLC 狀態
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
-  if (chemDLCEnabled) resetChemistryState(); // ★ 新增：連線開局也強制清空進度
   myPlayerId = socket.id;
   Object.keys(onlinePlayers).forEach((k) => delete onlinePlayers[k]);
   onlineEliminated = false;
@@ -838,17 +874,16 @@ export function onlineReceiveAttack(d) {
 
   burst(400, 300, "#D96C8E"); // 畫面震動爆點
 
-  // 解析來自對手的 14 種標準化 Action
   switch (type) {
     case "damage_hp":
       p1.score = Math.max(0, p1.score - power * 5);
-      triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, true); // 重大警告
+      triggerGameEvent(`💥 ${name} 扣除了 ${power * 5} 分！`, false); // ★ 改為 false
       break;
 
     case "shrink_width":
       p1.w = Math.max(p1.minW, p1.w * power);
       p1.shrinkFx = 1;
-      triggerGameEvent(`⚠️ ${name} 使你擋板縮小！`, false); // 一般干擾 (HUD顯示)
+      triggerGameEvent(`⚠️ ${name} 使你擋板縮小！`, false);
       setTimeout(() => {
         p1.w = 120;
       }, duration * 1000);
@@ -856,7 +891,7 @@ export function onlineReceiveAttack(d) {
 
     case "slow_speed":
       p1.speed = 9 * power;
-      triggerGameEvent(`🐢 ${name} 使你減速！`, false); // 一般干擾 (HUD顯示)
+      triggerGameEvent(`🐢 ${name} 使你減速！`, false);
       setTimeout(() => {
         p1.speed = 9;
       }, duration * 1000);
@@ -864,7 +899,7 @@ export function onlineReceiveAttack(d) {
 
     case "freeze":
       p1.speed = 0;
-      triggerGameEvent(`❄️ ${name} 將你完全凍結！`, true); // 重大警告
+      triggerGameEvent(`❄️ ${name} 將你完全凍結！`, false); // ★ 改為 false
       setTimeout(() => {
         p1.speed = 9;
       }, duration * 1000);
@@ -873,14 +908,14 @@ export function onlineReceiveAttack(d) {
     case "reverse_controls":
       p1.reversed = true;
       p1.reversedTimer = duration;
-      triggerGameEvent(`🔄 ${name} 反轉了你的操作！`, true); // 重大警告
+      triggerGameEvent(`🔄 ${name} 反轉了你的操作！`, false); // ★ 改為 false
       break;
 
     case "blind_screen":
       onlineBlindTimer = duration;
       const blindEl = document.getElementById("online-blind");
       if (blindEl) blindEl.style.display = "block";
-      triggerGameEvent(`👁 ${name} 遮蔽了你的視線！`, false); // 一般干擾 (HUD顯示)
+      triggerGameEvent(`👁 ${name} 遮蔽了你的視線！`, false);
       break;
   }
 }
@@ -969,17 +1004,12 @@ export function updateGameState(dt, cv) {
     document.getElementById("p2-energy-bar").style.width =
       (p2.energy / 10) * 100 + "%";
   }
-  if (mode === 1) {
-    const livesEl = document.getElementById("p1-lives");
-    if (livesEl) {
-      livesEl.style.display = "flex";
-      livesEl.innerHTML = "";
-      for (let i = 0; i < p1.lives; i++) {
-        const heart = document.createElement("div");
-        heart.className = "life-heart";
-        livesEl.appendChild(heart);
-      }
-    }
+  // ★ 1. 將 1P 的生命改為「❤️ x 數字」格式 (適用於單人與連線對戰)
+  const livesEl = document.getElementById("p1-lives");
+  if (livesEl && (mode === 1 || onlineMode)) {
+    livesEl.style.display = "flex";
+    livesEl.style.alignItems = "center";
+    livesEl.innerHTML = `<span style="font-size: 16px; margin-left: 15px; color: #ffb0b0">💗</span><span style="font-size: 16px; font-weight: 900; color: #d96c8e;">x ${Math.max(0, p1.lives)}</span>`;
   }
   if (p1.reversedTimer > 0) {
     p1.reversedTimer -= dt / 60;
@@ -1146,6 +1176,18 @@ export function loop(ts, cv) {
   try {
     updateGameState(dt, cv);
     const ctx = cv.getContext("2d");
+
+    ctx.save(); // ★ 1. 儲存原始畫布座標
+
+    // ★ 2. 處理螢幕震動 (Screen Shake)
+    if (vfx.shakeTime > 0) {
+      vfx.shakeTime -= dt / 60;
+      // 產生隨機位移量
+      let dx = (Math.random() - 0.5) * vfx.shakeMag * 2;
+      let dy = (Math.random() - 0.5) * vfx.shakeMag * 2;
+      ctx.translate(dx, dy);
+    }
+
     drawGameBackground(ctx, cv);
     drawGameEntities(
       ctx,
@@ -1163,26 +1205,28 @@ export function loop(ts, cv) {
       loadedImages,
     );
 
-    // ★ 修改：將血量數字移至磚塊右側 (中文旁邊) 並加上陰影
-    ctx.font = "900 11px serif"; // 稍微縮小字體避免太擁擠
-    ctx.textAlign = "right"; // 設為靠右對齊
+    ctx.font = "900 11px serif";
+    ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
     bricks.forEach((b) => {
       if (b.hp > 0) {
-        // 數字位置：X 軸在磚塊最右邊往左縮 6px，Y 軸在正中間微調
         const textX = b.x + b.w - 5;
         const textY = b.y + b.h / 2 + 1;
-
-        // 1. 先畫出深色陰影增加辨識度
-        //ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        //ctx.fillText(Math.ceil(b.hp), textX + 1, textY + 1);
-
-        // 2. 畫出白色主體數字
         ctx.fillStyle = "rgba(255, 255, 255, 1)";
         ctx.fillText(Math.ceil(b.hp), textX, textY);
       }
     });
+
+    ctx.restore(); // ★ 3. 震動結束，還原畫布座標以免影響 UI
+
+    // ★ 4. 處理全畫面閃光特效 (Screen Flash)
+    if (vfx.flashTime > 0) {
+      vfx.flashTime -= dt / 60;
+      let alpha = Math.max(0, vfx.flashTime / vfx.flashMax);
+      ctx.fillStyle = `rgba(${vfx.flashColor}, ${alpha * 0.7})`; // 最高 70% 不透明度
+      ctx.fillRect(0, 0, cv.width, cv.height);
+    }
 
     if (onlineMode) {
       onlineRenderPlayers(
@@ -1321,7 +1365,9 @@ if (socket) {
   const originalEmit = socket.emit;
   socket.emit = function (eventName, ...args) {
     // 只要系統一發送「建房」或「加房」等相關網路請求，瞬間將化學背包清零！
-    if (["createRoom", "joinRoom", "hostRoom", "join", "host"].includes(eventName)) {
+    if (
+      ["createRoom", "joinRoom", "hostRoom", "join", "host"].includes(eventName)
+    ) {
       if (chemDLCEnabled && typeof resetChemistryState === "function") {
         resetChemistryState();
       }

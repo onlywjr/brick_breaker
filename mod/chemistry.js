@@ -1316,11 +1316,11 @@ function initTabs() {
   // 3. 依照排序後的分類依序生成頁籤，並補上對應 Emoji
   categories.forEach((cat) => {
     let icon = "🧪"; // 預設圖示
-    if (cat === "攻擊") icon = "⚔️";
+    if (cat === "攻擊") icon = "🔥";
     if (cat === "防禦") icon = "🛡️";
-    if (cat === "輔助") icon = "💖";
-    if (cat === "控制") icon = "⏳";
-    if (cat === "特殊") icon = "✨";
+    if (cat === "輔助") icon = "❤️‍🔥";
+    if (cat === "控制") icon = "🪁";
+    if (cat === "特殊") icon = "🌟";
     if (cat === "實驗") icon = "⚠️";
 
     tabsHTML += `<button class="chem-tab" data-category="${cat}">${icon} ${cat}</button>`;
@@ -1427,15 +1427,185 @@ function renderShopCards() {
 
     // ★ 判斷技能分類並給予對應圖示
     let catIcon = "🧪";
-    if (skill.category === "攻擊") catIcon = "⚔️";
+    if (skill.category === "攻擊") catIcon = "🔥";
     if (skill.category === "防禦") catIcon = "🛡️";
-    if (skill.category === "輔助") catIcon = "💖";
-    if (skill.category === "控制") catIcon = "⏳";
-    if (skill.category === "特殊") catIcon = "✨";
+    if (skill.category === "輔助") catIcon = "❤️‍🔥";
+    if (skill.category === "控制") catIcon = "🪁";
+    if (skill.category === "特殊") catIcon = "🌟";
     if (skill.category === "實驗") catIcon = "⚠️";
 
-    // 將單/雙人說明換行並上色
-    let formattedDesc = (skill.description || "暫無說明")
+    // ==========================================
+    // ★ 動態數值替換引擎 (Regex)
+    // ==========================================
+    let rawDesc = skill.description || "暫無說明";
+
+    // 若尚未解鎖，預設顯示 Lv.1 的數值
+    const displayLv = isUnlocked ? Math.max(1, skillLevels[skill.id] || 1) : 1;
+
+    if (displayLv >= 1) {
+      // 輔助函式：計算特定 effect 在當前等級的「新舊數值」
+      const getScaled = (effect) => {
+        if (!effect || !effect.params) return {};
+        let p = effect.params.power || 1;
+        let d = effect.params.durationSec || 0;
+        let act = effect.action;
+
+        // 將 36 種技能映射為底層的 9 大 Action (與 physics.js 完全同步)
+        if (
+          [
+            "add_piercing",
+            "phase_piercing",
+            "laser_pierce",
+            "heavy_ball",
+            "charge_next_hit",
+          ].includes(act)
+        )
+          act = "enable_pierce";
+        if (
+          [
+            "power_speed_boost",
+            "speed_boost",
+            "speed_and_randomize",
+            "berserk_boost",
+            "energy_overcharge",
+            "energy_boost",
+          ].includes(act)
+        )
+          act = "modify_speed";
+        if (
+          [
+            "shockwave",
+            "delayed_explosion",
+            "area_damage",
+            "massive_explosion",
+            "charged_explosion",
+            "global_damage_over_time",
+            "global_corrosion",
+          ].includes(act)
+        )
+          act = "damage_all";
+        if (["temporary_immunity"].includes(act)) act = "add_shield";
+        if (
+          [
+            "visual_distortion",
+            "flash_blind",
+            "fake_ball_illusion",
+            "fog_blind",
+            "storm_disruption",
+          ].includes(act)
+        )
+          act = "blind_screen";
+        if (
+          [
+            "unstable_countdown",
+            "radiation_debuff",
+            "unstable_debuff",
+          ].includes(act)
+        )
+          act = "damage_hp";
+        if (["chaos_trajectory", "magnetic_pull"].includes(act))
+          act = "reverse_controls";
+        if (
+          [
+            "create_ghost_ball",
+            "highlight_targets",
+            "magnetic_trajectory",
+            "trajectory_guide",
+            "increase_brick_damage",
+          ].includes(act)
+        )
+          act = "multiply_score";
+        if (["dispel_brick_effects", "disable_special_bricks"].includes(act))
+          act = "clear_rows";
+
+        let oldP = null,
+          newP = null;
+        if (
+          ![
+            "enable_pierce",
+            "blind_screen",
+            "reverse_controls",
+            "freeze",
+          ].includes(act)
+        ) {
+          if (
+            [
+              "damage_hp",
+              "damage_all",
+              "heal_hp",
+              "add_shield",
+              "clear_rows",
+            ].includes(act)
+          ) {
+            oldP = Math.round(p).toString();
+            newP = Math.round(p * displayLv).toString();
+          } else if (
+            ["modify_speed", "modify_width", "multiply_score"].includes(act)
+            && p >= 1
+          ) {
+            if (act === "multiply_score") {
+              oldP = Math.round(p).toString();
+              newP = Math.round(1 + (p - 1) * displayLv).toString();
+            } else {
+              oldP = Math.round((p - 1) * 100).toString();
+              newP = Math.round((1 + (p - 1) * displayLv - 1) * 100).toString();
+            }
+          } else if (
+            ["shrink_width", "slow_speed", "modify_speed"].includes(act)
+            && p < 1
+          ) {
+            oldP = Math.round((1 - p) * 100).toString();
+            newP = Math.round(
+              (1 - Math.max(0.2, 1 - (1 - p) * displayLv)) * 100,
+            ).toString();
+          }
+        }
+        let oldD = d > 0 ? d.toString() : null;
+        let newD = d > 0 ? (d + (displayLv - 1)).toString() : null;
+        return { oldP, newP, oldD, newD };
+      };
+
+      // 替換【單人】模式字串
+      let sVals = getScaled(skill.effectSingle);
+      let sMatch = rawDesc.match(/【單人】([^【]*)/);
+      if (sMatch) {
+        let text = sMatch[1];
+        text = text.replace(/Lv\.\d+/, `Lv.${displayLv}`);
+        // 精準攔截數字：只有後面緊接「秒」或「%點層排倍」的數字才會被替換，極度安全！
+        if (sVals.oldD)
+          text = text.replace(
+            new RegExp("\\b" + sVals.oldD + "(?=\\s*秒)"),
+            sVals.newD,
+          );
+        if (sVals.oldP)
+          text = text.replace(
+            new RegExp("\\b" + sVals.oldP + "(?=\\s*[點層排倍%])"),
+            sVals.newP,
+          );
+        rawDesc = rawDesc.replace(sMatch[1], text);
+      }
+
+      // 替換【多人】模式字串
+      let mVals = getScaled(skill.effectMulti);
+      let mMatch = rawDesc.match(/【多人】([^【]*)/);
+      if (mMatch) {
+        let text = mMatch[1];
+        text = text.replace(/Lv\.\d+/, `Lv.${displayLv}`);
+        if (mVals.oldD)
+          text = text.replace(
+            new RegExp("\\b" + mVals.oldD + "(?=\\s*秒)"),
+            mVals.newD,
+          );
+        if (mVals.oldP)
+          text = text.replace(
+            new RegExp("\\b" + mVals.oldP + "(?=\\s*[點層排倍%])"),
+            mVals.newP,
+          );
+        rawDesc = rawDesc.replace(mMatch[1], text);
+      }
+    }
+
+    let formattedDesc = rawDesc
       .replace(
         / ?【單人】/g,
         "<br><span style='color: #9dd9e8; font-weight: 900;'>【單人】</span>",
@@ -1444,6 +1614,7 @@ function renderShopCards() {
         / ?【多人】/g,
         "<br><span style='color: #f6a6c1; font-weight: 900;'>【多人】</span>",
       );
+
     if (formattedDesc.startsWith("<br>"))
       formattedDesc = formattedDesc.substring(4);
 
@@ -1539,25 +1710,8 @@ function renderShopCards() {
         }
       } else {
         if (isUnlocked) {
-          // ★ 單人模式點擊已解鎖卡片時，檢查是否要升級
-          if (currentGameMode === 1 && canAfford) {
-            if (
-              confirm(
-                `【${skill.name}】目前為 Lv.${currentLv}。\n是否消耗 ${upgradeMult} 倍元素，將其升級至 Lv.${currentLv + 1}？`,
-              )
-            ) {
-              for (const [sym, num] of Object.entries(skill.elements)) {
-                chemInventory[sym] -= num * upgradeMult;
-              }
-              skillLevels[skill.id] = currentLv + 1;
-              chemStates[activePIdx].levels = skillLevels;
-              updateInventoryUI();
-              renderShopCards();
-              return; // 升級完直接返回，不執行下方的亮起邏輯
-            }
-          }
-
-          // 原本的亮起週期表邏輯 (不想升級或點數不足時，單純亮起提示)
+          // ★ 修正 1：刪除原本在這裡的單人升級 confirm 邏輯
+          // 僅保留亮起週期表的功能
           document
             .querySelectorAll(".chem-skill-card")
             .forEach((c) => c.classList.remove("selected"));
@@ -1574,10 +1728,10 @@ function renderShopCards() {
         } else if (canAfford) {
           if (confirm(`是否消耗元素解鎖技能【${skill.name}】？`)) {
             for (const [sym, num] of Object.entries(skill.elements)) {
-              chemInventory[sym] -= num; // 初次解鎖是 1 倍
+              chemInventory[sym] -= num;
             }
             unlockedSkills.push(skill.id);
-            skillLevels[skill.id] = 1; // ★ 紀錄為 Lv.1
+            skillLevels[skill.id] = 1;
             chemStates[activePIdx].levels = skillLevels;
             chemStates[activePIdx].unlocked = unlockedSkills;
             updateInventoryUI();
@@ -1941,6 +2095,54 @@ window.quickBuySkill = function (skillId, event) {
         btn.style.background = currentLv > 0 ? "#7ed6c3d4" : "#6de2ff";
       }, 1000);
     }
+  }
+};
+
+// ==========================================
+// ★ 新增：單人模式專屬快速升級 API
+// ==========================================
+window.quickUpgradeSinglePlayer = function (skillId, event) {
+  event.stopPropagation(); // 阻止點擊事件冒泡到卡片上
+
+  if (currentGameMode !== 1) return;
+
+  const skill = chemSkills.find((s) => s.id === skillId);
+  if (!skill) return;
+
+  const currentLv = skillLevels[skillId] || 1;
+  const upgradeMult = currentLv + 1;
+
+  // 檢查元素是否足夠
+  let canAfford = true;
+  for (const [sym, num] of Object.entries(skill.elements)) {
+    if (getAtomCount(sym) < num * upgradeMult) canAfford = false;
+  }
+
+  if (!canAfford) {
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "元素不足";
+    btn.style.background = "#e57373";
+    setTimeout(() => {
+      btn.innerText = originalText;
+      btn.style.background = "#83e6cf";
+    }, 1000);
+    return;
+  }
+
+  // 執行升級
+  if (
+    confirm(
+      `【${skill.name}】目前為 Lv.${currentLv}。\n是否消耗 ${upgradeMult} 倍元素，將其升級至 Lv.${currentLv + 1}？`,
+    )
+  ) {
+    for (const [sym, num] of Object.entries(skill.elements)) {
+      chemInventory[sym] -= num * upgradeMult;
+    }
+    skillLevels[skill.id] = currentLv + 1;
+    chemStates[activePIdx].levels = skillLevels;
+    if (typeof updateInventoryUI === "function") updateInventoryUI();
+    if (typeof renderShopCards === "function") renderShopCards();
   }
 };
 

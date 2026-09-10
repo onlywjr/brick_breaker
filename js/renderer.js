@@ -1,5 +1,15 @@
-import { lightenColor } from "./physics.js";
-import { MEMBERS, chemDLCEnabled, p1, mode, onlineMode } from "./game.js";
+import { lightenColor, skillCooldowns } from "./physics.js";
+
+import {
+  MEMBERS,
+  chemDLCEnabled,
+  p1,
+  p2,
+  mode,
+  onlineMode,
+  onlineBlindTimer,
+} from "./game.js";
+
 import {
   ELEMENT_DATA,
   getNeededElements,
@@ -195,7 +205,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
     ctx.fillStyle = paleColor;
     ctx.beginPath();
-    ctx.roundRect(b.x, b.y, b.w, b.h, 4); 
+    ctx.roundRect(b.x, b.y, b.w, b.h, 4);
     ctx.fill();
 
     if (b.isMoving) {
@@ -265,8 +275,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.fillText(b.symbol, startX, b.y + b.h / 2 + 1);
 
       // 3. 繪製中文 (一般黑體 + 微弱陰影)
-      ctx.font = "500 14px 'Noto Sans TC', sans-serif";
-      ctx.fillStyle = "#666";
+      ctx.font = "400 14px 'Noto Sans TC', sans-serif";
+      ctx.fillStyle = "#761c1c";
       ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
     } else {
       // 預設沒有化學元素的磚塊維持原樣
@@ -587,11 +597,183 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.globalAlpha = 1;
       pl.shrinkFx -= 0.03;
     }
+
+    // ==========================================
+    // ★ 實作 1：燃燒的狀態引信條與技能名稱輪播
+    // ==========================================
+    const now = performance.now();
+    const pId = pl === p1 ? 0 : 1;
+    const isP1 = pl === p1;
+
+    if (pl.activeBuffs) {
+      // 過濾出目前還在生效中的 Buff
+      const activeKeys = Object.keys(pl.activeBuffs).filter(
+        (k) => pl.activeBuffs[k].end > now,
+      );
+
+      if (activeKeys.length > 0) {
+        let maxLeft = 0;
+        let maxTotal = 1;
+        // 找出剩餘時間最長的 Buff 來畫長條圖
+        for (const key of activeKeys) {
+          const buff = pl.activeBuffs[key];
+          const left = buff.end - now;
+          if (left > maxLeft) {
+            maxLeft = left;
+            maxTotal = buff.total;
+          }
+        }
+
+        const barW = pl.w;
+        const fillW = (maxLeft / maxTotal) * barW;
+        const barY = pl.y - 12; // 浮在擋板上方
+
+        ctx.save();
+
+        // --- 繪製引信條 ---
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // 黑色底框
+        ctx.fillRect(pl.x, barY, barW, 4);
+
+        if (maxLeft <= 3000) {
+          ctx.fillStyle =
+            Math.floor(now / 150) % 2 === 0 ? "#EF4444" : "#FBBF24";
+          ctx.shadowColor = "#EF4444";
+          ctx.shadowBlur = 8;
+        } else {
+          ctx.fillStyle = "#34D399"; // 安全時間為螢光綠
+          ctx.shadowColor = "#34D399";
+          ctx.shadowBlur = 4;
+        }
+        ctx.fillRect(pl.x, barY, fillW, 4);
+
+        ctx.restore();
+      }
+    }
+
+    // ==========================================
+    // ★ 實作：六角幾何護盾 (Hex-Shield)
+    // ==========================================
+    if (pl.shield > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      // 根據護盾層數變換顏色：1層藍 -> 2層綠 -> 3層橘 -> 4層紫
+      const shieldColors = ["#9DD9E8", "#86EFAC", "#FDBA74", "#D8B4FE"];
+      const sColor =
+        shieldColors[Math.min(pl.shield - 1, shieldColors.length - 1)];
+
+      ctx.shadowColor = sColor;
+      ctx.shadowBlur = 15;
+      ctx.strokeStyle = sColor;
+      ctx.lineWidth = 2 + pl.shield * 0.5; // 護盾越多層越粗
+
+      // 畫出包覆擋板的菱角能量罩
+      ctx.beginPath();
+      ctx.moveTo(pl.x - 15, pl.y + pl.h / 2);
+      ctx.lineTo(pl.x + 10, pl.y - 12);
+      ctx.lineTo(pl.x + pl.w - 10, pl.y - 12);
+      ctx.lineTo(pl.x + pl.w + 15, pl.y + pl.h / 2);
+      ctx.lineTo(pl.x + pl.w - 10, pl.y + pl.h + 12);
+      ctx.lineTo(pl.x + 10, pl.y + pl.h + 12);
+      ctx.closePath();
+      ctx.stroke();
+
+      // 罩子內部的半透明能量感
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ==========================================
+    // ★ 實作 1：擋板上方的 Emoji 狀態列
+    // ==========================================
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.font = "bold 18px 'Noto Sans TC', sans-serif";
+
+    let statusEmoji = "";
+    let statusText = "";
+    let textColor = "#FFF";
+
+    // 判斷玩家當前身上的 Debuff 或 Buff 狀態
+    if (pl.speed === 0) {
+      statusEmoji = "🧊";
+      statusText = "絕對凍結";
+      textColor = "#A5F3FC"; // 冰藍色
+    } else if (pl.reversedTimer > 0) {
+      statusEmoji = "😵‍💫";
+      statusText = "方向反轉";
+      textColor = "#D8B4FE"; // 混亂紫
+    } else if (pl.shield > 0) {
+      statusEmoji = "🛡️";
+      statusText = `x${pl.shield}`;
+      textColor = "#86EFAC"; // 護盾綠
+    } else if (pl.speedBuffRatio && pl.speedBuffRatio < 1) {
+      statusEmoji = "🐢";
+      statusText = "減速";
+      textColor = "#FDBA74"; // 警告橘
+    }
+
+    // 如果有狀態，就在擋板正上方畫出來
+    if (statusEmoji) {
+      // 畫一點黑色半透明陰影讓文字更清楚
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = textColor;
+
+      // Emoji 稍微大一點
+      ctx.font = "22px Arial";
+      ctx.fillText(statusEmoji, pl.x + pl.w / 2, pl.y - 25);
+
+      // 狀態文字
+      ctx.font = "900 13px 'Noto Sans TC', sans-serif";
+      ctx.fillText(statusText, pl.x + pl.w / 2, pl.y - 8);
+    }
+    ctx.restore();
   }
 
   for (const pl of activePlayers) {
     if (!pl.ball) continue;
     const b = pl.ball;
+
+    // ==========================================
+    // ★ 實作：動態殘影拖尾 (Trail Effect)
+    // ==========================================
+    b.history = b.history || [];
+    b.history.push({ x: b.x, y: b.y });
+    if (b.history.length > 12) b.history.shift(); // 保持最多 12 幀的殘影
+
+    // 只有在 穿透、加速 或 火球 狀態下才繪製拖尾
+    if (
+      b.history.length > 0
+      && (b.isPiercing
+        || (pl.speedBuffRatio && pl.speedBuffRatio > 1)
+        || b.fire)
+    ) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      // 穿透=紫電，火球=橘焰，加速=綠芒
+      let rgbColor =
+        b.isPiercing ? "216, 180, 254"
+        : b.fire ? "249, 115, 22"
+        : "134, 239, 172";
+
+      // 從最舊的歷史座標畫到最新，產生漸隱效果
+      for (let i = 0; i < b.history.length; i++) {
+        let pt = b.history[i];
+        let ratio = i / b.history.length; // 0 到 1 的淡出比例
+
+        ctx.beginPath();
+        // 殘影由小變大
+        ctx.arc(pt.x, pt.y, b.r * (0.4 + 0.6 * ratio), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgbColor}, ${ratio * 0.6})`;
+        ctx.shadowColor = `rgb(${rgbColor})`;
+        ctx.shadowBlur = 10 * ratio;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
 
     ctx.save();
     if (b.fire) {
@@ -654,6 +836,40 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.arc(0, 0, 2, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    // ==========================================
+    // ★ 實作 2：球體變異的 Emoji 伴隨特效
+    // ==========================================
+    let ballEmoji = "";
+
+    // 優先讀取化學技能的分類來決定圖示
+    if (pl.activeBuffs) {
+      const now = performance.now();
+      for (const key in pl.activeBuffs) {
+        if (pl.activeBuffs[key].end > now) {
+          const cat = pl.activeBuffs[key].category;
+          if (cat === "攻擊") ballEmoji = "🔥";
+          else if (cat === "輔助") ballEmoji = "❤️‍🔥";
+          else if (cat === "控制") ballEmoji = "🪁";
+          else if (cat === "防禦") ballEmoji = "🛡️";
+          else if (cat === "特殊") ballEmoji = "🌟";
+          else if (cat === "實驗") ballEmoji = "⚠️";
+        }
+      }
+    }
+
+    // 若沒有吃到化學分類 (舊版技能或膠囊掉落物)，退回預設圖示
+    if (!ballEmoji) {
+      if (b.isPiercing) ballEmoji = "☄️";
+      else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
+      else if (b.fire) ballEmoji = "🔥";
+    }
+
+    if (ballEmoji) {
+      ctx.font = "20px Arial";
+      ctx.fillText(ballEmoji, 0, -18);
+    }
+
     ctx.restore();
   }
 
@@ -679,24 +895,108 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   }
   ctx.globalAlpha = 1;
 
-  // ★ HTML 底部狀態列更新 (DOM Overlay)
+  // ==========================================
+  // ★ Phase 4 實作：終極視覺干擾 (探照燈視野與幻影假球)
+  // ==========================================
+  let isBlinded = false;
+  let blindTarget = null;
+
+  // 判斷致盲目標 (連線模式看全域計時器，單機雙人看 pl.timers)
+  if (
+    onlineMode
+    && typeof onlineBlindTimer !== "undefined"
+    && onlineBlindTimer > 0
+  ) {
+    isBlinded = true;
+    blindTarget = p1;
+  } else if (mode === 2) {
+    if (p1.timers && p1.timers.blind) {
+      isBlinded = true;
+      blindTarget = p1;
+    } else if (p2.timers && p2.timers.blind) {
+      isBlinded = true;
+      blindTarget = p2;
+    }
+  }
+
+  if (isBlinded && blindTarget) {
+    ctx.save();
+
+    // 1. 畫出「探照燈/迷霧」視野 (Vignette)
+    // 讓可見半徑隨著時間急促收縮脈動，製造極大的心理壓迫感
+    const pulseRadius = 160 + Math.sin(performance.now() / 80) * 20;
+    const cx = blindTarget.x + blindTarget.w / 2;
+    const cy = blindTarget.y + blindTarget.h / 2;
+
+    const grd = ctx.createRadialGradient(
+      cx,
+      cy,
+      pulseRadius * 0.2,
+      cx,
+      cy,
+      pulseRadius,
+    );
+    grd.addColorStop(0, "rgba(0, 0, 0, 0)"); // 擋板周圍完全透明
+    grd.addColorStop(0.5, "rgba(0, 0, 0, 0.75)"); // 邊緣半透明漸層
+    grd.addColorStop(1, "rgba(0, 0, 0, 0.98)"); // 外圍近乎全黑
+
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // 2. 製造「幻影假球 (Fake Ball Illusion)」
+    // 利用真球的座標作動態偏移與鏡像，欺騙對手視覺
+    if (blindTarget.ball) {
+      const bx = blindTarget.ball.x;
+      const by = blindTarget.ball.y;
+
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = "rgba(163, 158, 173, 0.5)"; // 灰白色的幻影
+
+      // 假球 A：X 軸完美鏡像 (玩家往左接，它就往右跑)
+      ctx.beginPath();
+      ctx.arc(cv.width - bx, by, 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 假球 B：緊隨其後的疊影殘留
+      ctx.beginPath();
+      ctx.arc(bx + 30, by - 30, 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 假球 C：隨機亂竄的干擾源
+      ctx.beginPath();
+      ctx.arc(
+        bx + Math.cos(performance.now() / 150) * 70,
+        by + Math.sin(performance.now() / 150) * 70,
+        11,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ==========================================
+  // ★ HTML 狀態列與 HUD 更新 (DOM Overlay)
+  // ==========================================
   const hud = document.getElementById("chem-bottom-hud");
   if (hud) {
-    if (chemDLCEnabled && chemStates) {
+    if (chemDLCEnabled && typeof chemStates !== "undefined" && chemStates) {
       hud.style.display = "flex";
       const p1El = document.getElementById("hud-1p");
       const p2El = document.getElementById("hud-2p");
+      const topHudEl = document.getElementById("top-hud-buff-display"); // 抓取上方紅圈容器
 
-      // 建立技能類別的專屬配色字典
       const categoryColors = {
-        "攻擊": "#E0576B", // 攻擊紅
-        "防禦": "#5FA8D3", // 防禦藍
-        "輔助": "#2EB886", // 輔助綠
-        "控制": "#DDA15E", // 控制橘
-        "特殊": "#A985DC", // 特殊紫
-        "實驗": "#8A7E9C", // 實驗灰
+        "攻擊": "#E0576B",
+        "防禦": "#5FA8D3",
+        "輔助": "#2EB886",
+        "控制": "#DDA15E",
+        "特殊": "#A985DC",
+        "實驗": "#8A7E9C",
       };
 
+      // 1. 生成技能 CD 狀態與餘額標籤 (給 Bottom Status Bar 使用)
       const getStatusText = (pId) => {
         const eq = chemStates[pId]?.equipped || [];
         const inv = chemStates[pId]?.inventory || {};
@@ -705,45 +1005,114 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         if (validSkills.length === 0)
           return "<span style='opacity: 0.5;'>尚未裝備</span>";
 
+        const now = performance.now();
+
         return validSkills
           .map((sId) => {
             const skill = getSkillData(sId);
             if (!skill) return "";
 
             let maxCasts = 999;
-            for (const [sym, req] of Object.entries(skill.elements)) {
-              maxCasts = Math.min(maxCasts, Math.floor((inv[sym] || 0) / req));
+            if (skill.elements) {
+              for (const [sym, req] of Object.entries(skill.elements)) {
+                maxCasts = Math.min(
+                  maxCasts,
+                  Math.floor((inv[sym] || 0) / req),
+                );
+              }
             }
+            if (maxCasts === 999) maxCasts = 0;
 
-            // 擷取乾淨的化學式並將數字轉為下標
-            const pureFormula = skill.formula.split("(")[0];
+            const rawFormula = skill.formula || skill.name || "";
+            const pureFormula = rawFormula.split("(")[0];
             const subscripted = pureFormula.replace(
               /\d/g,
               (d) => "₀₁₂₃₄₅₆₇₈₉"[d],
             );
-
-            // 根據分類取得對應顏色，並繪製膠囊標籤
             const color =
               categoryColors[skill.category] || categoryColors["實驗"];
 
-            return `<span style="display: inline-flex; align-items: center; background: ${color}15; color: ${color}; padding: 1px 8px; border-radius: 12px; margin: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                    <span style="font-family: serif; font-weight: 900; letter-spacing: 0.5px;">${subscripted}</span> 
-                    <span style="font-size: 0.85em; opacity: 0.85; margin-left: 4px; color: #333;">x${maxCasts}</span>
+            // 計算 CD 比例 (0 到 1)
+            let cdRatio = 0;
+            if (skillCooldowns[sId]) {
+              const levelMult = chemStates[pId]?.levels?.[sId] || 1;
+              const effect =
+                mode === 2 || onlineMode ?
+                  skill.effectMulti
+                : skill.effectSingle;
+              const baseDuration = effect?.params?.durationSec || 0;
+              const actualDuration =
+                baseDuration > 0 ? baseDuration + (levelMult - 1) * 1 : 0;
+              const totalCdMs = Math.max(5000, (actualDuration + 2) * 1000);
+
+              const elapsed = now - skillCooldowns[sId];
+              if (elapsed < totalCdMs) cdRatio = 1 - elapsed / totalCdMs;
+            }
+
+            const isCoolingDown = cdRatio > 0;
+            const maskWidth = (cdRatio * 100).toFixed(1) + "%";
+            const bgColor = isCoolingDown ? "#CBD5E1" : `${color}20`;
+            const textColor = isCoolingDown ? "#64748B" : color;
+
+            return `<span style="position: relative; display: inline-flex; align-items: center; background: ${bgColor}; color: ${textColor}; padding: 2px 10px; border-radius: 12px; margin: 0 4px; border: 1px solid ${isCoolingDown ? "#94A3B8" : color}; overflow: hidden;">
+                    <!-- ★ 更深色的黑底遮罩層，縮減時平滑過渡 -->
+                    <span style="position: absolute; top: 0; left: 0; height: 100%; width: ${maskWidth}; background: rgba(0, 0, 0, 0.45); z-index: 1; transition: width 0.1s linear;"></span>
+                    <span style="position: relative; z-index: 2; font-family: serif; font-weight: 900; letter-spacing: 0.5px; ${isCoolingDown ? "color: #FFF;" : ""}">${subscripted}</span>
+                    <span style="position: relative; z-index: 2; font-size: 0.85em; margin-left: 4px; ${isCoolingDown ? "color: #E2E8F0;" : "color: #333; opacity: 0.85;"}">x${maxCasts}</span>
                   </span>`;
           })
-          .join(""); // 取消原本的 | 分隔符號，改用標籤本身的 margin 分隔
+          .join("");
       };
 
-      // 使用 Flex 確保標籤與玩家字樣完美置中對齊
-      if (mode === 1 || onlineMode) {
+      // 2. 生成生效中技能的輪播顯示器 (給 Top HUD 使用)
+      const getActiveBuffHtml = (pl) => {
+        if (!pl || !pl.activeBuffs) return "";
+        const now = performance.now();
+        const activeKeys = Object.keys(pl.activeBuffs).filter(
+          (k) => pl.activeBuffs[k].end > now,
+        );
+        if (activeKeys.length === 0) return "";
+
+        const cycleIndex = Math.floor(now / 1500) % activeKeys.length;
+        const currentBuff = pl.activeBuffs[activeKeys[cycleIndex]];
+        if (!currentBuff) return "";
+
+        let catEmoji = "✨";
+        if (currentBuff.category === "攻擊") catEmoji = "🔥";
+        else if (currentBuff.category === "防禦") catEmoji = "🛡️";
+        else if (currentBuff.category === "輔助") catEmoji = "❤️‍🔥";
+        else if (currentBuff.category === "控制") catEmoji = "🪁";
+        else if (currentBuff.category === "特殊") catEmoji = "🌟";
+
+        return `<span style="display: inline-block; font-weight: 900; color: #fff; background: rgba(0,0,0,0.65); padding: 4px 16px; border-radius: 16px; box-shadow: 0 0 8px rgba(255,255,255,0.2); font-size: 14px;">
+                  ${catEmoji} ${currentBuff.name}
+                </span>`;
+      };
+
+      // 3. 寫入 Bottom Status Bar
+      if (p1El)
         p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
-        p2El.innerHTML = "";
-      } else {
-        p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
-        p2El.innerHTML = `<div style="display: flex; align-items: center; justify-content: flex-end;">${getStatusText(1)} <span style="color: #5fa8d3; margin-left: 8px;">2P</span></div>`;
+      if (p2El) {
+        if (mode === 1 || onlineMode) p2El.innerHTML = "";
+        else
+          p2El.innerHTML = `<div style="display: flex; align-items: center; justify-content: flex-end;">${getStatusText(1)} <span style="color: #5fa8d3; margin-left: 8px;">2P</span></div>`;
+      }
+
+      // 4. 寫入 Top HUD (紅圈處)
+      if (topHudEl) {
+        const buffHtml = getActiveBuffHtml(p1);
+        if (buffHtml) {
+          topHudEl.style.display = "flex";
+          topHudEl.innerHTML = buffHtml;
+        } else {
+          topHudEl.style.display = "none";
+          topHudEl.innerHTML = "";
+        }
       }
     } else {
       hud.style.display = "none";
+      const topHudEl = document.getElementById("top-hud-buff-display");
+      if (topHudEl) topHudEl.style.display = "none";
     }
   }
 }

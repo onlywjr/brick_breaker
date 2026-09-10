@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../bm-server"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "brick_breaker"
+	}
+}

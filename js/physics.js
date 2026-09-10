@@ -23,6 +23,7 @@ import {
   floatTexts,
   chemDLCEnabled,
   triggerGameEvent,
+  triggerVFX,
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -248,6 +249,13 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
   // Player loop
   for (const pl of activePlayers) {
+    // ★ 修正 1：將技能觸發改為「每幀自動檢查」
+    // 只要冷卻完畢且包包裡元素足夠，就算沒打到新磚塊也會自動扣除並施放！
+    if (chemDLCEnabled) {
+      const pId = pl === p1 ? 0 : 1;
+      checkAndFireEquippedSkills(pl, gameState, cv, pId);
+    }
+
     const b = pl.ball;
     if (!b) continue;
     b.x += b.dx * dt;
@@ -288,13 +296,10 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           if (targetPl.w < 120) {
             targetPl.w = Math.min(120, targetPl.w + 15);
             burst(b.x, targetPl.y, "#5FA8D3");
-            floatTexts.push({
-              t: "回復!",
-              life: 0.8,
-              x: b.x,
-              y: targetPl.y - 10,
-              c: "#5FA8D3",
-            });
+
+            // ★ 改用 HUD 顯示回復
+            const pId = targetPl === p1 ? 0 : 1;
+            triggerGameEvent("🛡️ 回復！", false, pId);
           }
           if (mode === 2 && !chemDLCEnabled) {
             targetPl.energy = Math.min(targetPl.maxEnergy, targetPl.energy + 1);
@@ -304,18 +309,13 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               foe.reversedTimer = 5;
               targetPl.energy = 0;
               foe.skillWarnFx = 3;
-              floatTexts.push({
-                t: "⚡ BABYMONSTER 技能發動：反轉 5 秒 ⚡",
-                life: 3,
-                x: cv.width / 2,
-                y: cv.height / 2,
-                c: targetPl.lightColor,
-                big: true,
-              });
+
+              // ★ 改用 HUD 顯示舊版技能發動
+              const pId = targetPl === p1 ? 0 : 1;
+              triggerGameEvent("⚡ 技能發動：反轉 5 秒！", false, pId);
               playSfx("brk");
             } else {
               burst(b.x, targetPl.y, targetPl.lightColor);
-              // ★ 修正 2：一般雙人模式的能量回復改由 HUD 顯示
               const pId = targetPl === p1 ? 0 : 1;
               triggerGameEvent(
                 `⚡ 能量 +1 (${targetPl.energy}/10)`,
@@ -384,6 +384,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       ) {
         if (!b.fire && !b.isPiercing) b.dy *= -1; // ★ 新增 isPiercing 判斷，穿透狀態不反彈
         br.hp--;
+        // ★ 球在貫穿狀態下擊碎磚塊，產生連續微震動
+        if (b.isPiercing) triggerVFX(3);
         burst(b.x, b.y);
         if (br.hp <= 0) {
           // ★ 新增：將原子加入庫存，並自動判定裝備技能
@@ -391,7 +393,6 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             const pId = pl === p2 ? 1 : 0; // ★ 判斷是 1P 還是 2P 打破的
             addAtom(br.symbol, 1, pId);
             updateInventoryUI();
-            checkAndFireEquippedSkills(pl, gameState, cv, pId); // ★ 傳遞 pId
           }
 
           if (!chemDLCEnabled) {
@@ -437,15 +438,20 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     }
 
     if (b.y > cv.height + b.r) {
-      // ★ 新增護盾判定
+      // ★ 護盾碎裂特效
       if (pl.shield > 0) {
         pl.shield--;
         b.y = cv.height - b.r - 5;
         b.dy *= -1;
         playSfx("bounce");
+
+        // 觸發綠色粒子爆發與螢幕微震動/閃綠光
+        burst(b.x, pl.y, "#86EFAC");
+        triggerVFX(5, "134, 239, 172", 0.3);
+
         const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("🛡️ 護盾發動!", false, pId);
-        continue; // 護盾救回一命，跳過掉命邏輯
+        triggerGameEvent("🛡️ 護盾抵擋!", false, pId);
+        continue;
       }
       if (onlineMode || mode === 1) {
         pl.lives--;
@@ -460,9 +466,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.dy = -4;
         comboCount = 0;
         burst(cv.width / 2, cv.height - 20, "#666");
-        // ★ 重大警告播報
+        // ★ 改為一般 HUD 播報
         const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("失去一條命!", true, pId);
+        triggerGameEvent("失去一條命!", false, pId);
       } else {
         pl.score = Math.max(0, pl.score - 50);
         b.x = pl.x + pl.w / 2;
@@ -471,9 +477,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.dy = -4;
         comboCount = 0;
         burst(cv.width / 2, cv.height - 20, "#666");
-        // ★ 重大警告播報
+        // ★ 改為扣分廣播
         const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("失去一條命!", true, pId);
+        triggerGameEvent("⚠️ 漏球扣 50 分！", false, pId);
       }
     }
   }
@@ -501,38 +507,37 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
   gameState.comboTimer = comboTimer;
 }
 
-// ★ 新增：用來記錄每個技能最後一次發動的時間戳記 (毫秒)
-const skillCooldowns = {};
+export const skillCooldowns = {};
 
 // ==========================================
 // ★ 化學配方自動判定與 Action 執行引擎
 // ==========================================
 export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
   const now = performance.now();
-  const eq = chemStates[pId].equipped; // ★ 讀取該玩家專屬的裝備槽
+  const eq = chemStates[pId].equipped;
 
   for (let i = 0; i < eq.length; i++) {
     const skillId = eq[i];
     if (!skillId) continue;
 
-    // ★ 補上這兩行：透過 ID 取得真實的技能資料物件
     const skill = getSkillData(skillId);
     if (!skill) continue;
 
-    // ★ 取得當前技能等級，準備做為乘數放大效果
     const levelMult = chemStates[pId].levels[skillId] || 1;
-
     const isMulti = mode === 2 || onlineMode;
     const effect = isMulti ? skill.effectMulti : skill.effectSingle;
-    const durationSec = effect?.params?.durationSec || 0;
-    const cdMs = Math.max(5000, (durationSec + 2) * 1000);
+
+    // ★ 修正：冷卻時間必須把「等級加成的延長秒數」一併算進去，避免覆蓋
+    const baseDuration = effect?.params?.durationSec || 0;
+    const actualDuration =
+      baseDuration > 0 ? baseDuration + (levelMult - 1) * 1 : 0;
+    const cdMs = Math.max(5000, (actualDuration + 2) * 1000);
 
     if (skillCooldowns[skillId] && now - skillCooldowns[skillId] < cdMs) {
       continue;
     }
 
     if (tryConsumeRecipe(skill.elements, pId)) {
-      // ★ 傳遞 pId 扣除專屬庫存
       updateInventoryUI();
       executeSkillAction(skill, pl, gameState, cv, levelMult);
       skillCooldowns[skillId] = now;
@@ -549,123 +554,222 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
   const params = effect.params || {};
   const action = effect.action;
 
-  // ★ 根據不同屬性，套用安全的升級成長公式
   let power = params.power || 1;
   let duration = params.durationSec || 0;
 
-  // A. 絕對數值類 (傷害、護盾、回血)：直接乘上等級倍率
+  // ==========================================
+  // ★ 關鍵修正：將「技能映射 (Alias Map)」移到最前面！
+  // 必須先將 36 種新技能轉為底層代碼，後續的數值放大公式才能成功攔截
+  // ==========================================
+  let mappedAction = action;
+
+  if (
+    [
+      "add_piercing",
+      "phase_piercing",
+      "laser_pierce",
+      "heavy_ball",
+      "charge_next_hit",
+    ].includes(action)
+  )
+    mappedAction = "enable_pierce";
+  if (
+    [
+      "power_speed_boost",
+      "speed_boost",
+      "speed_and_randomize",
+      "berserk_boost",
+      "energy_overcharge",
+      "energy_boost",
+    ].includes(action)
+  )
+    mappedAction = "modify_speed";
+  if (
+    [
+      "shockwave",
+      "delayed_explosion",
+      "area_damage",
+      "massive_explosion",
+      "charged_explosion",
+      "global_damage_over_time",
+      "global_corrosion",
+    ].includes(action)
+  )
+    mappedAction = "damage_all";
+  if (["temporary_immunity"].includes(action)) mappedAction = "add_shield";
+  if (
+    [
+      "visual_distortion",
+      "flash_blind",
+      "fake_ball_illusion",
+      "fog_blind",
+      "storm_disruption",
+    ].includes(action)
+  )
+    mappedAction = "blind_screen";
+  if (
+    ["unstable_countdown", "radiation_debuff", "unstable_debuff"].includes(
+      action,
+    )
+  )
+    mappedAction = "damage_hp";
+  if (["chaos_trajectory", "magnetic_pull"].includes(action))
+    mappedAction = "reverse_controls";
+  if (
+    [
+      "create_ghost_ball",
+      "highlight_targets",
+      "magnetic_trajectory",
+      "trajectory_guide",
+      "increase_brick_damage",
+    ].includes(action)
+  )
+    mappedAction = "multiply_score";
+  if (["dispel_brick_effects", "disable_special_bricks"].includes(action))
+    mappedAction = "clear_rows";
+
+  // ==========================================
+  // ★ 根據不同屬性，套用安全的升級成長公式 (改用 mappedAction 判定)
+  // ==========================================
   if (
     ["damage_hp", "damage_all", "heal_hp", "add_shield", "clear_rows"].includes(
-      action,
+      mappedAction,
     )
   ) {
     power = Math.round(power * levelMult);
-  }
-  // B. 正向增益倍率 (加速、變大)：基礎 1.0 + (額外增幅 × 倍率)
-  // 舉例：原 1.15 -> Lv.2 變 1.30
-  else if (
-    ["modify_speed", "modify_width", "multiply_score"].includes(action)
+  } else if (
+    ["modify_speed", "modify_width", "multiply_score"].includes(mappedAction)
     && power >= 1
   ) {
     power = 1 + (power - 1) * levelMult;
-  }
-  // C. 負向削弱倍率 (減速、縮小)：基礎 1.0 - (削減幅度 × 倍率)
-  // 舉例：原 0.9 -> Lv.2 變 0.8，設保底最低 0.2
-  else if (
-    ["shrink_width", "slow_speed", "modify_speed"].includes(action)
+  } else if (
+    ["shrink_width", "slow_speed", "modify_speed"].includes(mappedAction)
     && power < 1
   ) {
     power = Math.max(0.2, 1 - (1 - power) * levelMult);
   }
 
-  // D. 狀態持續時間 (致盲、反轉、凍結)：每升級 1 次延長 1 秒
+  // 狀態持續時間 (致盲、反轉、凍結)：每升級 1 次延長 1 秒
   if (duration > 0) {
     duration = duration + (levelMult - 1) * 1;
   }
 
-  // === 以下為原本的 switch(action) 區塊 ===
-  switch (action) {
-    // ---------------------------------
-    // 單人模式 Buff & 物理效果
-    // ---------------------------------
+  pl.timers = pl.timers || {};
+
+  // ==========================================
+  // ★ 關鍵修正：讓「所有類型」的技能（包含瞬間攻擊與干擾）都進入 HUD 輪播陣列
+  // ==========================================
+  pl.activeBuffs = pl.activeBuffs || {};
+
+  // 即使是瞬間爆發技能，也強制讓它在上方 HUD 顯示輪播 3 秒
+  const uiDisplayDuration = duration > 0 ? duration : 3;
+
+  // 改用 skill.id 作為獨立 Key，這樣同時發動 3 個技能才不會互相覆蓋！
+  pl.activeBuffs[skill.id] = {
+    end: performance.now() + uiDisplayDuration * 1000,
+    total: uiDisplayDuration * 1000,
+    category: skill.category,
+    name: skill.name,
+  };
+
+  // ==========================================
+  // ★ 使用算好的倍率與時間執行底層物理邏輯
+  // ==========================================
+  switch (mappedAction) {
     case "enable_pierce":
       if (pl.ball) {
         pl.ball.isPiercing = true;
-        setTimeout(
-          () => {
-            if (pl.ball) pl.ball.isPiercing = false;
-          },
-          (params.durationSec || 3) * 1000,
-        );
+        if (pl.timers.pierce) clearTimeout(pl.timers.pierce);
+        pl.timers.pierce = setTimeout(() => {
+          if (pl.ball) pl.ball.isPiercing = false;
+          pl.timers.pierce = null;
+        }, duration * 1000);
       }
       break;
+
     case "modify_speed":
       if (pl.ball) {
-        pl.ball.dx *= params.power;
-        pl.ball.dy *= params.power;
-        setTimeout(
-          () => {
-            if (pl.ball) {
-              pl.ball.dx /= params.power;
-              pl.ball.dy /= params.power;
-            }
-          },
-          (params.durationSec || 3) * 1000,
-        );
+        if (pl.timers.speed) clearTimeout(pl.timers.speed);
+        else pl.speedBuffRatio = 1;
+
+        pl.ball.dx /= pl.speedBuffRatio;
+        pl.ball.dy /= pl.speedBuffRatio;
+
+        pl.speedBuffRatio = power;
+        pl.ball.dx *= pl.speedBuffRatio;
+        pl.ball.dy *= pl.speedBuffRatio;
+
+        pl.timers.speed = setTimeout(() => {
+          if (pl.ball) {
+            pl.ball.dx /= pl.speedBuffRatio;
+            pl.ball.dy /= pl.speedBuffRatio;
+          }
+          pl.speedBuffRatio = 1;
+          pl.timers.speed = null;
+        }, duration * 1000);
       }
       break;
+
     case "modify_width":
-      const oldW = pl.w;
-      pl.w = Math.min(pl.maxW, pl.w * params.power);
-      setTimeout(
-        () => {
-          pl.w = oldW;
-        },
-        (params.durationSec || 4) * 1000,
-      );
+      if (pl.timers.width) clearTimeout(pl.timers.width);
+      else pl.widthBuffOffset = 0;
+
+      pl.w -= pl.widthBuffOffset;
+      let targetW = pl.w * power;
+      let finalW = Math.min(pl.maxW, targetW);
+      pl.widthBuffOffset = finalW - pl.w;
+      pl.w += pl.widthBuffOffset;
+
+      pl.timers.width = setTimeout(() => {
+        pl.w -= pl.widthBuffOffset;
+        pl.widthBuffOffset = 0;
+        pl.timers.width = null;
+      }, duration * 1000);
       break;
+
     case "heal_hp":
+      const pIdHeal = pl === p1 ? 0 : 1; // 取得發動者 ID
       if (isMulti) {
-        pl.shield = (pl.shield || 0) + params.power; // 多人模式的補血轉為護盾
-        floatTexts.push({
-          t: `🛡️ 護盾 +${params.power}`,
-          life: 1,
-          x: pl.x + pl.w / 2,
-          y: pl.y - 20,
-          c: "#9dd9e8",
-        });
+        pl.shield = (pl.shield || 0) + power;
+        triggerGameEvent(`🛡️ 護盾 +${power}`, false, pIdHeal);
       } else {
-        pl.lives += params.power;
-        floatTexts.push({
-          t: `❤️ 生命 +${params.power}`,
-          life: 1,
-          x: pl.x + pl.w / 2,
-          y: pl.y - 20,
-          c: "#f6a6c1",
-        });
+        pl.lives += power;
+        triggerGameEvent(`❤️ 生命 +${power}`, false, pIdHeal);
       }
       break;
+
     case "add_shield":
-      pl.shield = (pl.shield || 0) + params.power;
-      floatTexts.push({
-        t: `🛡️ 護盾 +${params.power}`,
-        life: 1,
-        x: pl.x + pl.w / 2,
-        y: pl.y - 20,
-        c: "#9dd9e8",
-      });
+      const pIdShield = pl === p1 ? 0 : 1;
+      pl.shield = (pl.shield || 0) + power;
+      triggerGameEvent(`🛡️ 護盾 +${power}`, false, pIdShield);
       break;
+
     case "damage_all":
+      // ★ 全場爆發：依據威力決定震動強度與閃光顏色
+      if (power >= 10)
+        triggerVFX(15, "255, 80, 80", 0.6); // 核爆級別 (紅閃光 + 強震)
+      else triggerVFX(8, "255, 255, 255", 0.3); // 一般爆發 (白閃光 + 中震)
+
       gameState.bricks.forEach((b) => {
-        b.hp = Math.max(0, b.hp - params.power);
-        burst(b.x + b.w / 2, b.y + b.h / 2, "#9dd9e8");
+        b.hp = Math.max(0, b.hp - power);
+        burst(
+          b.x + b.w / 2,
+          b.y + b.h / 2,
+          power >= 10 ? "#e57373" : "#9dd9e8",
+        );
       });
       break;
+
     case "clear_rows":
+      // ★ 地裂崩塌：清除底排時產生強烈物理震動感
+      if (power >= 5)
+        triggerVFX(12, "253, 186, 116", 0.4); // 橘色閃光 + 大震動
+      else triggerVFX(5); // 只有微震動，不閃光
+
       const uniqueYs = [...new Set(gameState.bricks.map((b) => b.y))].sort(
         (a, b) => b - a,
       );
-      const targetYs = uniqueYs.slice(0, params.power);
+      const targetYs = uniqueYs.slice(0, power);
       gameState.bricks.forEach((b) => {
         if (targetYs.includes(b.y)) {
           b.hp = 0;
@@ -673,58 +777,40 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
         }
       });
       break;
+
     case "multiply_score":
-      pl.scoreMultiplier = params.power;
-      setTimeout(
-        () => {
-          pl.scoreMultiplier = 1;
-        },
-        (params.durationSec || 5) * 1000,
-      );
+      if (pl.timers.score) clearTimeout(pl.timers.score);
+      pl.scoreMultiplier = power;
+
+      pl.timers.score = setTimeout(() => {
+        pl.scoreMultiplier = 1;
+        pl.timers.score = null;
+      }, duration * 1000);
       break;
 
-    // ---------------------------------
-    // 多人模式 攻擊/干擾效果
-    // ---------------------------------
     case "damage_hp":
     case "shrink_width":
     case "slow_speed":
     case "freeze":
     case "reverse_controls":
     case "blind_screen":
+      const attackerId = pl === p1 ? 0 : 1;
       if (onlineMode && socket && socket.connected) {
-        // 1. 真實連線對戰：透過 Socket 發射給對手
         socket.emit("attackPlayer", {
-          type: action,
-          power: params.power || 1,
-          durationSec: params.durationSec || 3,
+          type: mappedAction,
+          power: power,
+          durationSec: duration,
           attackerName:
             document.getElementById("player-name-input")?.value || "對手",
           attackId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         });
-        floatTexts.push({
-          t: `🚀 發射干擾: ${skill.name}`,
-          life: 2,
-          x: pl.x + pl.w / 2,
-          y: pl.y - 40,
-          c: "#E0576B",
-        });
+        // ★ 移至 HUD
+        triggerGameEvent(`🚀 發射: ${skill.name}`, false, attackerId);
       } else if (mode === 2) {
-        // 2. 單機雙人對戰：直接抓出畫面上另一個玩家，套用負面效果
         const opponent = pl === p1 ? p2 : p1;
-        applyLocalDebuff(
-          opponent,
-          action,
-          params.power || 1,
-          params.durationSec || 3,
-        );
-        floatTexts.push({
-          t: `🚀 發射干擾: ${skill.name}`,
-          life: 2,
-          x: pl.x + pl.w / 2,
-          y: pl.y - 40,
-          c: "#E0576B",
-        });
+        applyLocalDebuff(opponent, mappedAction, power, duration);
+        // ★ 移至 HUD
+        triggerGameEvent(`🚀 發射: ${skill.name}`, false, attackerId);
       }
       break;
   }
@@ -732,33 +818,51 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
 
 // ★ 專給單機雙人模式用的在地受擊邏輯
 function applyLocalDebuff(targetPl, type, power, duration) {
+  targetPl.timers = targetPl.timers || {};
+
   if (type === "damage_hp") {
     targetPl.score = Math.max(0, targetPl.score - power * 5);
   } else if (type === "shrink_width") {
-    targetPl.w = Math.max(targetPl.minW, targetPl.w * power);
+    if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);
+    else targetPl.shrinkOffset = 0;
+
+    targetPl.w -= targetPl.shrinkOffset;
+    let finalW = Math.max(targetPl.minW, targetPl.w * power);
+    targetPl.shrinkOffset = finalW - targetPl.w;
+    targetPl.w += targetPl.shrinkOffset;
     targetPl.shrinkFx = 1;
-    setTimeout(() => {
-      targetPl.w = 120;
+
+    targetPl.timers.shrink = setTimeout(() => {
+      targetPl.w -= targetPl.shrinkOffset;
+      targetPl.shrinkOffset = 0;
+      targetPl.timers.shrink = null;
     }, duration * 1000);
   } else if (type === "slow_speed") {
+    if (targetPl.timers.slow) clearTimeout(targetPl.timers.slow);
     targetPl.speed = 9 * power;
-    setTimeout(() => {
+    targetPl.timers.slow = setTimeout(() => {
       targetPl.speed = 9;
+      targetPl.timers.slow = null;
     }, duration * 1000);
   } else if (type === "freeze") {
+    if (targetPl.timers.freeze) clearTimeout(targetPl.timers.freeze);
     targetPl.speed = 0;
-    setTimeout(() => {
+    targetPl.timers.freeze = setTimeout(() => {
       targetPl.speed = 9;
+      targetPl.timers.freeze = null;
     }, duration * 1000);
   } else if (type === "reverse_controls") {
     targetPl.reversed = true;
-    targetPl.reversedTimer = duration;
+    targetPl.reversedTimer = duration; // 原本就是逐幀遞減，不需 clearTimeout
   } else if (type === "blind_screen") {
     const blindEl = document.getElementById("online-blind");
     if (blindEl) {
       blindEl.style.display = "block";
-      setTimeout(() => {
+      if (targetPl.timers.blind) clearTimeout(targetPl.timers.blind);
+
+      targetPl.timers.blind = setTimeout(() => {
         blindEl.style.display = "none";
+        targetPl.timers.blind = null;
       }, duration * 1000);
     }
   }
