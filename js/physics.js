@@ -126,7 +126,6 @@ export function applyDrop(
 }
 
 export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
-  // ★ 補上 ghostBalls，把它從 gameState 裡面解構出來
   let {
     bricks,
     drops,
@@ -136,27 +135,34 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     comboTimer,
     ghostBalls,
   } = gameState;
-
   const now = performance.now();
 
-  // ★ 1. 全域 DOT 毒霧扣血 (每秒固定觸發一次)
-  if (gameState.globalDot && gameState.globalDot.active) {
-    if (now > gameState.globalDot.end) gameState.globalDot.active = false;
-    else if (!gameState.lastDotTick || now - gameState.lastDotTick > 1000) {
-      gameState.lastDotTick = now;
+  // ★ 1. 全域 DOT 毒霧扣血
+  if (globalDotState.active) {
+    if (now > globalDotState.end) {
+      globalDotState.active = false;
+    } else if (now - globalDotState.lastTick > 1000) {
+      globalDotState.lastTick = now;
       bricks.forEach((b) => {
-        b.hp = Math.max(0, b.hp - gameState.globalDot.power);
+        b.hp = Math.max(0, b.hp - globalDotState.power);
         burst(b.x + b.w / 2, b.y + b.h / 2, "#9C27B0");
       });
     }
   }
 
-  // ★ 2. 更新免疫計時器
-  activePlayers.forEach((pl) => {
-    if (pl.invincibleTimer > 0) pl.invincibleTimer -= dt / 60;
-  });
+  // ★ 2. 獨立更新磚塊移動 (移出玩家迴圈，避免雙人模式雙倍速)
+  for (const br of bricks) {
+    if (!br.hp) continue;
+    if (br.isMoving) {
+      br.x += br.dx * dt;
+      if (br.x < br.minX || br.x > br.maxX) {
+        br.dx *= -1;
+        br.x = Math.max(br.minX, Math.min(br.x, br.maxX));
+      }
+    }
+  }
 
-  // ★ 3. 幽靈球物理碰撞 (會反彈，無視特殊方塊防護，撞擊扣血但不轉向)
+  // ★ 3. 幽靈球單次碰撞與反彈
   if (ghostBalls) {
     for (let i = ghostBalls.length - 1; i >= 0; i--) {
       let gb = ghostBalls[i];
@@ -169,10 +175,14 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
       if (gb.x < gb.r || gb.x > cv.width - gb.r) {
         gb.dx *= -1;
-        gb.x = Math.max(gb.r, Math.min(gb.x, cv.width - gb.r)); // ★ 防止卡牆
+        gb.x = Math.max(gb.r, Math.min(gb.x, cv.width - gb.r));
+      }
+      if (gb.y < gb.r) {
+        gb.dy *= -1;
+        gb.y = gb.r;
       }
       for (const br of bricks) {
-        if (br.hp <= 0) continue;
+        if (br.hp <= 0 || gb.hitBricks.has(br)) continue;
         if (
           gb.x > br.x - gb.r
           && gb.x < br.x + br.w + gb.r
@@ -180,11 +190,16 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           && gb.y < br.y + br.h + gb.r
         ) {
           br.hp--;
+          gb.hitBricks.add(br); // 記憶已撞擊，避免卡進去瘋狂扣血
           burst(gb.x, gb.y, "rgba(200,200,200,0.5)");
         }
       }
     }
   }
+
+  activePlayers.forEach((pl) => {
+    if (pl.invincibleTimer > 0) pl.invincibleTimer -= dt / 60;
+  });
 
   // Boss update
   if (boss.active) {
@@ -427,7 +442,11 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         && b.y > boss.y - b.r
         && b.y < boss.y + boss.h + b.r
       ) {
-        b.dy *= -1;
+        const overlapX = Math.abs(boss.x + boss.w / 2 - b.x) / boss.w;
+        const overlapY = Math.abs(boss.y + boss.h / 2 - b.y) / boss.h;
+        if (overlapX > overlapY) b.dx *= -1;
+        else b.dy *= -1;
+
         boss.hp -= b.fire ? 20 : 10;
         boss.flashTimer = 0.15;
         burst(b.x, b.y, "#5D576B");
@@ -473,40 +492,47 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         && b.y > br.y - b.r
         && b.y < br.y + br.h + b.r
       ) {
-        // ★ 修正：利用球心與磚塊中心的距離比例，完美判定撞擊面是側邊還是上下
         if (!b.fire && !b.isPiercing && !b.isHeavy) {
           const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
           const overlapY = Math.abs(br.y + br.h / 2 - b.y) / br.h;
-
-          if (overlapX > overlapY) {
-            b.dx *= -1; // 撞擊左右兩側
-          } else {
-            b.dy *= -1; // 撞擊上下兩側
-          }
+          if (overlapX > overlapY) b.dx *= -1;
+          else b.dy *= -1;
         }
 
-        // ★ 5. 重擊爆炸 (Heavy Ball Splash Damage)
+        // ★ 重擊爆炸附加經濟系統
         if (b.isHeavy) {
           triggerVFX(5);
           const explosionRadius = 60 * (b.heavyPower || 1);
           bricks.forEach((otherBr) => {
             if (
-              Math.hypot(
+              otherBr.hp > 0
+              && Math.hypot(
                 otherBr.x + otherBr.w / 2 - b.x,
                 otherBr.y + otherBr.h / 2 - b.y,
               ) < explosionRadius
             ) {
-              otherBr.hp -= 2; // 範圍濺射傷害
+              otherBr.hp -= 2;
               burst(
                 otherBr.x + otherBr.w / 2,
                 otherBr.y + otherBr.h / 2,
                 "#5D576B",
               );
+              // 補發範圍傷害造成的掉落物
+              if (otherBr.hp <= 0) {
+                if (otherBr.symbol && chemDLCEnabled) {
+                  addAtom(otherBr.symbol, 1, pl === p2 ? 1 : 0);
+                  updateInventoryUI();
+                } else if (!chemDLCEnabled) {
+                  maybeDrop(otherBr, null, drops);
+                }
+                pl.score += 10 * (pl.scoreMultiplier || 1);
+              }
             }
           });
         } else {
           br.hp--;
         }
+
 
         // ★ 球在貫穿狀態下擊碎磚塊，產生連續微震動
         if (b.isPiercing) triggerVFX(3);
@@ -645,6 +671,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 }
 
 export const skillCooldowns = {};
+export let globalDotState = { active: false, power: 0, end: 0, lastTick: 0 };
 
 // ==========================================
 // ★ 化學配方自動判定與 Action 執行引擎
@@ -673,14 +700,15 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
     // ★ 修正 3：加入 pId 作為複合 Key，避免 1P/2P 技能互相干擾
     const cdKey = `${pId}_${skillId}`;
 
-    if (skillCooldowns[skillId] && now - skillCooldowns[skillId] < cdMs) {
+    // ★ 修正：統一使用 cdKey 判斷與寫入
+    if (skillCooldowns[cdKey] && now - skillCooldowns[cdKey] < cdMs) {
       continue;
     }
 
     if (tryConsumeRecipe(skill.elements, pId)) {
       updateInventoryUI();
       executeSkillAction(skill, pl, gameState, cv, levelMult);
-      skillCooldowns[cdKey] = now; // ★ 使用複合 Key 記錄
+      skillCooldowns[cdKey] = now;
       break;
     }
   }
@@ -923,6 +951,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
           dy: -(4 + Math.random() * 2),
           life: duration,
           owner: pl,
+          hitBricks: new Set(), // ★ 新增碰撞記憶
         });
       }
       triggerGameEvent(`👻 產生 ${power} 顆幽靈球！`, false, pl === p1 ? 0 : 1);
@@ -973,11 +1002,11 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
 
     case "global_damage_over_time":
     case "global_corrosion":
-      // This is handled by a tick in handleCollisions, we just set a global state variable
-      gameState.globalDot = {
+      globalDotState = {
         power: power,
         end: performance.now() + duration * 1000,
         active: true,
+        lastTick: performance.now(), // 初始化計時
       };
       break;
 
@@ -1035,16 +1064,12 @@ function applyLocalDebuff(targetPl, type, power, duration) {
       targetPl.speed = 9;
       targetPl.timers.freeze = null;
     }, duration * 1000);
-  } else if (
-    ["reverse_controls", "chaos_trajectory", "magnetic_pull"].includes(type)
-  ) {
+  } else if (type === "reverse_controls") {
     targetPl.reversed = true;
     targetPl.reversedTimer = duration;
   } else if (type === "chaos_trajectory") {
-    // ★ 專屬分支：軌跡混亂
     targetPl.chaosTimer = duration;
   } else if (type === "magnetic_pull") {
-    // ★ 專屬分支：磁力偏移
     targetPl.magneticDebuffTimer = duration;
   } else if (
     [
