@@ -69,6 +69,11 @@ window.openChemistryShop = openChemistryShop;
 window.proceedToNextLevel = () => {
   clearInterval(nextLevelTimer); // ★ 清除計時器
   document.getElementById("level-clear-overlay").style.display = "none";
+
+  // ★ 離開商店，恢復顯示全域離開按鈕
+  const leaveBtn = document.getElementById("global-leave-btn");
+  if (leaveBtn) leaveBtn.style.display = "block";
+
   level++;
   buildLevel(level, document.getElementById("game"));
   resetRound(document.getElementById("game"));
@@ -84,6 +89,10 @@ window.proceedToNextLevel = () => {
 window.enterShopFromLevelClear = () => {
   clearInterval(nextLevelTimer);
   document.getElementById("level-clear-overlay").style.display = "none";
+  // ★ 進入商店前，先將全域離開按鈕隱藏
+  const leaveBtn = document.getElementById("global-leave-btn");
+  if (leaveBtn) leaveBtn.style.display = "none";
+
   // ★ 單人模式永遠是 1P (0)
   openChemistryShop("配方商店", 0, window.proceedToNextLevel);
 };
@@ -105,6 +114,7 @@ export const keys = {};
 export let mode = 1;
 export let level = 1;
 export let running = false;
+export let isLevelClearing = false; // ★ 新增：過關緩衝狀態
 export let animId = null;
 export let showVirtual = false;
 export let gameTimeRemaining = 180;
@@ -538,6 +548,7 @@ function spawnBoss(lv, cv) {
 }
 
 function resetRound(cv) {
+  isLevelClearing = false; // ★ 重置過關狀態
   // ★ 強制清洗跨關卡的 Global DOT 毒霧狀態
   if (typeof resetGlobalDotState === "function") {
     resetGlobalDotState();
@@ -1228,109 +1239,123 @@ export function updateGameState(dt, cv) {
     }
   }
 
-  if (bricks.length === 0 && !boss.active) {
-    for (const pl of activePlayers) pl.score += 200;
+  if (bricks.length === 0 && !boss.active && !isLevelClearing) {
+    isLevelClearing = true; // 鎖定狀態，避免重複觸發
 
-    if (mode === 1 && !onlineMode) {
-      running = false;
+    // ★ 全場清空時先噴出大字提示，並給予 1.5 秒的視覺爽快感緩衝
+    floatTexts.push({
+      t: "✨ 全場爆破!! ✨",
+      life: 1.5,
+      x: cv.width / 2,
+      y: cv.height / 2,
+      c: "#F6D98B",
+      big: true,
+    });
 
-      // ★ 1. 抓取覆蓋層與自動辨識按鈕
-      const overlay = document.getElementById("level-clear-overlay");
-      const buttons = Array.from(overlay.querySelectorAll("button"));
-      const shopBtn = buttons.find(
-        (b) =>
-          b.innerText.includes("商店")
-          || b.getAttribute("onclick")?.includes("Shop"),
-      );
-      const nextBtn = buttons.find(
-        (b) =>
-          b.innerText.includes("下一關")
-          || b.getAttribute("onclick")?.includes("proceedToNextLevel"),
-      );
+    // 設定 1.5 秒後才執行真正的換關/結算邏輯
+    setTimeout(() => {
+      for (const pl of activePlayers) pl.score += 200;
 
-      if (shopBtn)
-        shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
-      overlay.style.display = "flex";
+      // 嚴格限制只有「單機單人模式」才會暫停進入結算商店
+      if (mode === 1 && !onlineMode) {
+        running = false;
 
-      // ★ 2. 注入並更新本關化學元素統計面板
-      let statsDiv = document.getElementById("level-chem-stats");
-      if (!statsDiv) {
-        statsDiv = document.createElement("div");
-        statsDiv.id = "level-chem-stats";
-        statsDiv.style.margin = "15px auto";
-        statsDiv.style.padding = "15px";
-        statsDiv.style.background = "rgba(255,255,255,0.85)";
-        statsDiv.style.border = "2px solid rgba(201, 177, 232, 0.4)";
-        statsDiv.style.borderRadius = "12px";
-        statsDiv.style.fontSize = "14px";
-        statsDiv.style.textAlign = "left";
-        statsDiv.style.width = "80%";
-        statsDiv.style.maxWidth = "300px";
-        statsDiv.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
+        const overlay = document.getElementById("level-clear-overlay");
+        const buttons = Array.from(overlay.querySelectorAll("button"));
+        const shopBtn = buttons.find(
+          (b) =>
+            b.innerText.includes("商店")
+            || b.getAttribute("onclick")?.includes("Shop"),
+        );
+        const nextBtn = buttons.find(
+          (b) =>
+            b.innerText.includes("下一關")
+            || b.getAttribute("onclick")?.includes("proceedToNextLevel"),
+        );
 
-        // 將面板插入到按鈕容器之上
-        const btnsContainer =
-          shopBtn ? shopBtn.parentNode
-          : nextBtn ? nextBtn.parentNode
-          : overlay;
-        btnsContainer.parentNode.insertBefore(statsDiv, btnsContainer);
-      }
+        if (shopBtn)
+          shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
+        overlay.style.display = "flex";
 
-      if (chemDLCEnabled && typeof levelStats !== "undefined") {
-        const { gained, used } = levelStats;
-        const formatElements = (obj, color) => {
-          const entries = Object.entries(obj).filter(([_, qty]) => qty > 0);
-          if (entries.length === 0)
-            return `<span style="color:#8a7e9c;">無</span>`;
-          return entries
-            .map(
-              ([sym, qty]) =>
-                `<span style="display:inline-block; margin-right:8px; color:${color}; font-family:serif; font-weight:900;">${sym} <span style="font-size:0.9em; opacity:0.8;">x${qty}</span></span>`,
-            )
-            .join("");
-        };
+        let statsDiv = document.getElementById("level-chem-stats");
+        if (!statsDiv) {
+          statsDiv = document.createElement("div");
+          statsDiv.id = "level-chem-stats";
+          statsDiv.style.margin = "15px auto";
+          statsDiv.style.padding = "15px";
+          statsDiv.style.background = "rgba(255,255,255,0.85)";
+          statsDiv.style.border = "2px solid rgba(201, 177, 232, 0.4)";
+          statsDiv.style.borderRadius = "12px";
+          statsDiv.style.fontSize = "14px";
+          statsDiv.style.textAlign = "left";
+          statsDiv.style.width = "80%";
+          statsDiv.style.maxWidth = "300px";
+          statsDiv.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
 
-        statsDiv.innerHTML = `
-          <div style="font-weight:900; margin-bottom:10px; color:#5D576B; text-align:center; font-size:16px;">📊 結算</div>
-          <div style="margin-bottom:6px;">📥 獲得：${formatElements(gained, "#2EB886")}</div>
-          <div>🔥 消耗：${formatElements(used, "#E0576B")}</div>
-        `;
-        statsDiv.style.display = "block";
-      } else {
-        statsDiv.style.display = "none";
-      }
-
-      // ★ 3. 將 10 秒自動進入下一關倒數綁定在「下一關」按鈕上
-      if (chemDLCEnabled && nextBtn) {
-        let count = 10;
-        // 記憶原始按鈕文字 (防呆避免字串疊加)
-        if (!nextBtn.dataset.originalText) {
-          nextBtn.dataset.originalText = nextBtn.innerText.split("(")[0].trim();
+          const btnsContainer =
+            shopBtn ? shopBtn.parentNode
+            : nextBtn ? nextBtn.parentNode
+            : overlay;
+          btnsContainer.parentNode.insertBefore(statsDiv, btnsContainer);
         }
-        const baseText = nextBtn.dataset.originalText;
 
-        nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
+        if (chemDLCEnabled && typeof levelStats !== "undefined") {
+          const { gained, used } = levelStats;
+          const formatElements = (obj, color) => {
+            const entries = Object.entries(obj).filter(([_, qty]) => qty > 0);
+            if (entries.length === 0)
+              return `<span style="color:#8a7e9c;">無</span>`;
+            return entries
+              .map(
+                ([sym, qty]) =>
+                  `<span style="display:inline-block; margin-right:8px; color:${color}; font-family:serif; font-weight:900;">${sym} <span style="font-size:0.9em; opacity:0.8;">x${qty}</span></span>`,
+              )
+              .join("");
+          };
 
-        clearInterval(nextLevelTimer);
-        nextLevelTimer = setInterval(() => {
-          count--;
+          statsDiv.innerHTML = `
+            <div style="font-weight:900; margin-bottom:10px; color:#5D576B; text-align:center; font-size:16px;">📊 結算</div>
+            <div style="margin-bottom:6px;">📥 獲得：${formatElements(gained, "#2EB886")}</div>
+            <div>🔥 消耗：${formatElements(used, "#E0576B")}</div>
+          `;
+          statsDiv.style.display = "block";
+        } else {
+          statsDiv.style.display = "none";
+        }
+
+        if (chemDLCEnabled && nextBtn) {
+          let count = 10;
+          if (!nextBtn.dataset.originalText) {
+            nextBtn.dataset.originalText = nextBtn.innerText
+              .split("(")[0]
+              .trim();
+          }
+          const baseText = nextBtn.dataset.originalText;
           nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
-          if (count <= 0) window.proceedToNextLevel();
-        }, 1000);
+
+          clearInterval(nextLevelTimer);
+          nextLevelTimer = setInterval(() => {
+            count--;
+            nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
+            if (count <= 0) window.proceedToNextLevel();
+          }, 1000);
+        }
+      } else {
+        // 雙人模式 與 多人連線生存模式：直接無縫進入下一波
+        level++;
+        buildLevel(level, cv);
+        resetRound(cv);
+
+        floatTexts.push({
+          t: "NEXT WAVE!",
+          life: 1.5,
+          x: cv.width / 2,
+          y: cv.height / 2 - 50,
+          c: "#5FA8D3",
+          big: true,
+        });
       }
-    } else {
-      // 雙人模式直接進入下一波
-      level++;
-      buildLevel(level, cv);
-      resetRound(cv);
-      floatTexts.push({
-        t: "STAGE CLEAR! +200!",
-        life: 1.5,
-        x: cv.width / 2,
-        y: cv.height / 2 - 50,
-        c: "#5FA8D3",
-      });
-    }
+    }, 1500); // ★ 延遲 1.5 秒
   }
 
   if (onlineMode) {

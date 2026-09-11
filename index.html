@@ -27,7 +27,9 @@
     <button
       id="global-leave-btn"
       onclick="
-        if (confirm('確定要結束目前的遊戲並離開嗎？')) window.location.reload();
+        window.customConfirm('確定要結束目前的遊戲並離開嗎？').then((res) => {
+          if (res) window.location.reload();
+        })
       "
       style="
         display: none; /* 預設隱藏，進遊戲才顯示 */
@@ -60,6 +62,90 @@
       離開遊戲
     </button>
     <!-- ▲▲▲ 新增結束 ▲▲▲ -->
+
+    <!-- ★ 全域自訂彈窗容器 (防止原生 alert/confirm 破壞全螢幕) -->
+    <div
+      id="custom-alert-overlay"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+      ">
+      <div
+        style="
+          background: rgba(255, 255, 255, 0.95);
+          padding: 25px;
+          border-radius: 15px;
+          border: 2px solid #c9b1e8;
+          text-align: center;
+          min-width: 300px;
+          font-family: &quot;Noto Sans TC&quot;, sans-serif;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        ">
+        <div
+          id="custom-alert-text"
+          style="
+            font-size: 18px;
+            color: #5d576b;
+            font-weight: 900;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+          "></div>
+        <div style="display: flex; justify-content: center; gap: 15px">
+          <button
+            id="custom-alert-cancel"
+            class="menu-item-macaron macaron-blue"
+            style="display: none; width: 100px; height: 40px; font-size: 16px">
+            取消
+          </button>
+          <button
+            id="custom-alert-ok"
+            class="menu-item-macaron macaron-pink"
+            style="width: 100px; height: 40px; font-size: 16px">
+            確定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ★ 強制攔截並覆寫原生 alert，保護全螢幕不中斷
+      window.alert = function (msg) {
+        const overlay = document.getElementById("custom-alert-overlay");
+        document.getElementById("custom-alert-text").innerText = msg;
+        document.getElementById("custom-alert-cancel").style.display = "none";
+        overlay.style.display = "flex";
+        document.getElementById("custom-alert-ok").onclick = () => {
+          overlay.style.display = "none";
+        };
+      };
+
+      // ★ 提供自訂的 confirm 功能 (回傳 Promise)
+      window.customConfirm = function (msg) {
+        return new Promise((resolve) => {
+          const overlay = document.getElementById("custom-alert-overlay");
+          document.getElementById("custom-alert-text").innerText = msg;
+          document.getElementById("custom-alert-cancel").style.display =
+            "block";
+          overlay.style.display = "flex";
+
+          document.getElementById("custom-alert-ok").onclick = () => {
+            overlay.style.display = "none";
+            resolve(true);
+          };
+          document.getElementById("custom-alert-cancel").onclick = () => {
+            overlay.style.display = "none";
+            resolve(false);
+          };
+        });
+      };
+    </script>
+
     <div id="rotate-prompt">
       📱<br />請將設備轉為直向<br />以顯示完整對戰畫面
     </div>

@@ -155,6 +155,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           burst(b.x + b.w / 2, b.y + b.h / 2, "#9C27B0");
           // ★ 毒死磚塊照樣給予元素與分數
           if (b.hp <= 0) {
+            b.killedBySkill = true; // ★ 新增：標記為技能擊殺
             if (b.symbol && chemDLCEnabled) {
               addAtom(b.symbol, 1, 0); // 毒霧擊殺統一給 1P
               updateInventoryUI();
@@ -535,6 +536,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               );
               // 補發範圍傷害造成的掉落物
               if (otherBr.hp <= 0) {
+                otherBr.killedBySkill = true; // ★ 新增：標記為技能擊殺
                 if (otherBr.symbol && chemDLCEnabled) {
                   addAtom(otherBr.symbol, 1, pl === p2 ? 1 : 0);
                   updateInventoryUI();
@@ -610,11 +612,6 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
 
-    // Remove dead bricks
-    for (let i = bricks.length - 1; i >= 0; i--) {
-      if (bricks[i].hp <= 0) bricks.splice(i, 1);
-    }
-
     if (b.y > cv.height + b.r) {
       // ★ 護盾碎裂特效
       if (pl.shield > 0) {
@@ -678,6 +675,50 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
     if (taken) drops.splice(i, 1);
+  }
+
+  // ==========================================
+  // ★ 技能擊破的排程掉落特效 (Row-by-Row Falling)
+  // ==========================================
+  let recentlyKilled = bricks.filter(
+    (b) => b.hp <= 0 && b.killedBySkill && !b.isFalling,
+  );
+  if (recentlyKilled.length > 0) {
+    // 取出所有被幹掉磚塊的 Y 座標，由大到小排序 (從最下排開始崩塌)
+    let uniqueYs = [...new Set(recentlyKilled.map((b) => b.y))].sort(
+      (a, b) => b - a,
+    );
+    recentlyKilled.forEach((b) => {
+      b.isFalling = true;
+      b.isMoving = false; // 停止水平移動
+
+      // 根據所在的排數設定延遲 (最下排 0 秒，上一排 0.15 秒，依此類推)
+      let rowIndex = uniqueYs.indexOf(b.y);
+      b.fallDelay = rowIndex * 0.15;
+      b.vy = -3; // 剛碎裂時給予微微往上拋的初速，增加重量感
+    });
+  }
+
+  // ★ 統一在影格最後清理與更新掉落中的磚塊
+  for (let i = bricks.length - 1; i >= 0; i--) {
+    let b = bricks[i];
+    if (b.hp <= 0) {
+      if (b.isFalling) {
+        if (b.fallDelay > 0) {
+          b.fallDelay -= dt / 60; // 等待排程
+        } else {
+          b.vy += 0.8 * dt; // 重力加速度
+          b.y += b.vy * dt;
+        }
+        // 只有徹底掉出畫面底部，才真正從陣列中移除
+        if (b.y > cv.height) {
+          bricks.splice(i, 1);
+        }
+      } else {
+        // 非技能擊破 (被球直接打爆的)，維持瞬間爆散移除
+        bricks.splice(i, 1);
+      }
+    }
   }
 
   // Update combo variables back to game state
@@ -909,12 +950,16 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       else triggerVFX(8, "255, 255, 255", 0.3);
 
       gameState.bricks.forEach((b) => {
-        b.hp = Math.max(0, b.hp - power);
-        burst(
-          b.x + b.w / 2,
-          b.y + b.h / 2,
-          power >= 10 ? "#e57373" : "#9dd9e8",
-        );
+        if (b.hp > 0) {
+          // ★ 避免鞭屍
+          b.hp = Math.max(0, b.hp - power);
+          if (b.hp <= 0) b.killedBySkill = true; // ★ 標記
+          burst(
+            b.x + b.w / 2,
+            b.y + b.h / 2,
+            power >= 10 ? "#e57373" : "#9dd9e8",
+          );
+        }
       });
       break;
 
@@ -929,8 +974,10 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       );
       const targetYs = uniqueYs.slice(0, power);
       gameState.bricks.forEach((b) => {
-        if (targetYs.includes(b.y)) {
+        if (targetYs.includes(b.y) && b.hp > 0) {
+          // ★ 避免鞭屍
           b.hp = 0;
+          b.killedBySkill = true; // ★ 標記
           burst(b.x + b.w / 2, b.y + b.h / 2, "#F6A6C1");
         }
       });
@@ -1036,8 +1083,12 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       pl.timers.delayed = setTimeout(() => {
         triggerVFX(10, "255, 100, 100", 0.4);
         gameState.bricks.forEach((b) => {
-          b.hp = Math.max(0, b.hp - power);
-          burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+          if (b.hp > 0) {
+            // ★ 避免鞭屍
+            b.hp = Math.max(0, b.hp - power);
+            if (b.hp <= 0) b.killedBySkill = true; // ★ 標記
+            burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+          }
         });
         pl.timers.delayed = null;
       }, duration * 1000);
@@ -1055,7 +1106,14 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
     return;
   }
 
-  if (["damage_hp", "radiation_debuff", "unstable_debuff", "unstable_countdown"].includes(type)) {
+  if (
+    [
+      "damage_hp",
+      "radiation_debuff",
+      "unstable_debuff",
+      "unstable_countdown",
+    ].includes(type)
+  ) {
     targetPl.score = Math.max(0, targetPl.score - power * 5);
   } else if (type === "shrink_width") {
     if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);

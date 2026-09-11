@@ -1726,17 +1726,25 @@ function renderShopCards() {
             if (ptEl) ptEl.classList.add("highlight");
           });
         } else if (canAfford) {
-          if (confirm(`是否消耗元素解鎖技能【${skill.name}】？`)) {
-            for (const [sym, num] of Object.entries(skill.elements)) {
-              chemInventory[sym] -= num;
-            }
-            unlockedSkills.push(skill.id);
-            skillLevels[skill.id] = 1;
-            chemStates[activePIdx].levels = skillLevels;
-            chemStates[activePIdx].unlocked = unlockedSkills;
-            updateInventoryUI();
-            renderShopCards();
-          }
+          window
+            .customConfirm(
+              `【${skill.name}】目前為 Lv.${currentLv}。\n是否消耗 ${upgradeMult} 倍元素，將其升級至 Lv.${currentLv + 1}？`,
+            )
+            .then((isYes) => {
+              if (isYes) {
+                for (const [sym, num] of Object.entries(skill.elements)) {
+                  chemInventory[sym] -= num * upgradeMult; // ★ Fix: multiply by upgradeMult
+                }
+                if (!unlockedSkills.includes(skill.id)) {
+                  unlockedSkills.push(skill.id);
+                }
+                skillLevels[skill.id] = currentLv + 1; // ★ Fix: currentLv + 1
+                chemStates[activePIdx].levels = skillLevels;
+                chemStates[activePIdx].unlocked = unlockedSkills;
+                updateInventoryUI();
+                renderShopCards();
+              }
+            });
         }
       }
     };
@@ -2131,19 +2139,21 @@ window.quickUpgradeSinglePlayer = function (skillId, event) {
   }
 
   // 執行升級
-  if (
-    confirm(
+  window
+    .customConfirm(
       `【${skill.name}】目前為 Lv.${currentLv}。\n是否消耗 ${upgradeMult} 倍元素，將其升級至 Lv.${currentLv + 1}？`,
     )
-  ) {
-    for (const [sym, num] of Object.entries(skill.elements)) {
-      chemInventory[sym] -= num * upgradeMult;
-    }
-    skillLevels[skill.id] = currentLv + 1;
-    chemStates[activePIdx].levels = skillLevels;
-    if (typeof updateInventoryUI === "function") updateInventoryUI();
-    if (typeof renderShopCards === "function") renderShopCards();
-  }
+    .then((isYes) => {
+      if (isYes) {
+        for (const [sym, num] of Object.entries(skill.elements)) {
+          chemInventory[sym] -= num * upgradeMult;
+        }
+        skillLevels[skill.id] = currentLv + 1;
+        chemStates[activePIdx].levels = skillLevels;
+        if (typeof updateInventoryUI === "function") updateInventoryUI();
+        if (typeof renderShopCards === "function") renderShopCards();
+      }
+    });
 };
 
 // ★ 攔截原版的裝備動作，補上強制存檔與刷新
