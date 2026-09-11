@@ -437,135 +437,337 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.arc(cx, cy, boss.w, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.translate(cx, cy);
+    // ==========================================
+    // ★ Emoji Boss 具象化渲染 (進階幾何拼接版)
+    // ==========================================
+    ctx.save();
+    ctx.translate(cx, cy); // 將畫布原點移到 Boss 正中心
 
-    let colorBody =
-      boss.flashTimer > 0 ? "#FFFDFB" : `hsl(${boss.parts.hueMain}, 85%, 82%)`;
-    let strokeBody = `hsl(${boss.parts.hueMain}, 75%, 65%)`;
-    let colorArmor =
-      boss.flashTimer > 0 ? "#FFFDFB" : `hsl(${boss.parts.hueArmor}, 85%, 80%)`;
-    let strokeArmor = `hsl(${boss.parts.hueArmor}, 75%, 65%)`;
-    let colorAcc =
-      boss.flashTimer > 0 ? "#FFFDFB" : `hsl(${boss.parts.hueAcc}, 85%, 75%)`;
-    let strokeAcc = `hsl(${boss.parts.hueAcc}, 75%, 60%)`;
+    // 讓本體跟隨呼吸產生微小上下浮動
+    const floatY = Math.sin(performance.now() / 200) * 3;
+    ctx.translate(0, floatY);
 
-    ctx.lineWidth = 4;
-    ctx.lineJoin = "round";
+    // 受擊閃白特效
+    if (boss.flashTimer > 0) {
+      ctx.shadowColor = "#FFF";
+      ctx.shadowBlur = 20;
+    } else {
+      ctx.shadowColor = auraColor;
+      ctx.shadowBlur = 15;
+    }
 
-    const drawArm = (side, type, isWeapon) => {
-      let sign = side === "left" ? -1 : 1;
-      ctx.fillStyle = colorArmor;
-      ctx.strokeStyle = strokeArmor;
-      ctx.beginPath();
-      if (!isWeapon) {
-        let xOff = sign * 60;
-        if (type === 0) {
-          ctx.rect(xOff - 10, -10, 20, 60);
-        } else if (type === 1) {
-          ctx.arc(xOff, 10, 25, 0, Math.PI * 2);
-        } else {
-          ctx.moveTo(xOff - 20 * sign, -30);
-          ctx.lineTo(xOff + 30 * sign, -10);
-          ctx.lineTo(xOff, 40);
-        }
-      } else {
-        let xOff = sign * 80;
-        if (type === 0) {
-          ctx.rect(xOff - 15, 30, 30, 40);
-          ctx.fillStyle = colorAcc;
-          ctx.fillRect(xOff - 10, 70, 20, 15);
-        } else if (type === 1) {
-          ctx.moveTo(xOff - 15, 20);
-          ctx.lineTo(xOff - 25, 60);
-          ctx.lineTo(xOff, 40);
-          ctx.lineTo(xOff + 25, 60);
-          ctx.lineTo(xOff + 15, 20);
-        } else {
-          ctx.moveTo(xOff - 20, 20);
-          ctx.lineTo(xOff + 20, 20);
-          ctx.lineTo(xOff, 70);
-        }
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    if (boss.parts.type === "bio") {
+      // ==========================================
+      // ★ 生物類 Boss：活體脈動與撲咬動畫 (Squash & Lunge)
+      // ==========================================
+      ctx.save();
+      const now = performance.now();
+
+      // A. 待機呼吸：果凍般的蠕動 (X 軸與 Y 軸交錯的微小形變)
+      let bioScaleX = 1 + Math.sin(now / 300) * 0.04;
+      let bioScaleY = 1 + Math.cos(now / 300) * 0.04;
+      let bioRot = 0;
+
+      // B. 攻擊撲咬：攔截攻擊冷卻時間 (2.0 ~ 1.7 之間觸發)
+      if (boss.attackCooldown > 1.7) {
+        const progress = (2.0 - boss.attackCooldown) / 0.3; // 算出 0 -> 1 的進度
+        const attackIntensity = Math.sin(progress * Math.PI); // 鐘形曲線：0 -> 1 -> 0
+
+        // 撲咬動作 1：瞬間巨大化 (衝向玩家的壓迫感)
+        bioScaleX += attackIntensity * 0.25;
+        bioScaleY += attackIntensity * 0.25;
+
+        // 撲咬動作 2：狂暴抖動 (咆哮感)
+        bioRot = Math.sin(now / 20) * 0.15 * attackIntensity;
+
+        // 撲咬動作 3：本體猛然往下突進
+        ctx.translate(0, attackIntensity * 15);
       }
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    };
 
-    drawArm("left", boss.parts.leftArm, false);
-    drawArm("right", boss.parts.rightArm, false);
-    drawArm("left", boss.parts.leftWeapon, true);
-    drawArm("right", boss.parts.rightWeapon, true);
+      // 套用所有幾何變化
+      ctx.rotate(bioRot);
+      ctx.scale(bioScaleX, bioScaleY);
 
-    ctx.fillStyle = colorBody;
-    ctx.strokeStyle = strokeBody;
-    ctx.beginPath();
-    if (boss.parts.body === 0) {
-      ctx.arc(0, 0, 55, 0, Math.PI * 2);
-    } else if (boss.parts.body === 1) {
-      ctx.moveTo(-40, -50);
-      ctx.lineTo(40, -50);
-      ctx.lineTo(60, 40);
-      ctx.lineTo(-60, 40);
+      ctx.font = "100px Arial";
+      ctx.fillText(boss.parts.bioEmoji, 0, 0);
+
+      ctx.restore();
     } else {
-      ctx.moveTo(0, -60);
-      ctx.lineTo(60, 0);
-      ctx.lineTo(0, 60);
-      ctx.lineTo(-60, 0);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // ==========================================
+      // ★ 除錯開關：完成校準後改成 false
+      // ==========================================
+      const DEBUG_ANCHORS = false;
 
-    ctx.fillStyle = colorArmor;
-    ctx.strokeStyle = strokeArmor;
-    ctx.beginPath();
-    if (boss.parts.hat === 0) {
-      ctx.moveTo(-30, -40);
-      ctx.lineTo(-50, -80);
-      ctx.lineTo(-10, -50);
-      ctx.moveTo(30, -40);
-      ctx.lineTo(50, -80);
-      ctx.lineTo(10, -50);
-    } else if (boss.parts.hat === 1) {
-      ctx.moveTo(-40, -40);
-      ctx.lineTo(-30, -70);
-      ctx.lineTo(-15, -45);
-      ctx.lineTo(0, -75);
-      ctx.lineTo(15, -45);
-      ctx.lineTo(30, -70);
-      ctx.lineTo(40, -40);
-    } else {
-      ctx.rect(-5, -70, 10, 30);
-      ctx.arc(0, -75, 12, 0, Math.PI, true);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      function debugDot(color) {
+        if (!DEBUG_ANCHORS) return;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
-    let coreGlow =
-      boss.phase === 3 ? "#E0576B"
-      : boss.phase === 2 ? "#C9B1E8"
-      : "#9DD9E8";
-    ctx.fillStyle = colorAcc;
-    ctx.strokeStyle = coreGlow;
-    ctx.shadowColor = coreGlow;
-    ctx.shadowBlur = 15;
-    ctx.beginPath();
-    if (boss.parts.core === 0) {
-      ctx.arc(0, 5, 15, 0, Math.PI * 2);
-    } else if (boss.parts.core === 1) {
-      ctx.moveTo(-30, -10);
-      ctx.lineTo(30, -10);
-      ctx.lineTo(0, 20);
-    } else {
-      ctx.rect(-40, 0, 80, 15);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+      // ==========================================
+      // ★ 八方位校正系統 (將各種起點的武器統一轉向「左側/前方」)
+      // ==========================================
+      const ORIGIN_ROTATION = {
+        "中上": Math.PI / 2, // 握把在上，往下指 -> 校正轉向左
+        "右上": Math.PI / 4, // 握把在右上，往左下指
+        "右中": 0, // 握把在右，往左指 (不需校正)
+        "右下": -Math.PI / 4, // 握把在右下，往左上指
+        "中下": -Math.PI / 2, // 握把在下，往上指
+        "左下": -Math.PI * 0.75, // 握把在左下，往右上指
+        "左中": Math.PI, // 握把在左，往右指
+        "左上": Math.PI * 0.75, // 握把在左上，往右下指
+      };
 
-    ctx.restore();
+      // ==========================================
+      // ★ 骨架節點設定字典 (Anchor Config) - 完整擴充版
+      // ==========================================
+      const ANCHORS = {
+        body: {
+          default: { shoulderX: -30, shoulderY: 0 },
+          "🤖": { shoulderX: -35, shoulderY: 30 },
+          "👾": { shoulderX: -40, shoulderY: 5 },
+          "👽": { shoulderX: -45, shoulderY: 0 },
+          "👹": { shoulderX: -40, shoulderY: 10 },
+          "👺": { shoulderX: -40, shoulderY: 0 },
+          "👿": { shoulderX: -45, shoulderY: 0 },
+          "💀": { shoulderX: -45, shoulderY: 0 },
+          "👁️": { shoulderX: -45, shoulderY: 0 },
+          "🧿": { shoulderX: -45, shoulderY: 0 },
+          "🧠": { shoulderX: -48, shoulderY: 0 },
+          "🫀": { shoulderX: -40, shoulderY: 0 },
+          "☢️": { shoulderX: -45, shoulderY: 0 },
+          "⚙️": { shoulderX: -45, shoulderY: 0 },
+          "🛸": { shoulderX: -40, shoulderY: 0 },
+          "🦷": { shoulderX: -40, shoulderY: -10 },
+          "🦠": { shoulderX: -40, shoulderY: 0 },
+          "🌰": { shoulderX: -40, shoulderY: 5 },
+          "🧄": { shoulderX: -40, shoulderY: 10 },
+          "🍙": { shoulderX: -40, shoulderY: 10 },
+          "🍥": { shoulderX: -45, shoulderY: 0 },
+          "🍩": { shoulderX: -45, shoulderY: 0 },
+          "🪨": { shoulderX: -40, shoulderY: 10 },
+          "🎱": { shoulderX: -45, shoulderY: 0 },
+          "💿": { shoulderX: -45, shoulderY: 0 },
+          "🧫": { shoulderX: -40, shoulderY: 0 },
+          "⚜️": { shoulderX: -40, shoulderY: 0 },
+        },
+        arm: {
+          default: {
+            body: { x: 11, y: 5 },
+            weapon: { x: -4, y: -9 },
+            flipX: false,
+            flipY: false,
+          },
+          "🦾": {
+            body: { x: 11, y: 5 },
+            weapon: { x: -4, y: -9 },
+            flipX: false,
+            flipY: false,
+          },
+          "🦿": {
+            body: { x: -8, y: -12 },
+            weapon: { x: 6, y: 14 },
+            flipX: true,
+            flipY: false,
+            lockPoseY: true,
+          },
+          "⛓️": {
+            body: { x: 0, y: -13 },
+            weapon: { x: 0, y: 11 },
+            flipX: false,
+            flipY: false,
+            isChain: true,
+          },
+          "🪢": {
+            body: { x: 12, y: -13 },
+            weapon: { x: -12, y: 13 },
+            flipX: false,
+            flipY: false,
+            isChain: true,
+          },
+          "🔩": {
+            body: { x: -8, y: -8 },
+            weapon: { x: 10, y: 12 },
+            flipX: true,
+            flipY: false,
+          },
+          "🔗": {
+            body: { x: 10, y: -11 },
+            weapon: { x: -10, y: 11 },
+            flipX: false,
+            flipY: false,
+            isChain: true,
+          },
+          "♾️": {
+            body: { x: 11, y: 0 },
+            weapon: { x: -12, y: 0 },
+            flipX: false,
+            flipY: false,
+            isChain: true,
+          },
+          "⚕️": {
+            body: { x: 0, y: -14 },
+            weapon: { x: 0, y: 13 },
+            flipX: false,
+            flipY: false,
+            isChain: true,
+          },
+        },
+        weapon: {
+          default: { origin: "左下", handle: { x: 0, y: 0 } },
+          "🗡️": { origin: "右上", handle: { x: 12, y: -15 } },
+          "🪓": { origin: "右下", handle: { x: 9, y: 12 } },
+          "🔨": { origin: "右下", handle: { x: 11, y: 13 } },
+          "⛏️": { origin: "右下", handle: { x: 12, y: 13 } },
+          "🪃": { origin: "右下", handle: { x: 12, y: 14 } },
+          "🏹": { origin: "左下", handle: { x: -11, y: 12 } },
+          "💣": { origin: "左下", handle: { x: -3, y: 2 } },
+          "🔪": { origin: "左上", handle: { x: -13, y: -15 } },
+          "🪚": { origin: "右下", handle: { x: 11, y: 13 } },
+          "🪛": { origin: "右下", handle: { x: 11, y: 13 } },
+          "🔧": { origin: "右下", handle: { x: 11, y: 13 } },
+          "🪝": { origin: "中上", handle: { x: -6, y: -16 } },
+          "💉": { origin: "左下", handle: { x: -12, y: 13 } },
+        },
+      };
+
+      const bAnchor = ANCHORS.body[boss.parts.body] || ANCHORS.body.default;
+
+      const drawArmAndWeapon = (
+        armEmoji,
+        weaponEmoji,
+        isLeft,
+        poseY,
+        chainLen,
+        wAngle,
+      ) => {
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // 1. 右側統一鏡像處理
+        if (!isLeft) ctx.scale(-1, 1);
+
+        // 2. 移動到身體的「肩膀」節點
+        ctx.translate(bAnchor.shoulderX, bAnchor.shoulderY);
+        debugDot("red");
+
+        // ==========================================
+        // ★ 骨架動畫引擎 (Skeletal Procedural Animation)
+        // ==========================================
+        const now = performance.now();
+
+        // A. 待機呼吸：利用 sin 波讓手臂與手腕產生微微的上下起伏
+        const idleArmAngle = Math.sin(now / 400 + (isLeft ? 0 : 1)) * 0.15;
+        const idleWeaponAngle = Math.cos(now / 400 + (isLeft ? 0 : 1)) * 0.2;
+
+        // B. 攻擊揮砍：攔截 boss 的攻擊冷卻時間 (假設滿值為 2.0，重置時大於 1.7 觸發動畫)
+        let attackArmAngle = 0;
+        let attackWeaponAngle = 0;
+        if (boss.attackCooldown > 1.7) {
+          // 算出 0 到 1 的攻擊進度曲線
+          const progress = (2.0 - boss.attackCooldown) / 0.3;
+          // 利用 sin 做出「舉起 -> 重劈 -> 收回」的流暢打擊感
+          attackArmAngle = Math.sin(progress * Math.PI) * 0.8;
+          attackWeaponAngle = Math.sin(progress * Math.PI) * 1.2;
+        }
+
+        // ★ 核心技巧：在「肩膀節點」直接旋轉畫布，整隻手與武器就會跟著連動！
+        ctx.rotate(idleArmAngle + attackArmAngle);
+        // ==========================================
+
+        const aAnchor = ANCHORS.arm[armEmoji] || ANCHORS.arm.default;
+        const wAnchor = ANCHORS.weapon[weaponEmoji] || ANCHORS.weapon.default;
+        const originAngle = ORIGIN_ROTATION[wAnchor.origin] || 0;
+
+        if (aAnchor.isChain) {
+          // --- 鎖鏈拼接 ---
+          ctx.rotate((Math.PI / 4) * poseY);
+          ctx.font = "30px Arial";
+          for (let i = 0; i < chainLen; i++) {
+            ctx.fillText(armEmoji, -15 - i * 18, 0);
+          }
+          ctx.translate(-15 - (chainLen - 1) * 18 - 20, 0);
+
+          // ★ 在手腕節點旋轉武器 (加上動畫角度)
+          ctx.rotate(
+            originAngle + wAngle + idleWeaponAngle + attackWeaponAngle,
+          );
+          debugDot("green");
+
+          ctx.font = "40px Arial";
+          ctx.fillText(weaponEmoji, -wAnchor.handle.x, -wAnchor.handle.y);
+        } else {
+          // --- 實體關節 ---
+          const scaleX = aAnchor.flipX ? -1 : 1;
+          const baseY = aAnchor.lockPoseY ? 1 : poseY;
+          const scaleY = aAnchor.flipY ? -baseY : baseY;
+
+          const actualBodyX = aAnchor.body.x * scaleX;
+          const actualBodyY = aAnchor.body.y * scaleY;
+
+          ctx.translate(-actualBodyX, -actualBodyY);
+          debugDot("blue");
+
+          ctx.save();
+          ctx.scale(scaleX, scaleY);
+          ctx.font = "35px Arial";
+          ctx.fillText(armEmoji, 0, 0);
+          ctx.restore();
+
+          const actualWeaponX = aAnchor.weapon.x * scaleX;
+          const actualWeaponY = aAnchor.weapon.y * scaleY;
+          ctx.translate(actualWeaponX, actualWeaponY);
+          debugDot("green");
+
+          // ★ 在手腕節點旋轉武器 (加上動畫角度)
+          const holdPose = Math.PI / 4;
+          ctx.rotate(
+            originAngle
+              + holdPose
+              + wAngle
+              + idleWeaponAngle
+              + attackWeaponAngle,
+          );
+
+          ctx.font = "40px Arial";
+          ctx.fillText(weaponEmoji, -wAnchor.handle.x, -wAnchor.handle.y);
+        }
+        ctx.restore();
+      };
+
+      drawArmAndWeapon(
+        boss.parts.leftArm,
+        boss.parts.leftWeapon,
+        true,
+        boss.parts.leftPoseY,
+        boss.parts.leftChainLen,
+        boss.parts.weaponAngle,
+      );
+      drawArmAndWeapon(
+        boss.parts.rightArm,
+        boss.parts.rightWeapon,
+        false,
+        boss.parts.rightPoseY,
+        boss.parts.rightChainLen,
+        boss.parts.weaponAngle,
+      );
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "85px Arial";
+      ctx.fillText(boss.parts.body, 0, 0);
+      debugDot("purple");
+    }
+
+    ctx.restore(); // 結束 Boss 繪製
 
     for (const b of boss.bullets) {
       ctx.save();

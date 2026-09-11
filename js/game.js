@@ -415,19 +415,123 @@ function spawnBoss(lv, cv) {
   boss.phase = 1;
   boss.attackCooldown = 2;
   boss.bullets.length = 0;
-  let baseHue = Math.floor(Math.random() * 360);
-  boss.parts = {
-    hueMain: baseHue,
-    hueArmor: (baseHue + 60) % 360,
-    hueAcc: (baseHue + 300) % 360,
-    body: Math.floor(Math.random() * 3),
-    hat: Math.floor(Math.random() * 3),
-    leftArm: Math.floor(Math.random() * 3),
-    rightArm: Math.floor(Math.random() * 3),
-    leftWeapon: Math.floor(Math.random() * 3),
-    rightWeapon: Math.floor(Math.random() * 3),
-    core: Math.floor(Math.random() * 3),
+  // ★ 定義 Emoji 圖庫
+  const EMOJI_POOLS = {
+    body: [
+      "🤖",
+      "👾",
+      "👽",
+      "👹",
+      "👺",
+      "👿",
+      "💀",
+      "👁️",
+      "🧿",
+      "🧠",
+      "🫀",
+      "☢️",
+      "⚙️",
+      "🛸",
+      "🦷",
+      "🦠",
+      "🌰",
+      "🧄",
+      "🍙",
+      "🍥",
+      "🍩",
+      "🪨",
+      "🎱",
+      "💿",
+      "🧫",
+      "⚜️",
+    ],
+    arm: ["🦾", "🦿", "⛓️", "🪢", "🔩", "🔗", "♾️", "⚕️"],
+    weapon: [
+      "🗡️",
+      "🪓",
+      "🔨",
+      "⛏️",
+      "🪃",
+      "🏹",
+      "💣",
+      "🔪",
+      "🪚",
+      "🪛",
+      "🔧",
+      "🪝",
+      "💉",
+    ],
+    bio: [
+      "🐙",
+      "🦑",
+      "🦀",
+      "🦞",
+      "🦂",
+      "🕷️",
+      "🐍",
+      "🐲",
+      "🐉",
+      "🦖",
+      "😽",
+      "🙈",
+      "🐶",
+      "🦁",
+      "🐯",
+      "🦥",
+      "🐣",
+      "🐸",
+      "🐳",
+      "🦪",
+    ],
   };
+
+  let baseHue = Math.floor(Math.random() * 360);
+
+  // ★ 以 40% 機率決定是否為「單體生物 Boss」
+  const isBioBoss = Math.random() < 0.4;
+
+  if (isBioBoss) {
+    // --- 生物類：不需組合 ---
+    boss.parts = {
+      type: "bio",
+      hueMain: baseHue,
+      bioEmoji:
+        EMOJI_POOLS.bio[Math.floor(Math.random() * EMOJI_POOLS.bio.length)],
+    };
+  } else {
+    // --- 機甲類：共用鏡像參數 ---
+    const sharedArm =
+      EMOJI_POOLS.arm[Math.floor(Math.random() * EMOJI_POOLS.arm.length)];
+    const sharedPoseY = Math.random() > 0.5 ? 1 : -1;
+    const sharedChainLen = 2 + Math.floor(Math.random() * 3);
+
+    boss.parts = {
+      type: "mech",
+      hueMain: baseHue,
+      body: EMOJI_POOLS.body[
+        Math.floor(Math.random() * EMOJI_POOLS.body.length)
+      ],
+      leftArm: sharedArm,
+      rightArm: sharedArm,
+      leftWeapon:
+        EMOJI_POOLS.weapon[
+          Math.floor(Math.random() * EMOJI_POOLS.weapon.length)
+        ],
+      rightWeapon:
+        EMOJI_POOLS.weapon[
+          Math.floor(Math.random() * EMOJI_POOLS.weapon.length)
+        ],
+      leftPoseY: sharedPoseY,
+      rightPoseY: sharedPoseY,
+      leftChainLen: sharedChainLen,
+      rightChainLen: sharedChainLen,
+      weaponAngle: ((Math.random() - 0.5) * Math.PI) / 3,
+    };
+  }
+
+  // 如果你希望左右手連拿的武器都一模一樣，可以把武器也抽出來
+  // const sharedWeapon = EMOJI_POOLS.weapon[Math.floor(Math.random() * EMOJI_POOLS.weapon.length)];
+
   floatTexts.push({
     t: `☣️ BOSS - LEVEL：${lv} ☣️`,
     life: 2.5,
