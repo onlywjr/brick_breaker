@@ -338,7 +338,7 @@
               height: 40px;
               background: rgba(246, 166, 193, 0.5);
             "></div>
-  
+
           <div
             style="display: flex; flex-direction: column; align-items: center">
             <span class="stat-label" style="color: #7a728a">LEVEL</span
@@ -463,16 +463,47 @@
 
       import { initChemistrySystem } from "./mod/chemistry.js";
 
-      // 綁定全域函式供 HTML onclick 使用
-      window.startGame = (mode) =>
+      // ==========================================
+      // ★ 新增：強制進入全螢幕的輔助函式
+      // ==========================================
+      const tryEnterFullScreen = () => {
+        if (
+          !document.fullscreenElement
+          && document.documentElement.requestFullscreen
+        ) {
+          document.documentElement.requestFullscreen().catch((err) => {
+            console.warn("全螢幕被阻擋:", err.message);
+          });
+        }
+      };
+
+      // ==========================================
+      // ★ 綁定全域函式供 HTML onclick 使用 (點擊瞬間觸發全螢幕)
+      // ==========================================
+      window.startGame = (mode) => {
+        tryEnterFullScreen(); // 點擊時同步放大
         startGameGlobal(mode, document.getElementById("game"));
-      window.createRoom = createRoom;
-      window.joinRoom = joinRoom;
+      };
+
+      window.createRoom = () => {
+        tryEnterFullScreen(); // 點擊時同步放大
+        createRoom();
+      };
+
+      window.joinRoom = () => {
+        tryEnterFullScreen(); // 點擊時同步放大
+        joinRoom();
+      };
+
       window.toggleReady = toggleReady;
+
       window.backToMainMenu = () => {
         document.getElementById("title").innerHTML = "BRICK RUSH 99";
         document.getElementById("menu-btns").style.display = "flex";
         document.getElementById("bottom-status-bar").style.display = "flex";
+
+        // 退出到首頁時可選擇是否自動退出全螢幕 (可選)
+        // if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
       };
 
       // ★ 修正：加入重置變數與通知伺服器的邏輯 ★

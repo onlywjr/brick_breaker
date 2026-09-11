@@ -7,16 +7,21 @@
    1. 全域與基礎彈出視窗設定
 ------------------------------------------ */
 #chem-ui-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(230, 238, 238, 1);
-  backdrop-filter: blur(20px);
-  z-index: 1000;
-  display: none; /* 預設隱藏 */
-  flex-direction: column;
-  padding: 20px 20px 5px 20px;
-  box-sizing: border-box;
-  font-family: "Noto Sans TC", sans-serif;
+    position: fixed;
+    inset: 0;
+    background: rgba(230, 238, 238, 1);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: none; /* JS 會切換成 flex */
+    flex-direction: column;
+    
+    /* ★ 新增：強制垂直與水平置中 */
+    justify-content: center;    
+    
+    /* ★ 修正：將原本的 70px 頂部 padding 改為對稱，避免視覺偏下 */
+    padding: 20px; 
+    box-sizing: border-box;
+    font-family: 'Noto Sans TC', sans-serif;
 }
 
 /* 預設在桌面版隱藏手機專屬的三顆切換按鈕 */
