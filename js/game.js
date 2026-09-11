@@ -141,11 +141,6 @@ export function triggerVFX(shakeMagnitude, flashC = null, flashDuration = 0) {
   }
 }
 
-// 假設基礎 Boss 血量定為 200
-const baseBossHp = 200;
-const bossMultiplier = 1 + (level - 1) * 0.15;
-const finalBossHp = Math.round(baseBossHp * bossMultiplier);
-
 export let boss = {
   active: false,
   level: 10,
@@ -153,8 +148,8 @@ export let boss = {
   y: 150,
   w: 160,
   h: 100,
-  hp: finalBossHp,
-  maxHp: finalBossHp,
+  hp: 0, // 初始化設為 0，生成時再賦值
+  maxHp: 0,
   phase: 1,
   dx: 2,
   attackCooldown: 0,
@@ -1230,7 +1225,7 @@ export function updateGameState(dt, cv) {
   if (bricks.length === 0 && !boss.active) {
     for (const pl of activePlayers) pl.score += 200;
 
-    if (mode === 1) {
+    if (mode === 1 && !onlineMode) {
       running = false;
 
       // ★ 1. 抓取覆蓋層與自動辨識按鈕
@@ -1333,38 +1328,34 @@ export function updateGameState(dt, cv) {
   }
 
   if (onlineMode) {
-    if (performance.now() - onlineLastStateSend >= 100) {
+    if (performance.now() - onlineLastStateSend >= 200) {
       onlineLastStateSend = performance.now();
+
+      // ★ 1. 同時計算「殘留數量」與「本關總數量」
+      const activeBrickCount = bricks.filter((b) => b.hp > 0).length;
+      const totalBrickCount = Math.max(1, bricks.length); // 避免除以 0
+
       socket.emit("playerState", {
         score: p1.score,
         alive: !onlineEliminated,
-        rank: null,
         energy: p1.energy,
-        level,
-        // 在 updateGameState 中，替換 paddle 的傳遞方式：
-        paddle: { x: p1.x, y: p1.y, w: p1.w, h: p1.h, lives: p1.lives },
+        level: level,
+        paddle: {
+          x: Math.round(p1.x),
+          y: Math.round(p1.y),
+          w: p1.w,
+          h: p1.h,
+          lives: p1.lives,
+        },
         ball:
           p1.ball ?
-            {
-              x: p1.ball.x,
-              y: p1.ball.y,
-              r: p1.ball.r,
-              dx: p1.ball.dx,
-              dy: p1.ball.dy,
-              fire: !!p1.ball.fire,
-            }
+            { x: Math.round(p1.ball.x), y: Math.round(p1.ball.y) }
           : null,
-        bricks: bricks
-          .slice(0, 180)
-          .map((b) => ({
-            x: Math.round(b.x),
-            y: Math.round(b.y),
-            w: b.w,
-            h: b.h,
-            hp: b.hp,
-            ci: b.ci || 0,
-            interference: !!b.interference,
-          })),
+
+        // ★ 終極 Hack：將「總數」藏在 w，「殘留數」藏在 ci
+        bricks: [
+          { x: 0, y: 0, w: totalBrickCount, h: 0, hp: 1, ci: activeBrickCount },
+        ],
       });
     }
   }

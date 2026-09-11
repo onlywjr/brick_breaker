@@ -106,9 +106,10 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       if (spans.length === 2) {
         const livesLeft =
           p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
+        // ★ 在名字前方加上 Lv. 標籤
         spans[0].textContent = p.name || "玩家";
         spans[1].textContent =
-          p.alive === false ? "💀 淘汰" : `❤️ x${livesLeft}`; // 改顯示愛心
+          p.alive === false ? "💀 淘汰" : `❤️ x${livesLeft}`;
         spans[1].style.color = "#7A728A";
       }
 
@@ -116,33 +117,95 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       if (c) {
         const x = c.getContext("2d");
         x.clearRect(0, 0, c.width, c.height);
-        x.fillStyle = "#FDF4F6";
-        x.fillRect(0, 0, c.width, c.height);
-        x.save();
-        x.scale(c.width / 800, c.height / 600);
-        const g = x.createLinearGradient(0, 0, 800, 600);
+
+        // 1. 畫背景漸層
+        const g = x.createLinearGradient(0, 0, c.width, c.height);
         g.addColorStop(0, "#FDF4F6");
         g.addColorStop(1, "#E6F3FA");
         x.fillStyle = g;
-        x.fillRect(0, 0, 800, 600);
-        for (const b of p.bricks || []) {
-          if (b.hp <= 0) continue;
-          x.fillStyle = b.interference ? "#E79AAA" : "#C9B1E8";
-          x.globalAlpha = b.interference ? 0.9 : 0.65;
-          x.fillRect(b.x, b.y, b.w || 72, b.h || 24);
+        x.fillRect(0, 0, c.width, c.height);
+
+        x.save();
+        x.scale(c.width / 800, c.height / 600);
+
+        // ==========================================
+        // ★ 輕量化 99 人觀戰優化：解開真實數量
+        // ==========================================
+        let bCount = 0;
+
+        // 解析我們壓縮的封包
+        if (
+          p.bricks
+          && p.bricks.length === 1
+          && p.bricks[0].x === 0
+          && p.bricks[0].y === 0
+        ) {
+          bCount = p.bricks[0].ci;
+        } else if (p.bricks) {
+          // 相容舊版
+          bCount = p.bricks.filter((b) => b.hp > 0).length;
         }
-        x.globalAlpha = 1;
-        if (p.paddle) {
+
+        // ==========================================
+        // ★ 核心修復：利用本地字典記憶每關的「初始最大磚塊數」
+        // ==========================================
+        let maxBricks = 50;
+        const realPlayer = onlinePlayers[p.id]; // 直接存取原始物件，確保資料跨幀保留
+
+        if (realPlayer) {
+          // 只要發現對方進入新關卡，就重置最大值
+          if (realPlayer._trackedLevel !== p.level) {
+            realPlayer._trackedLevel = p.level;
+            realPlayer._maxBricks = Math.max(1, bCount); // 剛換關時的數量就是最大值
+          } else {
+            // 停留在同關卡時，永遠記住看過的「歷史最高數量」
+            realPlayer._maxBricks = Math.max(
+              realPlayer._maxBricks || 1,
+              bCount,
+            );
+          }
+          maxBricks = realPlayer._maxBricks;
+        }
+
+        if (p.alive !== false) {
+          // 底槽
+          x.fillStyle = "rgba(0,0,0,0.1)";
+          x.fillRect(50, 50, 700, 30);
+
+          // 動態比例計算
+          const fillW = Math.min(1, bCount / maxBricks) * 700;
+          x.fillStyle = "#C9B1E8";
+          x.fillRect(50, 50, fillW, 30);
+
+          // ★ 浮水印文字置中，加上關卡資訊並微調字體大小為 56px
+          x.fillStyle = "rgba(122, 114, 138, 0.7)";
+          x.font = "900 56px sans-serif";
+          x.textAlign = "center";
+          x.textBaseline = "middle";
+          x.fillText(`Lv.${p.level || 1} ｜ 殘留方塊: ${bCount}`, 400, 300);
+        }
+
+        // 畫擋板
+        if (p.paddle && p.paddle.x !== undefined) {
           x.fillStyle = "#9DD9E8";
-          x.fillRect(p.paddle.x, p.paddle.y, p.paddle.w, p.paddle.h);
+          x.fillRect(
+            p.paddle.x,
+            p.paddle.y || 556,
+            p.paddle.w || 120,
+            p.paddle.h || 22,
+          );
         }
-        if (p.ball) {
+
+        // 畫球
+        if (p.ball && p.ball.x !== undefined && p.ball.y !== undefined) {
           x.fillStyle = "#5D576B";
           x.beginPath();
-          x.arc(p.ball.x, p.ball.y, p.ball.r || 8, 0, Math.PI * 2);
+          x.arc(p.ball.x, p.ball.y, 11, 0, Math.PI * 2);
           x.fill();
         }
         x.restore();
+
+        // 淘汰遮罩
         if (p.alive === false) {
           x.fillStyle = "rgba(255,255,255,.65)";
           x.fillRect(0, 0, c.width, c.height);
@@ -170,10 +233,11 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       tag.style.opacity = p.alive === false ? "0.4" : "1";
       const livesLeft =
         p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
+      // ★ 下方的文字標籤也同步顯示關卡
       tag.innerText =
         p.alive === false ?
-          `💀 ${p.name || "玩家"}`
-        : `${p.name || "玩家"} - ❤️x${livesLeft}`; // 改顯示愛心
+          `💀 Lv.${p.level || 1} ${p.name || "玩家"}`
+        : `Lv.${p.level || 1} ${p.name || "玩家"} - ❤️x${livesLeft}`;
     }
   });
 }
