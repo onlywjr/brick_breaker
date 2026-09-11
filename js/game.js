@@ -672,6 +672,7 @@ function executeStartGame(selectedMode, cv) {
   document.getElementById("overlay").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
+  document.getElementById("global-leave-btn").style.display = "block";
 
   const inputLv = parseInt(document.getElementById("start-level").value, 10);
   level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
@@ -861,6 +862,7 @@ export function startOnlineGame(state, cv) {
   document.getElementById("p1-label").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
+  document.getElementById("global-leave-btn").style.display = "block";
 
   // ★ 正確補上：在連線模式中啟動並顯示中央 HUD
   if (typeof setupEventHUDs === "function") setupEventHUDs();
@@ -933,6 +935,8 @@ export function endGame() {
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("game").style.display = "none";
   document.getElementById("status").style.display = "none";
+  if (document.getElementById("global-leave-btn"))
+    document.getElementById("global-leave-btn").style.display = "none";
 }
 
 export function showOnlineMatchOver(result) {
@@ -956,6 +960,8 @@ export function showOnlineMatchOver(result) {
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("game").style.display = "none";
   document.getElementById("status").style.display = "none";
+  if (document.getElementById("global-leave-btn"))
+    document.getElementById("global-leave-btn").style.display = "none";
   document.getElementById("lobby-screen").style.display = "none";
   document.getElementById("room-status").style.display = "none";
   document.getElementById("bottom-status-bar").style.display = "none";

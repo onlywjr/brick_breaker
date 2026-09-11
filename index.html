@@ -23,6 +23,43 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   </head>
   <body>
+    <!-- ▼▼▼ 新增：全域離開按鈕 (放在 body 第一層，絕對不會被困住) ▼▼▼ -->
+    <button
+      id="global-leave-btn"
+      onclick="
+        if (confirm('確定要結束目前的遊戲並離開嗎？')) window.location.reload();
+      "
+      style="
+        display: none; /* 預設隱藏，進遊戲才顯示 */
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 18px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #e79aaa;
+        border-radius: 20px;
+        font-family: &quot;Noto Sans TC&quot;, sans-serif;
+        font-size: 15px;
+        font-weight: 900;
+        color: #d96c8e;
+        cursor: pointer;
+        z-index: 999999; /* 絕對最上層 */
+        box-shadow: 0 4px 10px rgba(231, 154, 170, 0.3);
+        transition: all 0.2s;
+      "
+      onmouseover="
+        this.style.background = '#E79AAA';
+        this.style.color = '#FFF';
+        this.style.transform = 'scale(1.05)';
+      "
+      onmouseout="
+        this.style.background = 'rgba(255, 255, 255, 0.9)';
+        this.style.color = '#d96c8e';
+        this.style.transform = 'scale(1)';
+      ">
+      離開遊戲
+    </button>
+    <!-- ▲▲▲ 新增結束 ▲▲▲ -->
     <div id="rotate-prompt">
       📱<br />請將設備轉為直向<br />以顯示完整對戰畫面
     </div>
