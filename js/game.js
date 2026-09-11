@@ -1,3 +1,51 @@
+// ==========================================
+// ★ 新增：效能模式與優化開關
+// ==========================================
+// 將其設為 true 則會關閉所有高耗能的陰影光暈與粒子，解決輸入延遲
+export let PERFORMANCE_MODE = true;
+
+// 紀錄前一幀的 DOM 狀態，避免每秒 60 次的無效重繪
+let lastP1Score = -1;
+let lastP2Score = -1;
+let lastP1W = -1;
+let lastP2W = -1;
+let lastP1Energy = -1;
+let lastP2Energy = -1;
+
+import { loadAudio, loadedAudio, playSfx } from "./audio.js";
+
+import { onlineRenderPlayers } from "./lobby.js";
+
+import {
+  setupVirtualControls,
+  updateVirtualButtonsVisibility,
+  resizeGame,
+  formatTime,
+  onlineShowStatus,
+  escapeHtml,
+} from "./ui.js";
+
+import {
+  socket,
+  currentRoomCode,
+  setRoomStatus,
+  lobbyState,
+} from "./socket.js";
+
+import {
+  drawGameBackground,
+  drawGameEntities,
+  resetBackground,
+} from "./renderer.js";
+
+import {
+  handleCollisions,
+  maybeDrop,
+  resetSkillCooldowns,
+  resetGlobalDotState,
+  applyLocalDebuff,
+} from "./physics.js";
+
 import {
   initChemistrySystem,
   setChemistryMode,
@@ -10,6 +58,7 @@ import {
   resetLevelStats,
   ELEMENT_DATA,
   resetChemistryState,
+  DIFFICULTY_CONFIG,
 } from "../mod/chemistry.js";
 
 window.setChemistryMode = setChemistryMode; // 讓 HTML 可以呼叫
@@ -38,35 +87,6 @@ window.enterShopFromLevelClear = () => {
   // ★ 單人模式永遠是 1P (0)
   openChemistryShop("配方商店", 0, window.proceedToNextLevel);
 };
-
-import { loadAudio, loadedAudio, playSfx } from "./audio.js";
-import {
-  drawGameBackground,
-  drawGameEntities,
-  resetBackground,
-} from "./renderer.js";
-import {
-  handleCollisions,
-  maybeDrop,
-  resetSkillCooldowns,
-  resetGlobalDotState,
-  applyLocalDebuff,
-} from "./physics.js";
-import {
-  setupVirtualControls,
-  updateVirtualButtonsVisibility,
-  resizeGame,
-  formatTime,
-  onlineShowStatus,
-  escapeHtml,
-} from "./ui.js";
-import {
-  socket,
-  currentRoomCode,
-  setRoomStatus,
-  lobbyState,
-} from "./socket.js";
-import { onlineRenderPlayers } from "./lobby.js";
 
 export const MEMBERS = [
   { name: "AHYEON", color: "#ec4899", light: "#F6A6C1" },
@@ -232,24 +252,21 @@ function generateBrickSymbol(gameMode, currentLevel) {
 
   rarePool = [...new Set(rarePool)];
 
-  // ★ 新增：根據關卡難度過濾高血量元素
+  // ★ 根據難度設定檔 (DIFFICULTY_CONFIG) 過濾高血量元素
   rarePool = rarePool.filter((sym) => {
     const category = ELEMENT_DATA[sym] ? ELEMENT_DATA[sym][1] : "unknown";
-    // 1~4 關：禁止出現過渡金屬與超重元素 (只會出 1~6 HP 的磚)
-    if (
-      currentLevel < 5
-      && ["transition", "lanthanide", "actinide", "unknown"].includes(category)
-    )
-      return false;
-    // 5~9 關：禁止出現超重元素 (最高只出 10~15 HP 的磚)
-    if (
-      currentLevel < 10
-      && ["lanthanide", "actinide", "unknown"].includes(category)
-    )
-      return false;
-    return true;
-  });
 
+    if (["lanthanide", "actinide", "unknown"].includes(category)) {
+      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_HEAVY;
+    }
+    if (["transition"].includes(category)) {
+      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_TRANSITION;
+    }
+    if (["alkali", "alkaline", "main-metal", "metalloid"].includes(category)) {
+      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS;
+    }
+    return true; // 氣體與非金屬永遠開放
+  });
   if (rarePool.length === 0) rarePool = ["Na", "Cl", "Mg"];
 
   if (Math.random() < 0.7)
@@ -412,11 +429,11 @@ function spawnBoss(lv, cv) {
     core: Math.floor(Math.random() * 3),
   };
   floatTexts.push({
-    t: `⚠ BOSS STAGE ${lv} ⚠`,
+    t: `☣️ BOSS - LEVEL：${lv} ☣️`,
     life: 2.5,
     x: cv.width / 2,
     y: cv.height / 2,
-    c: "#D96C8E",
+    c: "#690021",
     big: true,
   });
 }
@@ -1044,18 +1061,46 @@ export function updateGameState(dt, cv) {
     if (p1RankEl) p1RankEl.textContent = `🏆 #${myRank}`;
   }
 
-  document.getElementById("p1-score").textContent = p1.score;
-  document.getElementById("p1-width-bar").style.width =
-    Math.round((p1.w / 120) * 100) + "%";
-  document.getElementById("p1-energy-bar").style.width =
-    (p1.energy / 10) * 100 + "%";
-  if (mode === 2) {
-    document.getElementById("p2-score").textContent = p2.score;
-    document.getElementById("p2-width-bar").style.width =
-      Math.round((p2.w / 120) * 100) + "%";
-    document.getElementById("p2-energy-bar").style.width =
-      (p2.energy / 10) * 100 + "%";
+  // ★ 優化：只在數值改變時才觸發 DOM 更新，解除 CPU 瓶頸
+  if (p1.score !== lastP1Score) {
+    document.getElementById("p1-score").textContent = p1.score;
+    lastP1Score = p1.score;
   }
+
+  const p1WidthPercent = Math.round((p1.w / 120) * 100);
+  if (p1WidthPercent !== lastP1W) {
+    document.getElementById("p1-width-bar").style.width = p1WidthPercent + "%";
+    lastP1W = p1WidthPercent;
+  }
+
+  const p1EnergyPercent = (p1.energy / 10) * 100;
+  if (p1EnergyPercent !== lastP1Energy) {
+    document.getElementById("p1-energy-bar").style.width =
+      p1EnergyPercent + "%";
+    lastP1Energy = p1EnergyPercent;
+  }
+
+  if (mode === 2) {
+    if (p2.score !== lastP2Score) {
+      document.getElementById("p2-score").textContent = p2.score;
+      lastP2Score = p2.score;
+    }
+
+    const p2WidthPercent = Math.round((p2.w / 120) * 100);
+    if (p2WidthPercent !== lastP2W) {
+      document.getElementById("p2-width-bar").style.width =
+        p2WidthPercent + "%";
+      lastP2W = p2WidthPercent;
+    }
+
+    const p2EnergyPercent = (p2.energy / 10) * 100;
+    if (p2EnergyPercent !== lastP2Energy) {
+      document.getElementById("p2-energy-bar").style.width =
+        p2EnergyPercent + "%";
+      lastP2Energy = p2EnergyPercent;
+    }
+  }
+
   // ★ 1. 將 1P 的生命改為「❤️ x 數字」格式 (適用於單人與連線對戰)
   const livesEl = document.getElementById("p1-lives");
   if (livesEl && (mode === 1 || onlineMode)) {
@@ -1257,19 +1302,6 @@ export function loop(ts, cv) {
       loadedImages,
     );
 
-    ctx.font = "900 11px serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-
-    bricks.forEach((b) => {
-      if (b.hp > 0) {
-        const textX = b.x + b.w - 5;
-        const textY = b.y + b.h / 2 + 1;
-        ctx.fillStyle = "rgba(255, 255, 255, 1)";
-        ctx.fillText(Math.ceil(b.hp), textX, textY);
-      }
-    });
-
     ctx.restore(); // ★ 3. 震動結束，還原畫布座標以免影響 UI
 
     // ★ 4. 處理全畫面閃光特效 (Screen Flash)
@@ -1315,6 +1347,7 @@ export function initGlobalBindings() {
       if (running) {
         bricks.length = 0;
         boss.active = false;
+        /*
         floatTexts.push({
           t: "⚡ 跳關成功 ⚡",
           life: 1,
@@ -1323,6 +1356,7 @@ export function initGlobalBindings() {
           c: "#DDA15E",
           big: true,
         });
+        */
       }
     }
     if (e.key === "-" || e.key === "_") {
@@ -1330,14 +1364,6 @@ export function initGlobalBindings() {
         level = Math.ceil((level + 1) / 10) * 10;
         buildLevel(level, document.getElementById("game"));
         resetRound(document.getElementById("game"));
-        floatTexts.push({
-          t: `⚠ 召喚 BOSS (第 ${level} 關)! ⚡`,
-          life: 1.5,
-          x: 400,
-          y: 300,
-          c: "#E0576B",
-          big: true,
-        });
       }
     }
     if (e.key === "+" || e.key === "=") {

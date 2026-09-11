@@ -2195,6 +2195,17 @@ window.cheatMaxAtoms = function (amount = 100) {
 };
 
 // ==========================================
+// ★ 難度曲線與元素解禁常數設定
+// ==========================================
+export const DIFFICULTY_CONFIG = {
+  FULL_POTENTIAL_LEVEL: 50, // 達到 100% 原始血量潛力的關卡數
+  CURVE_EXPONENT: 1.5, // 成長曲線次方 (1=線性, 1.5=平滑下凹, 2.0=前期極易/後期陡峭)
+  UNLOCK_MAIN_METALS: 15, // 解禁主族與鹼土金屬 (4~6 HP) 的關卡
+  UNLOCK_TRANSITION: 30, // 解禁過渡金屬 (10~15 HP) 的關卡
+  UNLOCK_HEAVY: 45, // 解禁超重與放射性元素 (20~30 HP) 的關卡
+};
+
+// ==========================================
 // ★ 關卡倍率與磚塊生命值演算器
 // ==========================================
 export function calculateBrickHP(symbol, currentLevel = 1) {
@@ -2202,50 +2213,46 @@ export function calculateBrickHP(symbol, currentLevel = 1) {
 
   if (symbol && ELEMENT_DATA[symbol]) {
     const category = ELEMENT_DATA[symbol][1];
-
-    // 依據化學屬性給予基礎 HP
+    // 依據化學屬性給予「Lv.50 的滿級基礎潛力值」
     if (["nonmetal", "halogen", "noble"].includes(category)) {
-      baseHp = Math.floor(Math.random() * 2) + 1; // 氣體與非金屬 (1-2)
+      baseHp = Math.floor(Math.random() * 2) + 2; // 潛力 2-3
     } else if (
       ["alkali", "alkaline", "main-metal", "metalloid"].includes(category)
     ) {
-      baseHp = Math.floor(Math.random() * 3) + 4; // 主族與鹼土金屬 (4-6)
+      baseHp = Math.floor(Math.random() * 3) + 4; // 潛力 4-6
     } else if (["transition"].includes(category)) {
-      baseHp = Math.floor(Math.random() * 6) + 10; // 過渡金屬 (10-15)
+      baseHp = Math.floor(Math.random() * 6) + 10; // 潛力 10-15
     } else if (["lanthanide", "actinide", "unknown"].includes(category)) {
-      baseHp = Math.floor(Math.random() * 11) + 20; // 放射性與超重元素 (20-30)
+      baseHp = Math.floor(Math.random() * 11) + 20; // 潛力 20-30
     }
   } else {
-    // 預設無元素的一般磚塊
-    baseHp = 2;
+    baseHp = 2; // 預設一般磚塊潛力
   }
 
-  // 關卡倍率：每關增加 0.15 倍
-  const levelMultiplier = 1 + (currentLevel - 1) * 0.15;
+  // ★ 曲線成長壓縮：以 FULL_POTENTIAL_LEVEL 為基準展開
+  const progressRatio = currentLevel / DIFFICULTY_CONFIG.FULL_POTENTIAL_LEVEL;
+  const scale = Math.pow(progressRatio, DIFFICULTY_CONFIG.CURVE_EXPONENT);
+  const finalHp = 1 + (baseHp - 1) * scale;
 
-  // 回傳最終 HP (四捨五入，且最少為 1)
-  return Math.max(1, Math.round(baseHp * levelMultiplier));
+  return Math.max(1, Math.round(finalHp));
 }
 
 // ==========================================
-// ★ 新增：依據關卡難度隨機抽取元素
+// ★ 依據關卡難度隨機抽取元素
 // ==========================================
 export function getRandomElementForLevel(currentLevel = 1) {
-  // Lv 1 預設只開放最脆弱的氣體與非金屬 (基礎 1-2 HP)
   let allowedCategories = ["nonmetal", "halogen", "noble"];
 
-  // 隨著關卡推進，逐步開放更硬的元素
-  if (currentLevel >= 3) {
-    allowedCategories.push("alkali", "alkaline", "main-metal", "metalloid"); // 加入主族 (4-6 HP)
+  if (currentLevel >= DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS) {
+    allowedCategories.push("alkali", "alkaline", "main-metal", "metalloid");
   }
-  if (currentLevel >= 8) {
-    allowedCategories.push("transition"); // 加入過渡金屬 (10-15 HP)
+  if (currentLevel >= DIFFICULTY_CONFIG.UNLOCK_TRANSITION) {
+    allowedCategories.push("transition");
   }
-  if (currentLevel >= 15) {
-    allowedCategories.push("lanthanide", "actinide", "unknown"); // 加入超重元素 (20-30 HP)
+  if (currentLevel >= DIFFICULTY_CONFIG.UNLOCK_HEAVY) {
+    allowedCategories.push("lanthanide", "actinide", "unknown");
   }
 
-  // 篩選出符合當前難度的元素池
   const pool = Object.keys(ELEMENT_DATA).filter((sym) => {
     const category = ELEMENT_DATA[sym][1];
     return allowedCategories.includes(category);

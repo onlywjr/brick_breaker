@@ -8,6 +8,7 @@ import {
   mode,
   onlineMode,
   onlineBlindTimer,
+  PERFORMANCE_MODE,
 } from "./game.js";
 
 import {
@@ -200,13 +201,128 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.save();
     const member = MEMBERS[b.ci % MEMBERS.length];
     const paleColor = lightenColor(member.color, 0.55);
-    ctx.shadowColor = paleColor;
-    ctx.shadowBlur = 10;
+    if (!PERFORMANCE_MODE) {
+      ctx.shadowColor = paleColor;
+      ctx.shadowBlur = 10;
+    }
 
     ctx.fillStyle = paleColor;
     ctx.beginPath();
     ctx.roundRect(b.x, b.y, b.w, b.h, 4);
     ctx.fill();
+
+    // ==========================================
+    // ★ CSS border-left 風格動態血條
+    // ==========================================
+    if (b.hp > 0 && b.maxHp) {
+      ctx.save();
+      ctx.shadowBlur = 0; // 關閉陰影，確保血條邊緣乾淨銳利
+
+      // 利用 clip 裁切，完美繼承磚塊左側的圓角，同時保持右側直線
+      ctx.beginPath();
+      ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+      ctx.clip();
+
+      const hpRatio = Math.max(0, Math.min(1, b.hp / b.maxHp));
+      const barW = 4; // 邊框厚度 (可依喜好調整)
+
+      // 1. 畫底槽暗色 (受損後空掉的軌跡，呈現微凹陷感)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.fillRect(b.x, b.y, barW, b.h);
+
+      // 2. 當前血量 (由下往上長)
+      const fillH = b.h * hpRatio;
+      const fillY = b.y + (b.h - fillH);
+
+      // 3. 隨血量變色：健康綠 -> 警告黃 -> 瀕死紅
+      let hpColor = "#ffffff";
+      if (hpRatio <= 0.3) {
+        hpColor = "#d12323d0";
+      } else if (hpRatio <= 0.6) {
+        hpColor = "#ffc73ad9";
+      }
+
+      ctx.fillStyle = hpColor;
+      ctx.fillRect(b.x, fillY, barW, fillH);
+
+      ctx.restore();
+    }
+
+    // ==========================================
+    // ★ 動態破裂特效 (Procedural Cracks - 碎石立體版)
+    // ==========================================
+    if (b.maxHp && b.hp < b.maxHp) {
+      const damageRatio = 1 - b.hp / b.maxHp;
+
+      // 依然使用不變的初始座標作為亂數種子，確保不跳動
+      const seed = (b.minX || b.x) * 13.37 + b.y * 42.19;
+      const rnd = (i) => Math.abs(Math.sin(seed + i) * 43758.5453) % 1;
+
+      ctx.save();
+      // 遮罩：確保裂紋不會超出版圖
+      ctx.beginPath();
+      ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+      ctx.clip();
+
+      ctx.beginPath();
+
+      // 隨受損程度，增加裂痕的「爆發中心點」數量
+      const clusters = 1 + Math.floor(damageRatio * 3);
+
+      for (let c = 0; c < clusters; c++) {
+        // 隨機決定爆發中心 (讓起點散佈在磚塊各處)
+        let startX = b.x + rnd(c * 10) * b.w;
+        let startY = b.y + rnd(c * 11) * b.h;
+
+        // 每個中心會產生 1~3 條輻射狀的分支
+        const branches = 1 + Math.floor(rnd(c * 12) * 3);
+        for (let br = 0; br < branches; br++) {
+          ctx.moveTo(startX, startY);
+          let currentX = startX;
+          let currentY = startY;
+
+          // 初始裂開方向
+          let angle = rnd(c * 20 + br) * Math.PI * 2;
+          // 受損越重，裂縫延伸越長 (節點越多)
+          const segments =
+            2 + Math.floor(damageRatio * 4) + Math.floor(rnd(c * 30 + br) * 2);
+
+          for (let s = 0; s < segments; s++) {
+            // ★ 石頭碎裂特徵：強烈且尖銳的偏折 (約 30~80 度的突波)
+            let angleShift =
+              (rnd(c * 100 + br * 10 + s) > 0.5 ? 1 : -1)
+              * (0.5 + rnd(c * 200 + br * 20 + s) * 0.8);
+            angle += angleShift;
+
+            // 每段保持短促有力 (5~10 px)
+            let len = 5 + rnd(c * 300 + br * 30 + s) * 5;
+            currentX += Math.cos(angle) * len;
+            currentY += Math.sin(angle) * len;
+            ctx.lineTo(currentX, currentY);
+          }
+        }
+      }
+
+      ctx.lineCap = "round";
+      // 確保轉角尖銳，呈現玻璃/石頭的脆性質感
+      ctx.lineJoin = "miter";
+      ctx.miterLimit = 3;
+
+      // 1. 畫出白色的主裂痕 (呈現冰晶或玻璃碎裂的質感)
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.75 + damageRatio * 0.25})`;
+      ctx.lineWidth = 1 + damageRatio * 1.2;
+      ctx.stroke();
+
+      // 2. 畫出邊緣的微暗陰影 (讓白裂痕在淺色磚塊上依然保有立體感)
+      ctx.strokeStyle = `rgba(192, 192, 192, ${0.15 + damageRatio * 0.15})`;
+      ctx.lineWidth = 1;
+      // 往右下角微偏，製造白色裂痕浮出或凹陷的光影
+      ctx.translate(0.5, 1);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+    // ==========================================
 
     if (b.isMoving) {
       ctx.strokeStyle = "rgba(255,255,255,0.8)";
@@ -246,8 +362,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         // 位置放在英文起點向左推 10px，半徑 3px
         ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
         ctx.fillStyle = "#F6D98B"; // 亮黃色
-        ctx.shadowColor = "#F6D98B";
-        ctx.shadowBlur = 8; // 光暈效果
+        if (!PERFORMANCE_MODE) {
+          ctx.shadowColor = "#F6D98B";
+          ctx.shadowBlur = 8;
+        }
         ctx.fill();
         ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
       }
@@ -259,8 +377,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         // 位置放在英文起點向左推 10px，半徑 3px
         ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
         ctx.fillStyle = "#F6D98B"; // 亮黃色
-        ctx.shadowColor = "#F6D98B";
-        ctx.shadowBlur = 8; // 光暈效果
+        if (!PERFORMANCE_MODE) {
+          ctx.shadowColor = "#F6D98B";
+          ctx.shadowBlur = 8;
+        }
         ctx.fill();
         ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
       }
@@ -565,8 +685,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
     if (hasImg) {
       ctx.save();
-      ctx.shadowColor = pl.lightColor;
-      ctx.shadowBlur = 18;
+      if (!PERFORMANCE_MODE) {
+        ctx.shadowColor = pl.lightColor;
+        ctx.shadowBlur = 18;
+      }
 
       // 使用另一個小畫布將圖片填上玩家專屬的馬卡龍色
       const tempCv = document.createElement("canvas");
