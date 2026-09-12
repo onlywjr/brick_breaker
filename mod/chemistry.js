@@ -1456,7 +1456,6 @@ function renderShopCards() {
             "add_piercing",
             "phase_piercing",
             "laser_pierce",
-            "heavy_ball",
             "charge_next_hit",
           ].includes(act)
         )
@@ -1481,6 +1480,7 @@ function renderShopCards() {
             "charged_explosion",
             "global_damage_over_time",
             "global_corrosion",
+            "heavy_ball",
           ].includes(act)
         )
           act = "damage_all";
@@ -1507,7 +1507,6 @@ function renderShopCards() {
           act = "reverse_controls";
         if (
           [
-            "create_ghost_ball",
             "highlight_targets",
             "magnetic_trajectory",
             "trajectory_guide",
@@ -1528,7 +1527,11 @@ function renderShopCards() {
             "freeze",
           ].includes(act)
         ) {
-          if (
+          if (act === "create_ghost_ball") {
+            // ★ 新增：幽靈球的專屬加法公式
+            oldP = Math.round(p).toString();
+            newP = Math.round(p + (displayLv - 1)).toString();
+          } else if (
             [
               "damage_hp",
               "damage_all",
@@ -1579,7 +1582,7 @@ function renderShopCards() {
           );
         if (sVals.oldP)
           text = text.replace(
-            new RegExp("\\b" + sVals.oldP + "(?=\\s*[點層排倍%])"),
+            new RegExp("\\b" + sVals.oldP + "(?=\\s*[點顆層排倍%])"),
             sVals.newP,
           );
         rawDesc = rawDesc.replace(sMatch[1], text);
@@ -1598,7 +1601,7 @@ function renderShopCards() {
           );
         if (mVals.oldP)
           text = text.replace(
-            new RegExp("\\b" + mVals.oldP + "(?=\\s*[點層排倍%])"),
+            new RegExp("\\b" + mVals.oldP + "(?=\\s*[點顆層排倍%])"),
             mVals.newP,
           );
         rawDesc = rawDesc.replace(mMatch[1], text);

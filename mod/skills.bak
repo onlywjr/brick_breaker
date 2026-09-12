@@ -1,6 +1,6 @@
 {
   "meta": {
-    "description": "BRICK RUSH 99 化學技能對照表。已重新分配 Action 權重，大幅增加重球、幽靈球、毒霧、延遲爆炸及多人模式的視線與軌跡干擾，確保單一機制的佔比皆在 10% 以下。",
+    "description": "BRICK RUSH 99 化學技能對照表。全面升級為 14 種標準化 Action，根據分子量換算為具體的 Level，並補回所有化合物專屬的背景說明 Flavor Text。",
     "derivedFieldsNote": "atomCount 由 elements 內所有數量加總得出；avgAtomicWeight = molecularWeight / atomCount；strength 由下方公式在遊戲載入時即時計算，不寫死在本檔案中。",
     "strengthFormula": "strength = clamp(molecularWeight * STRENGTH_BASE_COEFFICIENT - avgAtomicWeight * AVG_ATOMIC_WEIGHT_PENALTY_COEFFICIENT, MIN_STRENGTH, MAX_STRENGTH)",
     "costFormula": "cost = molecularWeight * MOLECULAR_WEIGHT_TO_COST_RATIO"
@@ -39,7 +39,7 @@
       "molecularWeight": 16,
       "elements": { "C": 1, "H": 4 },
       "category": "輔助",
-      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 釋放濃霧遮蔽對手 2 秒。",
+      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 遮蔽對手視線 2 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
@@ -47,7 +47,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "fog_blind",
+        "action": "blind_screen",
         "params": { "durationSec": 2 }
       }
     },
@@ -96,11 +96,11 @@
       "molecularWeight": 34,
       "elements": { "H": 2, "O": 2 },
       "category": "攻擊",
-      "description": "強效的氧化劑，常用於消毒與漂白。 【單人】Lv.1 化身重球，引發範圍爆破，持續 5 秒。 【多人】Lv.1 扣除對手 3 點生命。",
+      "description": "強效的氧化劑，常用於消毒與漂白。 【單人】Lv.1 對全場磚塊造成 2 點傷害。 【多人】Lv.1 扣除對手 3 點生命。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 1.5, "durationSec": 5 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 2 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -172,16 +172,16 @@
       "molecularWeight": 46,
       "elements": { "C": 2, "H": 6, "O": 1 },
       "category": "輔助",
-      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 使對手球軌跡混亂，持續 5 秒。",
+      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 扣除對手 3 點生命。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
         "params": { "power": 1.15, "durationSec": 4 }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "chaos_trajectory",
-        "params": { "power": 2, "durationSec": 5 }
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "power": 3 }
       }
     },
     {
@@ -191,16 +191,16 @@
       "molecularWeight": 56,
       "elements": { "Ca": 1, "O": 1 },
       "category": "攻擊",
-      "description": "遇水會釋放大量熱能的生石灰。 【單人】Lv.2 蓄積高熱，4 秒後引發大範圍爆發。 【多人】Lv.2 產生熱浪風暴干擾對手，持續 5 秒。",
+      "description": "遇水會釋放大量熱能的生石灰。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 對手擋板減速 10%，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 3, "durationSec": 4 }
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
-        "target": "opponent",
-        "action": "storm_disruption",
-        "params": { "power": 1, "durationSec": 5 }
+        "target": "opponent_paddle",
+        "action": "slow_speed",
+        "params": { "power": 0.9, "durationSec": 5 }
       }
     },
     {
@@ -210,16 +210,16 @@
       "molecularWeight": 58.5,
       "elements": { "Na": 1, "Cl": 1 },
       "category": "控制",
-      "description": "最常見的鹽類，維持生命運作的必需品。 【單人】Lv.2 產生 3 顆結晶幽靈球，持續 6 秒。 【多人】Lv.2 使對手球軌跡混亂，持續 6 秒。",
+      "description": "最常見的鹽類，維持生命運作的必需品。 【單人】Lv.2 瞬間消除底層 2 排磚塊。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 6 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 2 }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "chaos_trajectory",
-        "params": { "power": 2, "durationSec": 6 }
+        "target": "opponent_paddle",
+        "action": "shrink_width",
+        "params": { "power": 0.9, "durationSec": 6 }
       }
     },
     {
@@ -267,11 +267,11 @@
       "molecularWeight": 62,
       "elements": { "H": 2, "C": 1, "O": 3 },
       "category": "特殊",
-      "description": "溶有二氧化碳的微酸性液體，易產生氣泡。 【單人】Lv.2 產生 3 顆氣泡幽靈球在場上穿梭，持續 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "溶有二氧化碳的微酸性液體，易產生氣泡。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 5 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -286,11 +286,11 @@
       "molecularWeight": 63,
       "elements": { "H": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "具強烈腐蝕性與氧化性的三大強酸之一。 【單人】Lv.2 發散強酸，全場方塊受到持續腐蝕，持續 7 秒。 【多人】Lv.2 反轉對手操作 4 秒。",
+      "description": "具強烈腐蝕性與氧化性的三大強酸之一。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 反轉對手操作 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 1, "durationSec": 7 }
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -343,7 +343,7 @@
       "molecularWeight": 80,
       "elements": { "Ti": 1, "O": 2 },
       "category": "防禦",
-      "description": "優良的光催化劑與最白的天然顏料。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 閃瞎對手視線 3 秒。",
+      "description": "優良的光催化劑與最白的天然顏料。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 遮蔽對手視線 3 秒。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
@@ -351,7 +351,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "flash_blind",
+        "action": "blind_screen",
         "params": { "durationSec": 3 }
       }
     },
@@ -362,11 +362,11 @@
       "molecularWeight": 80,
       "elements": { "Cu": 1, "O": 1 },
       "category": "攻擊",
-      "description": "黑色的氧化銅粉末，具備催化特性。 【單人】Lv.2 化身重球，撞擊引發範圍爆炸，持續 6 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "黑色的氧化銅粉末，具備催化特性。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 6 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -381,11 +381,11 @@
       "molecularWeight": 84,
       "elements": { "Na": 1, "H": 1, "C": 1, "O": 3 },
       "category": "特殊",
-      "description": "俗稱小蘇打，遇酸會迅速產生二氧化碳氣泡。 【單人】Lv.2 分裂出 4 顆氣泡幽靈球，持續 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "俗稱小蘇打，遇酸會迅速產生二氧化碳氣泡。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 遮蔽對手視線 3 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 4, "durationSec": 5 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -419,7 +419,7 @@
       "molecularWeight": 97,
       "elements": { "Zn": 1, "S": 1 },
       "category": "特殊",
-      "description": "常見的磷光材料，吸收光能後會持續發光。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 閃瞎對手視線 3 秒。",
+      "description": "常見的磷光材料，吸收光能後會持續發光。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
@@ -427,7 +427,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "flash_blind",
+        "action": "blind_screen",
         "params": { "durationSec": 3 }
       }
     },
@@ -438,11 +438,11 @@
       "molecularWeight": 98,
       "elements": { "H": 2, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "工業之母，具備強烈脫水性與腐蝕性的強酸。 【單人】Lv.2 降下酸雨，全場磚塊受到持續腐蝕傷害，持續 6 秒。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "description": "工業之母，具備強烈脫水性與腐蝕性的強酸。 【單人】Lv.2 對全場磚塊造成 4 點傷害。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 1, "durationSec": 6 }
+        "action": "damage_all",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -476,11 +476,11 @@
       "molecularWeight": 101,
       "elements": { "K": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "俗稱硝石，製造黑火藥的核心成分。 【單人】Lv.3 點燃火藥，4 秒後引發猛烈大爆炸。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "俗稱硝石，製造黑火藥的核心成分。 【單人】Lv.3 瞬間消除底層 3 排磚塊。 【多人】Lv.3 扣除對手 9 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 4, "durationSec": 4 }
+        "action": "clear_rows",
+        "params": { "power": 3 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -552,11 +552,11 @@
       "molecularWeight": 122,
       "elements": { "Kr": 1, "F": 2 },
       "category": "攻擊",
-      "description": "極不穩定的惰性氣體化合物，易發生爆裂。 【單人】Lv.3 注入極不穩定能量，3 秒後引發毀滅大爆炸。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "極不穩定的惰性氣體化合物，易發生爆裂。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 扣除對手 9 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 5, "durationSec": 3 }
+        "action": "damage_all",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -571,11 +571,11 @@
       "molecularWeight": 123,
       "elements": { "Zr": 1, "O": 2 },
       "category": "攻擊",
-      "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。 【單人】Lv.3 化身重球，撞擊引發範圍爆炸，持續 7 秒。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 扣除對手 9 點生命。",
       "effectSingle": {
         "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 7 }
+        "action": "enable_pierce",
+        "params": { "durationSec": 7 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -609,7 +609,7 @@
       "molecularWeight": 130,
       "elements": { "Co": 1, "Cl": 2 },
       "category": "特殊",
-      "description": "隨濕度改變顏色的無機化合物，猶如真視之眼。 【單人】Lv.3 積分獲取變為 4 倍，持續 8 秒。 【多人】Lv.3 扭曲對手畫面視線 4 秒。",
+      "description": "隨濕度改變顏色的無機化合物，猶如真視之眼。 【單人】Lv.3 積分獲取變為 4 倍，持續 8 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
@@ -617,7 +617,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "visual_distortion",
+        "action": "blind_screen",
         "params": { "durationSec": 4 }
       }
     },
@@ -628,11 +628,11 @@
       "molecularWeight": 133,
       "elements": { "Ru": 1, "O": 2 },
       "category": "控制",
-      "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.3 注入過載能量，4 秒後引發大爆炸。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
+      "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 6, "durationSec": 4 }
+        "action": "damage_all",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -666,11 +666,11 @@
       "molecularWeight": 143,
       "elements": { "Ag": 1, "Cl": 1 },
       "category": "特殊",
-      "description": "遇光會分解變黑的感光材料。 【單人】Lv.3 產生 4 顆暗影幽靈球，持續 6 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "description": "遇光會分解變黑的感光材料。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 遮蔽對手視線 4 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 4, "durationSec": 6 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -685,7 +685,7 @@
       "molecularWeight": 145,
       "elements": { "Ga": 1, "As": 1 },
       "category": "控制",
-      "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 強烈閃瞎對手視線 4 秒。",
+      "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
@@ -693,7 +693,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "flash_blind",
+        "action": "blind_screen",
         "params": { "durationSec": 4 }
       }
     },
@@ -704,11 +704,11 @@
       "molecularWeight": 148,
       "elements": { "Sr": 1, "C": 1, "O": 3 },
       "category": "攻擊",
-      "description": "燃燒時會發出耀眼紅光的煙火焰色劑。 【單人】Lv.3 發射緋紅引信，3 秒後引發大範圍爆炸。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "description": "燃燒時會發出耀眼紅光的煙火焰色劑。 【單人】Lv.3 對全場磚塊造成 6 點傷害。 【多人】Lv.3 遮蔽對手視線 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 6, "durationSec": 3 }
+        "action": "damage_all",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -723,11 +723,11 @@
       "molecularWeight": 155,
       "elements": { "Ni": 1, "S": 1, "O": 4 },
       "category": "控制",
-      "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.4 釋放麻痺毒霧，全場方塊受到持續侵蝕，持續 5 秒。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 5 }
+        "action": "damage_all",
+        "params": { "power": 8 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -742,11 +742,11 @@
       "molecularWeight": 158,
       "elements": { "K": 1, "Mn": 1, "O": 4 },
       "category": "攻擊",
-      "description": "呈現深紫色的強效氧化劑與消毒劑。 【單人】Lv.4 釋放紫焰毒霧，全場方塊受到持續侵蝕，持續 6 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "呈現深紫色的強效氧化劑與消毒劑。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 6 }
+        "action": "damage_all",
+        "params": { "power": 8 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -780,11 +780,11 @@
       "molecularWeight": 160,
       "elements": { "Cu": 1, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "呈現澄澈藍色的電解質溶液，具毒性。 【單人】Lv.4 釋放蒼藍毒霧，全場方塊受到持續侵蝕，持續 7 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "呈現澄澈藍色的電解質溶液，具毒性。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 7 }
+        "action": "damage_all",
+        "params": { "power": 8 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -837,11 +837,11 @@
       "molecularWeight": 162,
       "elements": { "Fe": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "溶於水呈黃褐色，具備強烈腐蝕性的酸性鹽。 【單人】Lv.4 化身腐蝕重球，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.4 對手擋板減速 20%，持續 7 秒。",
+      "description": "溶於水呈黃褐色，具備強烈腐蝕性的酸性鹽。 【單人】Lv.4 瞬間消除底層 4 排磚塊。 【多人】Lv.4 對手擋板減速 20%，持續 7 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -875,11 +875,11 @@
       "molecularWeight": 170,
       "elements": { "Ag": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。 【單人】Lv.4 化身沉重白銀，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -913,16 +913,16 @@
       "molecularWeight": 180,
       "elements": { "C": 6, "H": 12, "O": 6 },
       "category": "輔助",
-      "description": "生物體內最重要的能量來源。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 自身球速提升 50%，持續 6 秒。",
+      "description": "生物體內最重要的能量來源。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
         "params": { "power": 2 }
       },
       "effectMulti": {
-        "target": "self_ball",
-        "action": "speed_boost",
-        "params": { "power": 1.5, "durationSec": 6 }
+        "target": "opponent_paddle",
+        "action": "freeze",
+        "params": { "durationSec": 5 }
       }
     },
     {
@@ -932,11 +932,11 @@
       "molecularWeight": 182,
       "elements": { "V": 2, "O": 5 },
       "category": "輔助",
-      "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.4 化身重球，引發催化範圍爆炸，持續 7 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.4 對全場磚塊造成 8 點傷害。 【多人】Lv.4 扣除對手 12 點生命。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 7 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 8 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -951,16 +951,16 @@
       "molecularWeight": 185,
       "elements": { "Na": 1, "Tc": 1, "O": 4 },
       "category": "特殊",
-      "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 使對手球軌跡嚴重混亂，持續 6 秒。",
+      "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 遮蔽對手視線 5 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
         "params": { "power": 5, "durationSec": 10 }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "chaos_trajectory",
-        "params": { "power": 3, "durationSec": 6 }
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 5 }
       }
     },
     {
@@ -970,7 +970,7 @@
       "molecularWeight": 188,
       "elements": { "Ag": 1, "Br": 1 },
       "category": "特殊",
-      "description": "傳統底片中最重要的感光乳劑成分。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 強烈閃瞎對手視線 5 秒。",
+      "description": "傳統底片中最重要的感光乳劑成分。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 遮蔽對手視線 5 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
@@ -978,7 +978,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "flash_blind",
+        "action": "blind_screen",
         "params": { "durationSec": 5 }
       }
     },
@@ -1046,11 +1046,11 @@
       "molecularWeight": 207,
       "elements": { "Xe": 1, "F": 4 },
       "category": "攻擊",
-      "description": "證明惰性氣體也能參與反應的強氧化劑。 【單人】Lv.5 注入極地能量，4 秒後引發毀滅大爆炸。 【多人】Lv.5 完全凍結對手擋板 6 秒。",
+      "description": "證明惰性氣體也能參與反應的強氧化劑。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 完全凍結對手擋板 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 8, "durationSec": 4 }
+        "action": "damage_all",
+        "params": { "power": 10 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1122,16 +1122,16 @@
       "molecularWeight": 232,
       "elements": { "Fe": 3, "O": 4 },
       "category": "控制",
-      "description": "天然具有磁性的黑色氧化鐵礦物。 【單人】Lv.5 擋板寬度增加 50%，持續 12 秒。 【多人】Lv.5 以磁力牽引對手球軌跡，持續 7 秒。",
+      "description": "天然具有磁性的黑色氧化鐵礦物。 【單人】Lv.5 擋板寬度增加 50%，持續 12 秒。 【多人】Lv.5 反轉對手操作 7 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
         "params": { "power": 1.5, "durationSec": 12 }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "magnetic_pull",
-        "params": { "power": 3, "durationSec": 7 }
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 7 }
       }
     },
     {
@@ -1141,7 +1141,7 @@
       "molecularWeight": 233,
       "elements": { "Ba": 1, "S": 1, "O": 4 },
       "category": "特殊",
-      "description": "醫學上常用作X光腸胃顯影劑的鋇餐。 【單人】Lv.5 積分獲取變為 6 倍，持續 12 秒。 【多人】Lv.5 嚴重扭曲對手畫面視線 6 秒。",
+      "description": "醫學上常用作X光腸胃顯影劑的鋇餐。 【單人】Lv.5 積分獲取變為 6 倍，持續 12 秒。 【多人】Lv.5 遮蔽對手視線 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
@@ -1149,7 +1149,7 @@
       },
       "effectMulti": {
         "target": "opponent_screen",
-        "action": "visual_distortion",
+        "action": "blind_screen",
         "params": { "durationSec": 6 }
       }
     },
@@ -1160,11 +1160,11 @@
       "molecularWeight": 233,
       "elements": { "Hg": 1, "S": 1 },
       "category": "攻擊",
-      "description": "鮮紅色的劇毒礦物，俗稱辰砂。 【單人】Lv.5 散佈血色疫病，全場方塊受到強烈腐蝕，持續 6 秒。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "鮮紅色的劇毒礦物，俗稱辰砂。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 扣除對手 15 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 3, "durationSec": 6 }
+        "action": "damage_all",
+        "params": { "power": 10 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1217,11 +1217,11 @@
       "molecularWeight": 254,
       "elements": { "Os": 1, "O": 4 },
       "category": "攻擊",
-      "description": "揮發性極強且毒性猛烈的金屬氧化物。 【單人】Lv.5 釋放猛毒蒸氣，全場磚塊受到劇烈的持續侵蝕，持續 8 秒。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "揮發性極強且毒性猛烈的金屬氧化物。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 扣除對手 15 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 8 }
+        "action": "damage_all",
+        "params": { "power": 10 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1293,11 +1293,11 @@
       "molecularWeight": 293,
       "elements": { "Rf": 1, "O": 2 },
       "category": "特殊",
-      "description": "極度不穩定，帶有未知量子特性的實驗化合物。 【單人】Lv.5 產生 3 顆量子幽靈球，持續 6 秒。 【多人】Lv.5 遮蔽對手視線 6 秒。",
+      "description": "極度不穩定，帶有未知量子特性的實驗化合物。 【單人】Lv.5 對全場磚塊造成 10 點傷害。 【多人】Lv.5 遮蔽對手視線 6 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 6 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 10 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -1312,11 +1312,11 @@
       "molecularWeight": 294,
       "elements": { "K": 2, "Cr": 2, "O": 7 },
       "category": "攻擊",
-      "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。 【單人】Lv.5 注入狂流能量，4 秒後引發毀滅大爆炸。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。 【單人】Lv.5 瞬間消除底層 5 排磚塊。 【多人】Lv.5 扣除對手 15 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 10, "durationSec": 4 }
+        "action": "clear_rows",
+        "params": { "power": 5 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1426,11 +1426,11 @@
       "molecularWeight": 306,
       "elements": { "Mc": 1, "O": 1 },
       "category": "攻擊",
-      "description": "壽命僅在毫秒之間的第115號元素氧化物。 【單人】Lv.6 引發大範圍連環爆破。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "壽命僅在毫秒之間的第115號元素氧化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "massive_explosion",
-        "params": { "power": 6 }
+        "action": "damage_all",
+        "params": { "power": 12 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1445,11 +1445,11 @@
       "molecularWeight": 307,
       "elements": { "Fe": 1, "Ni": 1, "Ir": 1 },
       "category": "攻擊",
-      "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。 【單人】Lv.6 使球化身沉重隕石，撞擊時引發大範圍爆破，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1464,11 +1464,11 @@
       "molecularWeight": 310,
       "elements": { "Mt": 1, "O": 2 },
       "category": "攻擊",
-      "description": "放射性極強，存在時間以微秒計的超重氧化物。 【單人】Lv.6 引發毀滅級連環爆破。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "放射性極強，存在時間以微秒計的超重氧化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "massive_explosion",
-        "params": { "power": 7 }
+        "action": "damage_all",
+        "params": { "power": 12 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1483,11 +1483,11 @@
       "molecularWeight": 314,
       "elements": { "Sg": 1, "O": 3 },
       "category": "特殊",
-      "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.6 召喚 6 顆虛空幽靈球，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 6, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1578,11 +1578,11 @@
       "molecularWeight": 340,
       "elements": { "Sb": 2, "S": 3 },
       "category": "攻擊",
-      "description": "呈現黑灰色的針狀晶體，早期煙火與火柴的原料。 【單人】Lv.6 點燃引信，3 秒後引發毀滅性大爆炸。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "呈現黑灰色的針狀晶體，早期煙火與火柴的原料。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "delayed_explosion",
-        "params": { "power": 10, "durationSec": 3 }
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1597,11 +1597,11 @@
       "molecularWeight": 349.5,
       "elements": { "Am": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "呈現粉紅色的超鈾元素放射性鹽類。 【單人】Lv.6 發散致命強酸，全場受到劇烈腐蝕，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "呈現粉紅色的超鈾元素放射性鹽類。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 3, "durationSec": 8 }
+        "action": "damage_all",
+        "params": { "power": 12 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1635,11 +1635,11 @@
       "molecularWeight": 358.5,
       "elements": { "Es": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "用於研究超鈾元素特性的高放射性化合物。 【單人】Lv.6 使球化身超重球，撞擊引發巨大範圍爆炸，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "用於研究超鈾元素特性的高放射性化合物。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1673,16 +1673,16 @@
       "molecularWeight": 365,
       "elements": { "Ts": 1, "Cl": 2 },
       "category": "攻擊",
-      "description": "週期表第117號元素的鹵素同族化合物。 【單人】Lv.6 使球化身風暴重球，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.6 召喚電磁風暴強烈干擾對手，持續 7 秒。",
+      "description": "週期表第117號元素的鹵素同族化合物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 遮蔽對手視線 7 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "damage_all",
+        "params": { "power": 12 }
       },
       "effectMulti": {
-        "target": "opponent",
-        "action": "storm_disruption",
-        "params": { "power": 4, "durationSec": 7 }
+        "target": "opponent_screen",
+        "action": "blind_screen",
+        "params": { "durationSec": 7 }
       }
     },
     {
@@ -1692,11 +1692,11 @@
       "molecularWeight": 372.5,
       "elements": { "Lr": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "錒系元素最後一個成員的高能放射鹽。 【單人】Lv.6 狂怒重化，撞擊引發毀滅範圍爆炸，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "錒系元素最後一個成員的高能放射鹽。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1711,11 +1711,11 @@
       "molecularWeight": 376.5,
       "elements": { "Bh": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。 【單人】Lv.6 散佈極致腐朽毒霧，全場方塊快速崩解，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。 【單人】Lv.6 對全場磚塊造成 12 點傷害。 【多人】Lv.6 扣除對手 18 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 4, "durationSec": 8 }
+        "action": "damage_all",
+        "params": { "power": 12 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1730,11 +1730,11 @@
       "molecularWeight": 382,
       "elements": { "Er": 2, "O": 3 },
       "category": "特殊",
-      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。 【單人】Lv.6 折射出 7 顆光束幽靈球，持續 8 秒。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。 【單人】Lv.6 瞬間消除底層 6 排磚塊。 【多人】Lv.6 遮蔽對手視線 7 秒。",
       "effectSingle": {
-        "target": "self_ball",
-        "action": "create_ghost_ball",
-        "params": { "power": 7, "durationSec": 8 }
+        "target": "board_bricks",
+        "action": "clear_rows",
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent_screen",
@@ -1825,11 +1825,11 @@
       "molecularWeight": 484,
       "elements": { "Re": 2, "O": 7 },
       "category": "攻擊",
-      "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。 【單人】Lv.7 釋放終極酸霧，全場方塊受到極致腐蝕，持續 8 秒。 【多人】Lv.7 對手擋板縮小 35%，持續 16 秒。",
+      "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。 【單人】Lv.7 瞬間消除底層 7 排磚塊。 【多人】Lv.7 對手擋板縮小 35%，持續 16 秒。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 4, "durationSec": 8 }
+        "action": "clear_rows",
+        "params": { "power": 7 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1844,11 +1844,11 @@
       "molecularWeight": 504,
       "elements": { "Tl": 2, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "無色無味，歷史上曾作為滅鼠藥的劇毒物質。 【單人】Lv.7 散佈無形鴆毒，全場方塊快速崩解，持續 8 秒。 【多人】Lv.7 扣除對手 21 點生命。",
+      "description": "無色無味，歷史上曾作為滅鼠藥的劇毒物質。 【單人】Lv.7 瞬間消除底層 7 排磚塊。 【多人】Lv.7 扣除對手 21 點生命。",
       "effectSingle": {
         "target": "board_bricks",
-        "action": "global_corrosion",
-        "params": { "power": 5, "durationSec": 8 }
+        "action": "clear_rows",
+        "params": { "power": 7 }
       },
       "effectMulti": {
         "target": "opponent",
@@ -1958,16 +1958,16 @@
       "molecularWeight": 1083,
       "elements": { "Nd": 2, "Fe": 14, "B": 1 },
       "category": "控制",
-      "description": "目前人類已知磁力最強的永久磁鐵。 【單人】Lv.9 擋板寬度增加 90%，持續 20 秒。 【多人】Lv.9 以強烈磁力嚴重牽引對手球，持續 10 秒。",
+      "description": "目前人類已知磁力最強的永久磁鐵。 【單人】Lv.9 擋板寬度增加 90%，持續 20 秒。 【多人】Lv.9 反轉對手操作 11 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
         "params": { "power": 1.9, "durationSec": 20 }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "magnetic_pull",
-        "params": { "power": 5, "durationSec": 10 }
+        "target": "opponent_paddle",
+        "action": "reverse_controls",
+        "params": { "durationSec": 11 }
       }
     },
     {

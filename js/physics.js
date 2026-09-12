@@ -169,10 +169,24 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     }
   }
 
-  // ★ 2. 獨立更新磚塊移動 (移出玩家迴圈，避免雙人模式雙倍速)
+  // ★ 偵測是否有虛空結界生效
+  let hasVoid = activePlayers.some(
+    (pl) =>
+      pl.activeBuffs
+      && Object.values(pl.activeBuffs).some(
+        (buff) =>
+          buff.end > now
+          && ["dispel_brick_effects", "disable_special_bricks"].includes(
+            buff.action,
+          ),
+      ),
+  );
+
+  // 獨立更新磚塊移動 (移出玩家迴圈，避免雙人模式雙倍速)
   for (const br of bricks) {
     if (!br.hp) continue;
-    if (br.isMoving) {
+    // ★ 結界生效時，強制剝奪方塊的移動能力
+    if (br.isMoving && !hasVoid) {
       br.x += br.dx * dt;
       if (br.x < br.minX || br.x > br.maxX) {
         br.dx *= -1;
@@ -211,6 +225,13 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           br.hp--;
           gb.hitBricks.add(br); // 記憶已撞擊，避免卡進去瘋狂扣血
           burst(gb.x, gb.y, "rgba(200,200,200,0.5)");
+          // ★ 補上幽靈球擊殺收益
+          if (br.hp <= 0) {
+            br.killedBySkill = true;
+            if (br.symbol && chemDLCEnabled)
+              addAtom(br.symbol, 1, gb.owner === p2 ? 1 : 0);
+            gb.owner.score += 10 * (gb.owner.scoreMultiplier || 1);
+          }
         }
       }
     }
@@ -352,6 +373,42 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     const b = pl.ball;
     if (!b) continue;
 
+    // ★ 修正 4：實裝高能雷射實際物理熔毀判定
+    if (pl.activeBuffs) {
+      for (const key in pl.activeBuffs) {
+        const buff = pl.activeBuffs[key];
+        // 偵測雷射狀態是否生效
+        if (buff.end > now && buff.action === "laser_pierce") {
+          const laserW = b.r * 2.5; // 雷射判定寬度與視覺一致
+          bricks.forEach((br) => {
+            // 只要磚塊與雷射光柱 (X軸) 重疊，就每幀持續熔毀
+            if (
+              br.hp > 0
+              && b.x + laserW > br.x
+              && b.x - laserW < br.x + br.w
+            ) {
+              br.laserDamagePool =
+                (br.laserDamagePool || 0) + buff.power * dt * 0.15;
+              if (br.laserDamagePool >= 1) {
+                const dmg = Math.floor(br.laserDamagePool);
+                br.hp = Math.max(0, br.hp - dmg);
+                br.laserDamagePool %= 1;
+                burst(br.x + br.w / 2, br.y + br.h / 2, "#F6A6C1"); // 觸發雷射火花
+
+                // 擊破結算
+                if (br.hp <= 0) {
+                  br.killedBySkill = true;
+                  if (br.symbol && chemDLCEnabled)
+                    addAtom(br.symbol, 1, pl === p1 ? 0 : 1);
+                  pl.score += 10 * (pl.scoreMultiplier || 1);
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+
     // ★ 1. 計算混亂與被動磁力干擾 (改變 dx, dy)
     if (pl.chaosTimer > 0) {
       b.dx += (Math.random() - 0.5) * 2 * dt;
@@ -361,9 +418,12 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       b.dx += (b.x > cv.width / 2 ? 0.6 : -0.6) * dt;
     }
 
-    // ★ 2. 計算主動磁力牽引 (改變 dx)
+    // ★2. 補上 magnetic_trajectory 磁力牽引判定
     let hasMagnetic = Object.values(pl.activeBuffs || {}).some(
-      (buff) => buff.end > now && buff.action === "trajectory_guide",
+      (buff) =>
+        buff.end > now
+        && (buff.action === "trajectory_guide"
+          || buff.action === "magnetic_trajectory"),
     );
     if (hasMagnetic && bricks.length > 0) {
       let nearest = null;
@@ -548,7 +608,58 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             }
           });
         } else {
-          br.hp--;
+          // ★ 實裝真實物理增傷與撞擊震波 (shockwave / area_damage)
+          let hitDmg = 1;
+          let isShockwave = false;
+          let shockPower = 0;
+
+          if (pl.activeBuffs) {
+            for (const key in pl.activeBuffs) {
+              const buff = pl.activeBuffs[key];
+              if (buff.end > now) {
+                // ★ 將能量過載與強力加速一併納入物理增傷
+                if (
+                  [
+                    "increase_brick_damage",
+                    "energy_overcharge",
+                    "power_speed_boost",
+                  ].includes(buff.action)
+                )
+                  hitDmg = buff.power;
+                if (["shockwave", "area_damage"].includes(buff.action)) {
+                  isShockwave = true;
+                  shockPower = buff.power;
+                }
+              }
+            }
+          }
+
+          br.hp -= hitDmg;
+
+          if (isShockwave) {
+            triggerVFX(4);
+            const swRadius = 70;
+            bricks.forEach((otherBr) => {
+              if (
+                otherBr !== br
+                && otherBr.hp > 0
+                && Math.hypot(otherBr.x - br.x, otherBr.y - br.y) < swRadius
+              ) {
+                otherBr.hp -= shockPower;
+                burst(
+                  otherBr.x + otherBr.w / 2,
+                  otherBr.y + otherBr.h / 2,
+                  "#9DD9E8",
+                );
+                if (otherBr.hp <= 0) {
+                  otherBr.killedBySkill = true;
+                  if (otherBr.symbol && chemDLCEnabled)
+                    addAtom(otherBr.symbol, 1, pl === p2 ? 1 : 0);
+                  pl.score += 10 * (pl.scoreMultiplier || 1);
+                }
+              }
+            });
+          }
         }
 
         // ★ 球在貫穿狀態下擊碎磚塊，產生連續微震動
@@ -692,10 +803,14 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       b.isFalling = true;
       b.isMoving = false; // 停止水平移動
 
-      // 根據所在的排數設定延遲 (最下排 0 秒，上一排 0.15 秒，依此類推)
       let rowIndex = uniqueYs.indexOf(b.y);
-      b.fallDelay = rowIndex * 0.15;
-      b.vy = -3; // 剛碎裂時給予微微往上拋的初速，增加重量感
+
+      // ★ 在原本的「排數延遲」之上，額外疊加 0 ~ 0.2 秒的隨機時間差
+      // 這樣同一排的方塊就會有先有後地零碎崩落
+      b.fallDelay = rowIndex * 0.3 + Math.random() * 0.2;
+
+      // (可選) 讓每個方塊往上彈的初速也帶點隨機性，重量感會更真實
+      b.vy = -2 - Math.random() * 2;
     });
   }
 
@@ -724,6 +839,50 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
   // Update combo variables back to game state
   gameState.comboCount = comboCount;
   gameState.comboTimer = comboTimer;
+
+  // ==========================================
+  // ★ UI 特效：技能發動期間的動態光暈外框
+  // ==========================================
+  let activeGlowColor = null;
+  const nowTime = performance.now();
+
+  // 檢查 1P 身上是否有還在持續時間內的技能
+  if (p1 && p1.activeBuffs) {
+    for (const key in p1.activeBuffs) {
+      if (p1.activeBuffs[key].end > nowTime) {
+        const cat = p1.activeBuffs[key].category;
+        // 根據技能分類賦予不同的光暈顏色 (使用 RGBA 以利發光疊加)
+        if (cat === "攻擊")
+          activeGlowColor = "rgba(229, 115, 115, 0.85)"; // 熱血紅
+        else if (cat === "防禦")
+          activeGlowColor = "rgba(157, 217, 232, 0.85)"; // 護盾藍
+        else if (cat === "輔助")
+          activeGlowColor = "rgba(246, 166, 193, 0.85)"; // 治癒粉
+        else if (cat === "控制")
+          activeGlowColor = "rgba(134, 239, 172, 0.85)"; // 劇毒/牽制綠
+        else if (cat === "特殊")
+          activeGlowColor = "rgba(246, 217, 139, 0.85)"; // 傳說黃
+        else if (cat === "實驗") activeGlowColor = "rgba(201, 177, 232, 0.85)"; // 不穩定紫
+        break; // 抓到一個生效中的技能就顯示該顏色
+      }
+    }
+  }
+
+  // 透過 CSS 變數即時渲染到 #wrap 外框
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    if (activeGlowColor) {
+      wrapEl.style.setProperty("--glow-color", activeGlowColor);
+      if (!wrapEl.classList.contains("skill-active-glow")) {
+        wrapEl.classList.add("skill-active-glow");
+      }
+    } else {
+      if (wrapEl.classList.contains("skill-active-glow")) {
+        wrapEl.classList.remove("skill-active-glow");
+        wrapEl.style.removeProperty("--glow-color");
+      }
+    }
+  }
 }
 
 export const skillCooldowns = {};
@@ -808,6 +967,8 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       "global_damage_over_time",
       "increase_brick_damage",
       "global_corrosion",
+      "heavy_ball", // ★ 新增：重球倍率縮放
+      "delayed_explosion", // ★ 新增：延遲爆炸傷害縮放
     ].includes(action)
   ) {
     power = Math.round(power * levelMult);
@@ -942,18 +1103,13 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "damage_all":
-    case "shockwave":
-    case "area_damage":
-    case "massive_explosion":
-    case "charged_explosion":
       if (power >= 10) triggerVFX(15, "255, 80, 80", 0.6);
       else triggerVFX(8, "255, 255, 255", 0.3);
 
       gameState.bricks.forEach((b) => {
         if (b.hp > 0) {
-          // ★ 避免鞭屍
           b.hp = Math.max(0, b.hp - power);
-          if (b.hp <= 0) b.killedBySkill = true; // ★ 標記
+          if (b.hp <= 0) b.killedBySkill = true;
           burst(
             b.x + b.w / 2,
             b.y + b.h / 2,
@@ -963,9 +1119,19 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       });
       break;
 
+    case "massive_explosion":
+      // ★ 修正 1：強制指定為 255, 100, 100 觸發紅色閃光，確保 renderer 畫出核爆衝擊波
+      triggerVFX(15, "255, 100, 100", 0.6);
+      gameState.bricks.forEach((b) => {
+        if (b.hp > 0) {
+          b.hp = Math.max(0, b.hp - power);
+          if (b.hp <= 0) b.killedBySkill = true;
+          burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+        }
+      });
+      break;
+
     case "clear_rows":
-    case "dispel_brick_effects":
-    case "disable_special_bricks":
       if (power >= 5) triggerVFX(12, "253, 186, 116", 0.4);
       else triggerVFX(5);
 
@@ -975,16 +1141,14 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       const targetYs = uniqueYs.slice(0, power);
       gameState.bricks.forEach((b) => {
         if (targetYs.includes(b.y) && b.hp > 0) {
-          // ★ 避免鞭屍
           b.hp = 0;
-          b.killedBySkill = true; // ★ 標記
+          b.killedBySkill = true;
           burst(b.x + b.w / 2, b.y + b.h / 2, "#F6A6C1");
         }
       });
       break;
 
     case "multiply_score":
-    case "increase_brick_damage": // Reusing score multiplier logic for damage multiplier in renderer/physics
       if (pl.timers.score) clearTimeout(pl.timers.score);
       pl.scoreMultiplier = power;
 
@@ -994,8 +1158,18 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       }, duration * 1000);
       break;
 
-    // --- New Heavy Element Actions ---
+    case "dispel_brick_effects":
+    case "disable_special_bricks":
+    case "shockwave":
+    case "area_damage":
+    case "highlight_targets":
+    case "increase_brick_damage":
+    case "magnetic_trajectory":
+      // ★ 修正 2：將依賴 buff 的獨立技能與清除機制解綁
+      triggerVFX(5, "168, 85, 247", 0.3); // 閃紫光代表狀態附加成功
+      break;
 
+    // --- New Heavy Element Actions ---
     case "heavy_ball":
       if (pl.ball) {
         pl.ball.isHeavy = true;
@@ -1078,6 +1252,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "delayed_explosion":
+    case "charged_explosion":
       // ★ 將延遲爆炸註冊到 pl.timers 裡，確保換關/死亡時能被精準清除
       if (pl.timers.delayed) clearTimeout(pl.timers.delayed);
       pl.timers.delayed = setTimeout(() => {

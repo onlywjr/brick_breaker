@@ -818,7 +818,7 @@ function setupEventHUDs() {
       <div style="flex: 1; height: 100%; display: flex; align-items: center; justify-content: center;  padding: 0 10px;">
         <span id="center-event-text" style="opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 4px rgba(255,255,255,0.8);"></span>
       </div>
-      <div style="flex: 0.5; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10px;">
+      <div style="height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10px;">
         <div id="top-hud-buff-display" style="display: none; align-items: center; justify-content: center; width: 100%;"></div>
       </div>
     `;

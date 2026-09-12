@@ -9,6 +9,7 @@ import {
   onlineMode,
   onlineBlindTimer,
   PERFORMANCE_MODE,
+  vfx,
 } from "./game.js";
 
 import {
@@ -183,7 +184,6 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   const { bricks, drops, particles, floatTexts, boss, p1, p2, activePlayers } =
     gameState;
 
-  // ★ 效能優化：在迴圈外提前計算當前幀的願望清單，並轉為 Set 提升查詢效能至 O(1)
   const neededSet =
     (
       typeof chemDLCEnabled !== "undefined"
@@ -192,6 +192,87 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ) ?
       new Set(getNeededElements())
     : new Set();
+
+  const now = performance.now();
+  let hasToxic = false;
+  let hasVoid = false;
+  let nukeBuff = null;
+
+  // 1. 偵測全域狀態與大招
+  for (const pl of activePlayers) {
+    if (!pl.activeBuffs) continue;
+    for (const key in pl.activeBuffs) {
+      const buff = pl.activeBuffs[key];
+      if (buff.end > now) {
+        if (
+          ["global_corrosion", "global_damage_over_time"].includes(buff.action)
+        )
+          hasToxic = true;
+        if (
+          ["dispel_brick_effects", "disable_special_bricks"].includes(
+            buff.action,
+          )
+        )
+          hasVoid = true;
+        if (["delayed_explosion", "charged_explosion"].includes(buff.action))
+          nukeBuff = buff;
+      }
+    }
+  }
+
+  // 2. 虛空背景濾鏡 (拔除毒霧，改為磚塊獨立判定)
+  if (hasVoid) {
+    ctx.save();
+    ctx.globalCompositeOperation = "overlay";
+    const voidGrad = ctx.createRadialGradient(
+      cv.width / 2,
+      cv.height / 2,
+      cv.height * 0.2,
+      cv.width / 2,
+      cv.height / 2,
+      cv.height * 0.8,
+    );
+    voidGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    voidGrad.addColorStop(1, "rgba(20, 20, 40, 0.85)");
+    ctx.fillStyle = voidGrad;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.restore();
+  }
+
+  // 3. 瞬間大招視覺：巨型核爆震波
+  if (
+    vfx
+    && vfx.flashTime > 0
+    && (vfx.flashColor === "255, 80, 80" || vfx.flashColor === "255, 100, 100")
+  ) {
+    ctx.save();
+    const flashRatio = 1 - vfx.flashTime / vfx.flashMax;
+    const maxRadius = cv.width * 0.8;
+    const currentRadius = maxRadius * Math.pow(flashRatio, 0.4);
+
+    ctx.globalCompositeOperation = "lighter";
+    ctx.beginPath();
+    ctx.arc(cv.width / 2, cv.height / 2, currentRadius, 0, Math.PI * 2);
+    ctx.lineWidth = 20 * (1 - flashRatio);
+    ctx.strokeStyle = `rgba(255, 100, 100, ${1 - flashRatio})`;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cv.width / 2, cv.height / 2, currentRadius * 0.6, 0, Math.PI * 2);
+    const expGrad = ctx.createRadialGradient(
+      cv.width / 2,
+      cv.height / 2,
+      0,
+      cv.width / 2,
+      cv.height / 2,
+      currentRadius * 0.6,
+    );
+    expGrad.addColorStop(0, `rgba(255, 255, 255, ${0.8 * (1 - flashRatio)})`);
+    expGrad.addColorStop(1, "rgba(255, 100, 100, 0)");
+    ctx.fillStyle = expGrad;
+    ctx.fill();
+    ctx.restore();
+  }
 
   for (const b of bricks) {
     const set =
@@ -211,90 +292,75 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.roundRect(b.x, b.y, b.w, b.h, 4);
     ctx.fill();
 
-    // ==========================================
-    // ★ CSS border-left 風格動態血條
-    // ==========================================
-    if (b.hp > 0 && b.maxHp) {
+    // ★ 修正 1：劇毒腐蝕流 - 磚塊專屬毒霧遮罩 (隨血量減少而加深)
+    if (hasToxic && b.hp > 0 && b.maxHp) {
       ctx.save();
-      ctx.shadowBlur = 0; // 關閉陰影，確保血條邊緣乾淨銳利
-
-      // 利用 clip 裁切，完美繼承磚塊左側的圓角，同時保持右側直線
+      const toxicRatio = 1 - b.hp / b.maxHp; // 血越少，遮罩越濃
       ctx.beginPath();
       ctx.roundRect(b.x, b.y, b.w, b.h, 4);
-      ctx.clip();
+      ctx.fillStyle = `rgba(168, 85, 247, ${0.1 + toxicRatio * 0.85})`; // 逐漸吞噬的猛毒紫
+      ctx.fill();
 
-      const hpRatio = Math.max(0, Math.min(1, b.hp / b.maxHp));
-      const barW = 4; // 邊框厚度 (可依喜好調整)
-
-      // 1. 畫底槽暗色 (受損後空掉的軌跡，呈現微凹陷感)
-      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(b.x, b.y, barW, b.h);
-
-      // 2. 當前血量 (由下往上長)
-      const fillH = b.h * hpRatio;
-      const fillY = b.y + (b.h - fillH);
-
-      // 3. 隨血量變色：健康綠 -> 警告黃 -> 瀕死紅
-      let hpColor = "#ffffff";
-      if (hpRatio <= 0.3) {
-        hpColor = "#d12323d0";
-      } else if (hpRatio <= 0.6) {
-        hpColor = "#ffc73ad9";
-      }
-
-      ctx.fillStyle = hpColor;
-      ctx.fillRect(b.x, fillY, barW, fillH);
-
+      // 附加綠色毒泡泡
+      ctx.fillStyle = `rgba(134, 239, 172, ${0.5 + toxicRatio * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(
+        b.x + ((now + b.x) % b.w),
+        b.y + b.h - ((now * 0.5 + b.y) % b.h),
+        2 + toxicRatio * 2,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
       ctx.restore();
     }
 
-    // ==========================================
-    // ★ 動態破裂特效 (Procedural Cracks - 碎石立體版)
-    // ==========================================
+    // 血條與原版動態裂痕...
+    if (b.hp > 0 && b.maxHp) {
+      ctx.save();
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+      ctx.clip();
+      const hpRatio = Math.max(0, Math.min(1, b.hp / b.maxHp));
+      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.fillRect(b.x, b.y, 4, b.h);
+      ctx.fillStyle =
+        hpRatio <= 0.3 ? "#d12323d0"
+        : hpRatio <= 0.6 ? "#ffc73ad9"
+        : "#ffffff";
+      ctx.fillRect(b.x, b.y + (b.h - b.h * hpRatio), 4, b.h * hpRatio);
+      ctx.restore();
+    }
+
     if (b.maxHp && b.hp < b.maxHp) {
       const damageRatio = 1 - b.hp / b.maxHp;
-
-      // 依然使用不變的初始座標作為亂數種子，確保不跳動
       const seed = (b.minX || b.x) * 13.37 + b.y * 42.19;
       const rnd = (i) => Math.abs(Math.sin(seed + i) * 43758.5453) % 1;
 
       ctx.save();
-      // 遮罩：確保裂紋不會超出版圖
       ctx.beginPath();
       ctx.roundRect(b.x, b.y, b.w, b.h, 4);
       ctx.clip();
-
       ctx.beginPath();
 
-      // 隨受損程度，增加裂痕的「爆發中心點」數量
       const clusters = 1 + Math.floor(damageRatio * 3);
-
       for (let c = 0; c < clusters; c++) {
-        // 隨機決定爆發中心 (讓起點散佈在磚塊各處)
         let startX = b.x + rnd(c * 10) * b.w;
         let startY = b.y + rnd(c * 11) * b.h;
-
-        // 每個中心會產生 1~3 條輻射狀的分支
         const branches = 1 + Math.floor(rnd(c * 12) * 3);
         for (let br = 0; br < branches; br++) {
           ctx.moveTo(startX, startY);
-          let currentX = startX;
-          let currentY = startY;
-
-          // 初始裂開方向
+          let currentX = startX,
+            currentY = startY;
           let angle = rnd(c * 20 + br) * Math.PI * 2;
-          // 受損越重，裂縫延伸越長 (節點越多)
           const segments =
             2 + Math.floor(damageRatio * 4) + Math.floor(rnd(c * 30 + br) * 2);
-
           for (let s = 0; s < segments; s++) {
-            // ★ 石頭碎裂特徵：強烈且尖銳的偏折 (約 30~80 度的突波)
             let angleShift =
               (rnd(c * 100 + br * 10 + s) > 0.5 ? 1 : -1)
               * (0.5 + rnd(c * 200 + br * 20 + s) * 0.8);
             angle += angleShift;
-
-            // 每段保持短促有力 (5~10 px)
             let len = 5 + rnd(c * 300 + br * 30 + s) * 5;
             currentX += Math.cos(angle) * len;
             currentY += Math.sin(angle) * len;
@@ -302,33 +368,23 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
           }
         }
       }
-
       ctx.lineCap = "round";
-      // 確保轉角尖銳，呈現玻璃/石頭的脆性質感
       ctx.lineJoin = "miter";
       ctx.miterLimit = 3;
-
-      // 1. 畫出白色的主裂痕 (呈現冰晶或玻璃碎裂的質感)
       ctx.strokeStyle = `rgba(255, 255, 255, ${0.75 + damageRatio * 0.25})`;
       ctx.lineWidth = 1 + damageRatio * 1.2;
       ctx.stroke();
-
-      // 2. 畫出邊緣的微暗陰影 (讓白裂痕在淺色磚塊上依然保有立體感)
       ctx.strokeStyle = `rgba(192, 192, 192, ${0.15 + damageRatio * 0.15})`;
       ctx.lineWidth = 1;
-      // 往右下角微偏，製造白色裂痕浮出或凹陷的光影
       ctx.translate(0.5, 1);
       ctx.stroke();
-
       ctx.restore();
     }
-    // ==========================================
 
     if (b.isMoving) {
       ctx.strokeStyle = "rgba(255,255,255,0.8)";
       ctx.setLineDash([4, 4]);
       ctx.lineWidth = 2;
-      // ★ 將虛線外框也改為圓角
       ctx.beginPath();
       ctx.roundRect(b.x, b.y, b.w, b.h, 4);
       ctx.stroke();
@@ -338,54 +394,68 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.fillText("↔", b.x + b.w / 2, b.y - 8);
     }
     ctx.restore();
+    // ★ 修正 6：實作弱點標記 (highlight_targets) 的視覺準星
+    let hasHighlight = false;
+    for (const pl of activePlayers) {
+      if (
+        pl.activeBuffs
+        && Object.values(pl.activeBuffs).some(
+          (buff) => buff.end > now && buff.action === "highlight_targets",
+        )
+      ) {
+        hasHighlight = true;
+        break;
+      }
+    }
+    // 標記血量大於 1 或是帶有化學元素的「高價值目標」
+    if (hasHighlight && b.hp > 0 && (b.maxHp > 1 || b.symbol)) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.8)"; // 狙擊紅
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 6]);
+      ctx.lineDashOffset = -(now / 30); // 動態旋轉感
+      ctx.strokeRect(b.x - 3, b.y - 3, b.w + 6, b.h + 6);
 
+      // 繪製準星四角
+      ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+      const l = 6,
+        t = 3;
+      ctx.fillRect(b.x - 6, b.y - 6, l, t);
+      ctx.fillRect(b.x - 6, b.y - 6, t, l); // 左上
+      ctx.fillRect(b.x + b.w + 6 - l, b.y - 6, l, t);
+      ctx.fillRect(b.x + b.w + 6 - t, b.y - 6, t, l); // 右上
+      ctx.fillRect(b.x - 6, b.y + b.h + 6 - t, l, t);
+      ctx.fillRect(b.x - 6, b.y + b.h + 6 - l, t, l); // 左下
+      ctx.fillRect(b.x + b.w + 6 - l, b.y + b.h + 6 - t, l, t);
+      ctx.fillRect(b.x + b.w + 6 - t, b.y + b.h + 6 - l, t, l); // 右下
+      ctx.restore();
+    }
+
+    // 元素文字渲染
     ctx.save();
     ctx.textBaseline = "middle";
-
     if (b.symbol && ELEMENT_DATA[b.symbol]) {
       const zhName = ELEMENT_DATA[b.symbol][0];
-
-      // 1. 量測中英文寬度，計算置中起點
       ctx.font = "900 14px Orbitron, sans-serif";
       const engWidth = ctx.measureText(b.symbol).width;
-
       ctx.font = "500 14px 'Noto Sans TC', sans-serif";
       const zhWidth = ctx.measureText(zhName).width;
-
       const gap = 5;
       const totalWidth = engWidth + gap + zhWidth;
       const startX = b.x + b.w / 2 - totalWidth / 2;
 
-      // ★ 效能優化：直接向迴圈外建立的 Set 進行高效查詢
       if (neededSet.has(b.symbol)) {
         ctx.beginPath();
-        // 位置放在英文起點向左推 10px，半徑 3px
         ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#F6D98B"; // 亮黃色
+        ctx.fillStyle = "#F6D98B";
         if (!PERFORMANCE_MODE) {
           ctx.shadowColor = "#F6D98B";
           ctx.shadowBlur = 8;
         }
         ctx.fill();
-        ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
+        ctx.shadowBlur = 0;
       }
 
-      // ★ 新增：如果此元素是願望清單目標，在文字左邊畫一個發光小圓點
-      const needed = getNeededElements();
-      if (needed.includes(b.symbol)) {
-        ctx.beginPath();
-        // 位置放在英文起點向左推 10px，半徑 3px
-        ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#F6D98B"; // 亮黃色
-        if (!PERFORMANCE_MODE) {
-          ctx.shadowColor = "#F6D98B";
-          ctx.shadowBlur = 8;
-        }
-        ctx.fill();
-        ctx.shadowBlur = 0; // 畫完馬上歸零，以免影響旁邊文字
-      }
-
-      // 2. 繪製英文 (粗體 + 黑體描邊)
       ctx.font = "900 14px Orbitron, sans-serif";
       ctx.fillStyle = "#FFFDFB";
       ctx.textAlign = "left";
@@ -394,12 +464,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.strokeText(b.symbol, startX, b.y + b.h / 2 + 1);
       ctx.fillText(b.symbol, startX, b.y + b.h / 2 + 1);
 
-      // 3. 繪製中文 (一般黑體 + 微弱陰影)
       ctx.font = "400 14px 'Noto Sans TC', sans-serif";
       ctx.fillStyle = "#761c1c";
       ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
     } else {
-      // 預設沒有化學元素的磚塊維持原樣
       const name = member.name;
       ctx.font = "900 14px Orbitron, sans-serif";
       ctx.textAlign = "center";
@@ -1112,42 +1180,78 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.restore();
   }
 
+  // 玩家彈珠與雷射/重球特效
   for (const pl of activePlayers) {
     if (!pl.ball) continue;
     const b = pl.ball;
 
-    // ==========================================
-    // ★ 實作：動態殘影拖尾 (Trail Effect)
-    // ==========================================
+    let activeAction = null;
+    let ballEmoji = "";
+    if (pl.activeBuffs) {
+      for (const key in pl.activeBuffs) {
+        if (pl.activeBuffs[key].end > now) {
+          const buff = pl.activeBuffs[key];
+          activeAction = buff.action;
+          const cat = buff.category;
+          if (cat === "攻擊") ballEmoji = "🔥";
+          else if (cat === "輔助") ballEmoji = "❤️‍🔥";
+          else if (cat === "控制") ballEmoji = "🪁";
+          else if (cat === "防禦") ballEmoji = "🛡️";
+          else if (cat === "特殊") ballEmoji = "🌟";
+          else if (cat === "實驗") ballEmoji = "⚠️";
+        }
+      }
+    }
+    if (!ballEmoji) {
+      if (b.isPiercing) ballEmoji = "☄️";
+      else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
+      else if (b.fire) ballEmoji = "🔥";
+    }
+
+    if (activeAction === "laser_pierce") {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const laserW = b.r * 2.5 + Math.random() * 6;
+      const gradient = ctx.createLinearGradient(
+        b.x - laserW / 2,
+        0,
+        b.x + laserW / 2,
+        0,
+      );
+      gradient.addColorStop(0, "rgba(255, 100, 200, 0)");
+      gradient.addColorStop(0.2, "rgba(255, 100, 200, 0.6)");
+      gradient.addColorStop(0.5, "rgba(255, 255, 255, 1)");
+      gradient.addColorStop(0.8, "rgba(255, 100, 200, 0.6)");
+      gradient.addColorStop(1, "rgba(255, 100, 200, 0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(b.x - laserW / 2, 0, laserW, cv.height);
+      ctx.restore();
+    }
+
     b.history = b.history || [];
     b.history.push({ x: b.x, y: b.y });
-    if (b.history.length > 12) b.history.shift(); // 保持最多 12 幀的殘影
+    if (b.history.length > 12) b.history.shift();
 
-    // 只有在 穿透、加速 或 火球 狀態下才繪製拖尾
     if (
       b.history.length > 0
       && (b.isPiercing
         || (pl.speedBuffRatio && pl.speedBuffRatio > 1)
         || b.fire
-        || (pl.scoreMultiplier && pl.scoreMultiplier > 1)) // ★ 判定積分倍率
+        || (pl.scoreMultiplier && pl.scoreMultiplier > 1))
     ) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
-
-      // 穿透=紫電，火球=橘焰，加速=綠芒
       let rgbColor =
-        b.isPiercing ? "216, 180, 254"
+        activeAction === "laser_pierce" ? "255, 100, 200"
+        : activeAction === "phase_piercing" ? "163, 158, 173"
+        : b.isPiercing ? "216, 180, 254"
         : b.fire ? "249, 115, 22"
         : pl.scoreMultiplier && pl.scoreMultiplier > 1 ? "253, 224, 71"
         : "134, 239, 172";
-
-      // 從最舊的歷史座標畫到最新，產生漸隱效果
       for (let i = 0; i < b.history.length; i++) {
         let pt = b.history[i];
-        let ratio = i / b.history.length; // 0 到 1 的淡出比例
-
+        let ratio = i / b.history.length;
         ctx.beginPath();
-        // 殘影由小變大
         ctx.arc(pt.x, pt.y, b.r * (0.4 + 0.6 * ratio), 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${rgbColor}, ${ratio * 0.6})`;
         ctx.shadowColor = `rgb(${rgbColor})`;
@@ -1158,6 +1262,32 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
 
     ctx.save();
+    ctx.translate(b.x, b.y);
+
+    if (activeAction === "phase_piercing") {
+      ctx.globalAlpha = 0.35 + Math.sin(now / 100) * 0.25;
+      ctx.globalCompositeOperation = "lighter";
+    }
+
+    if (b.isHeavy) {
+      const blastRadius = 60 * (b.heavyPower || 1);
+      const pulse = Math.abs(Math.sin(now / 150));
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, blastRadius * (0.9 + 0.1 * pulse), 0, Math.PI * 2);
+      const radGrad = ctx.createRadialGradient(0, 0, b.r, 0, 0, blastRadius);
+      radGrad.addColorStop(0, "rgba(224, 87, 107, 0.35)");
+      radGrad.addColorStop(1, "rgba(224, 87, 107, 0)");
+      ctx.fillStyle = radGrad;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = `rgba(224, 87, 107, ${0.4 + 0.3 * pulse})`;
+      ctx.setLineDash([10, 10]);
+      ctx.lineDashOffset = now / -20;
+      ctx.stroke();
+      ctx.restore();
+    }
+
     if (b.fire) {
       ctx.shadowColor = "#f97316";
       ctx.shadowBlur = 18;
@@ -1167,57 +1297,20 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
 
     const isP1 = pl === p1;
-    ctx.translate(b.x, b.y);
-
-    // ==========================================
-    // 1. 優先計算：當前是否帶有技能 Emoji
-    // ==========================================
-    let ballEmoji = "";
-    if (pl.activeBuffs) {
-      const now = performance.now();
-      for (const key in pl.activeBuffs) {
-        if (pl.activeBuffs[key].end > now) {
-          const cat = pl.activeBuffs[key].category;
-          if (cat === "攻擊") ballEmoji = "🔥";
-          else if (cat === "輔助") ballEmoji = "❤️‍🔥";
-          else if (cat === "控制") ballEmoji = "🪁";
-          else if (cat === "防禦") ballEmoji = "🛡️";
-          else if (cat === "特殊") ballEmoji = "🌟";
-          else if (cat === "實驗") ballEmoji = "⚠️";
-        }
-      }
-    }
-    // 若無化學分類，退回舊版物理狀態圖示
-    if (!ballEmoji) {
-      if (b.isPiercing) ballEmoji = "☄️";
-      else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
-      else if (b.fire) ballEmoji = "🔥";
-    }
-
-    // ==========================================
-    // 2. 畫出專屬的 1P/2P 圓形背景光環框
-    // ==========================================
     ctx.beginPath();
-    ctx.arc(0, 0, 14, 0, Math.PI * 2); // 半徑 14 剛剛好包覆球體
-    // 1P 為粉紅色系，2P 為藍色系
+    ctx.arc(0, 0, 14, 0, Math.PI * 2);
     ctx.fillStyle =
       isP1 ? "rgba(255, 122, 166, 0.25)" : "rgba(0, 168, 210, 0.25)";
     ctx.fill();
 
-    // ==========================================
-    // 3. 決定內容：用 Emoji 取代，或畫出預設圖形
-    // ==========================================
     if (ballEmoji) {
-      // 有技能時，直接將 Emoji 置中畫在圓框內，取代預設圖形
       ctx.font = "18px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(ballEmoji, 0, 1); // Y 軸微調 1px 讓視覺絕對置中
+      ctx.fillText(ballEmoji, 0, 1);
     } else {
-      // 沒技能時，畫原本的 1P / 2P 專屬圖形
       ctx.save();
-      ctx.scale(0.85, 0.85); // 稍微縮小 85%，讓它完美塞進圓框裡
-
+      ctx.scale(0.85, 0.85);
       if (isP1) {
         ctx.fillStyle = "#A89CB8";
         ctx.fillRect(-3, 0, 6, 12);
@@ -1265,23 +1358,77 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       }
       ctx.restore();
     }
-
     ctx.restore();
   }
 
-  // ★ 繪製半透明幽靈球
-  if (gameState.ghostBalls) {
+  // ★ 修正 2：實體幽靈氣泡 (移除 lighter 避免融入白底消失)
+  if (gameState.ghostBalls && gameState.ghostBalls.length > 0) {
     ctx.save();
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = "source-over";
     for (const gb of gameState.ghostBalls) {
+      if (gb.dx || gb.dy) {
+        ctx.beginPath();
+        ctx.moveTo(gb.x, gb.y);
+        ctx.lineTo(gb.x - gb.dx * 3, gb.y - gb.dy * 3);
+        ctx.strokeStyle = `rgba(134, 239, 172, ${Math.min(0.8, gb.life)})`; // 綠色毒液拖尾
+        ctx.lineWidth = gb.r * 1.5;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+      // 氣泡本體
       ctx.beginPath();
       ctx.arc(gb.x, gb.y, gb.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(163, 158, 173, ${Math.min(0.6, gb.life)})`; // 隨時間淡出
-      ctx.shadowColor = "#A39EAD";
+      const bGrad = ctx.createRadialGradient(gb.x, gb.y, 0, gb.x, gb.y, gb.r);
+      bGrad.addColorStop(0, `rgba(255, 255, 255, ${Math.min(0.9, gb.life)})`);
+      bGrad.addColorStop(0.5, `rgba(163, 158, 173, ${Math.min(0.9, gb.life)})`);
+      bGrad.addColorStop(1, `rgba(100, 90, 120, ${Math.min(0.9, gb.life)})`);
+      ctx.fillStyle = bGrad;
+      ctx.shadowColor = "#86EFAC";
       ctx.shadowBlur = 10;
+      ctx.fill();
+      // 高光反光
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.8, gb.life)})`;
+      ctx.beginPath();
+      ctx.arc(
+        gb.x - gb.r * 0.3,
+        gb.y - gb.r * 0.3,
+        gb.r * 0.25,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     }
     ctx.restore();
+  }
+
+  // ★ 修正 3：核彈大招倒數 UI
+  if (nukeBuff) {
+    const timeLeft = ((nukeBuff.end - now) / 1000).toFixed(1);
+    if (timeLeft > 0) {
+      ctx.save();
+      const cx = cv.width / 2;
+      const cy = cv.height / 2;
+      const pulse = Math.abs(Math.sin(now / 150));
+
+      ctx.fillStyle = `rgba(224, 87, 107, ${0.1 + pulse * 0.15})`;
+      ctx.fillRect(0, 0, cv.width, cv.height);
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.globalAlpha = 0.8 + pulse * 0.2;
+      ctx.shadowColor = "#E0576B";
+      ctx.shadowBlur = 30;
+      ctx.font = "120px Arial";
+      ctx.fillText("☢️", cx, cy - 40);
+
+      ctx.font = "900 64px Orbitron";
+      ctx.fillStyle = "#FFF";
+      ctx.strokeStyle = "#E0576B";
+      ctx.lineWidth = 6;
+      ctx.strokeText(timeLeft, cx, cy + 60);
+      ctx.fillText(timeLeft, cx, cy + 60);
+      ctx.restore();
+    }
   }
 
   for (const p of particles) {
@@ -1306,13 +1453,9 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   }
   ctx.globalAlpha = 1;
 
-  // ==========================================
-  // ★ Phase 4 實作：終極視覺干擾 (探照燈視野與幻影假球)
-  // ==========================================
+  // 視線遮蔽特效與 HTML HUD... (保持原樣即可)
   let isBlinded = false;
   let blindTarget = null;
-
-  // ★ 統一改為檢查玩家身上的 timers.blind，再也不用區分單機或連線模式
   for (const pl of activePlayers) {
     if (pl.timers && pl.timers.blind) {
       isBlinded = true;
@@ -1323,13 +1466,9 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
   if (isBlinded && blindTarget) {
     ctx.save();
-
-    // 1. 畫出「探照燈/迷霧」視野 (Vignette)
-    // 讓可見半徑隨著時間急促收縮脈動，製造極大的心理壓迫感
     const pulseRadius = 160 + Math.sin(performance.now() / 80) * 20;
     const cx = blindTarget.x + blindTarget.w / 2;
     const cy = blindTarget.y + blindTarget.h / 2;
-
     const grd = ctx.createRadialGradient(
       cx,
       cy,
@@ -1338,33 +1477,23 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       cy,
       pulseRadius,
     );
-    grd.addColorStop(0, "rgba(0, 0, 0, 0)"); // 擋板周圍完全透明
-    grd.addColorStop(0.5, "rgba(0, 0, 0, 0.75)"); // 邊緣半透明漸層
-    grd.addColorStop(1, "rgba(0, 0, 0, 0.98)"); // 外圍近乎全黑
-
+    grd.addColorStop(0, "rgba(0, 0, 0, 0)");
+    grd.addColorStop(0.5, "rgba(0, 0, 0, 0.75)");
+    grd.addColorStop(1, "rgba(0, 0, 0, 0.98)");
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, cv.width, cv.height);
 
-    // 2. 製造「幻影假球 (Fake Ball Illusion)」
-    // 利用真球的座標作動態偏移與鏡像，欺騙對手視覺
     if (blindTarget.ball) {
       const bx = blindTarget.ball.x;
       const by = blindTarget.ball.y;
-
       ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = "rgba(163, 158, 173, 0.5)"; // 灰白色的幻影
-
-      // 假球 A：X 軸完美鏡像 (玩家往左接，它就往右跑)
+      ctx.fillStyle = "rgba(163, 158, 173, 0.5)";
       ctx.beginPath();
       ctx.arc(cv.width - bx, by, 11, 0, Math.PI * 2);
       ctx.fill();
-
-      // 假球 B：緊隨其後的疊影殘留
       ctx.beginPath();
       ctx.arc(bx + 30, by - 30, 11, 0, Math.PI * 2);
       ctx.fill();
-
-      // 假球 C：隨機亂竄的干擾源
       ctx.beginPath();
       ctx.arc(
         bx + Math.cos(performance.now() / 150) * 70,
@@ -1486,8 +1615,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         else if (currentBuff.category === "控制") catEmoji = "🪁";
         else if (currentBuff.category === "特殊") catEmoji = "🌟";
 
-        return `<span style="display: inline-block; font-weight: 900; color: #fff; background: rgba(0,0,0,0.65); padding: 4px 16px; border-radius: 16px; box-shadow: 0 0 8px rgba(255,255,255,0.2); font-size: 14px;">
-                  ${catEmoji} ${currentBuff.name}
+        return `<span style="display: inline-block; font-weight: 900; color: #444; padding: 0 10px 0 0; font-size: 20px;">
+                  ${catEmoji}${currentBuff.name}
                 </span>`;
       };
 
