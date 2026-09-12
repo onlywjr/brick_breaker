@@ -288,8 +288,8 @@
 /* 卡片浮動說明 (Tooltip) */
 .chem-card-tooltip {
   visibility: hidden;
-  width: 120%;
-  left: -10% !important;
+  width: 140%;
+  left: -20% !important;
   box-sizing: border-box;
   background-color: #5d576b;
   color: #fff;

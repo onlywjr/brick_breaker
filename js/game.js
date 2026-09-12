@@ -229,11 +229,29 @@ function makePlayer(color, lightColor) {
     reversedTimer: 0,
     invincibleTimer: 0,
     lives: 3,
+    mathInventory: [],
   };
 }
 
 function generateBrickSymbol(gameMode, currentLevel) {
-  // ★ 新增 currentLevel 參數
+  // ★ 新增：未開啟化學 DLC 時，改為生成數學符號
+  if (!chemDLCEnabled) {
+    const operators = ["+", "-"];
+    if (currentLevel >= 4) operators.push("×", "÷");
+
+    let numMax = 9;
+    if (currentLevel >= 4) numMax = 50;
+    if (currentLevel >= 7) numMax = 99;
+
+    // 70% 機率生成數字，30% 機率生成運算子
+    if (Math.random() < 0.7) {
+      return Math.floor(Math.random() * numMax + 1).toString();
+    } else {
+      return operators[Math.floor(Math.random() * operators.length)];
+    }
+  }
+
+  // --- 以下保留原本的化學 DLC 邏輯 ---
   const basicPool = ["H", "C", "O", "N"];
   let rarePool = [];
 
@@ -257,24 +275,18 @@ function generateBrickSymbol(gameMode, currentLevel) {
   }
 
   rarePool = [...new Set(rarePool)];
-
-  // ★ 根據難度設定檔 (DIFFICULTY_CONFIG) 過濾高血量元素
   rarePool = rarePool.filter((sym) => {
     const category = ELEMENT_DATA[sym] ? ELEMENT_DATA[sym][1] : "unknown";
-
-    if (["lanthanide", "actinide", "unknown"].includes(category)) {
+    if (["lanthanide", "actinide", "unknown"].includes(category))
       return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_HEAVY;
-    }
-    if (["transition"].includes(category)) {
+    if (["transition"].includes(category))
       return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_TRANSITION;
-    }
-    if (["alkali", "alkaline", "main-metal", "metalloid"].includes(category)) {
+    if (["alkali", "alkaline", "main-metal", "metalloid"].includes(category))
       return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS;
-    }
-    return true; // 氣體與非金屬永遠開放
+    return true;
   });
-  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Mg"];
 
+  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Mg"];
   if (Math.random() < 0.7)
     return basicPool[Math.floor(Math.random() * basicPool.length)];
   else return rarePool[Math.floor(Math.random() * rarePool.length)];
@@ -304,9 +316,8 @@ function buildLevel(lv, cv) {
     const memberIndex = (r * cols + c) % MEMBERS.length;
     let bX = c * (bw + pad) + offL;
 
-    // 產生當前磚塊的化學元素符號
-    const currentBrickSymbol =
-      chemDLCEnabled ? generateBrickSymbol(mode, lv) : null; // ★ 傳入 lv
+    // 產生當前磚塊的化學/數學元素符號
+    const currentBrickSymbol = generateBrickSymbol(mode, lv); // ★ 移除三元運算子，直接呼叫
 
     // ★ 修正：先將最終的 HP 結算出來，確保上下限一致
     const finalBrickHp =
@@ -589,6 +600,7 @@ function resetRound(cv) {
     pl.magneticDebuffTimer = 0;
     pl.invincibleTimer = 0;
     pl.speed = 9; // 確保冰凍/減速被解除
+    pl.mathInventory = [];
   });
   p1.w = 120;
   p1.x = mode === 1 ? (cv.width - p1.w) / 2 : 120 - p1.w / 2;
@@ -939,6 +951,14 @@ export function endGame() {
   running = false;
   cancelAnimationFrame(animId);
   updateVirtualButtonsVisibility(showVirtual, running, mode);
+
+  // ★ 強制解除殘留的光暈外框，防止帶入大廳
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
+  }
+
   let msg = "";
   if (mode === 2) {
     if (p1.score > p2.score)
@@ -964,6 +984,14 @@ export function showOnlineMatchOver(result) {
   if (!onlineMode || onlineMatchFinished) return;
   onlineMatchFinished = true;
   running = false;
+
+  // ★ 強制解除殘留的光暈外框，防止帶入大廳
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
+  }
+
   const winner = result?.winner,
     me = (result?.players || []).find((p) => p.id === myPlayerId),
     won = winner?.id === myPlayerId;
@@ -1114,6 +1142,130 @@ export function onlineReceiveAttack(d) {
   }
 }
 
+// ==========================================
+// ★ 數學極限模式：出題引擎 (10秒挑戰)
+// ==========================================
+function startMathQuiz(pl, onComplete) {
+  const overlay = document.getElementById("math-quiz-overlay");
+  const questionEl = document.getElementById("math-quiz-question");
+  const optionsEl = document.getElementById("math-quiz-options");
+  const timerEl = document.getElementById("math-quiz-timer");
+
+  if (!overlay) {
+    onComplete();
+    return;
+  }
+
+  // 1. 從玩家本局打破的方塊中萃取數字與運算符號
+  let nums = pl.mathInventory.filter((s) => !isNaN(s));
+  let ops = pl.mathInventory.filter(
+    (s) => isNaN(s) && ["+", "-", "×", "÷"].includes(s),
+  );
+
+  // 系統防呆：如果玩家打太快沒收集到足夠符號，給予預設難度
+  if (nums.length < 2) nums.push("7", "9", "15", "20");
+  if (ops.length < 1) ops.push("+", "-", "×");
+
+  let n1 = parseInt(nums[Math.floor(Math.random() * nums.length)]);
+  let n2 = parseInt(nums[Math.floor(Math.random() * nums.length)]);
+  let op = ops[Math.floor(Math.random() * ops.length)];
+
+  // 2. 確保運算合理化 (避免負數與無法整除)
+  if (op === "-" && n1 < n2) {
+    [n1, n2] = [n2, n1];
+  }
+  if (op === "÷") {
+    n1 = n1 * Math.max(1, n2);
+  } // 反向相乘確保能被完美整除
+
+  let ans = 0;
+  if (op === "+") ans = n1 + n2;
+  else if (op === "-") ans = n1 - n2;
+  else if (op === "×") ans = n1 * n2;
+  else if (op === "÷") ans = n1 / n2;
+
+  questionEl.innerText = `${n1} ${op} ${n2} = ?`;
+
+  // 3. 產生 1 個正確選項 + 3 個隨機誘答
+  let options = [ans];
+  while (options.length < 4) {
+    let fake = ans + (Math.floor(Math.random() * 21) - 10); // 誤差範圍 +- 10
+    if (fake !== ans && fake >= 0 && !options.includes(fake))
+      options.push(fake);
+  }
+  options.sort(() => Math.random() - 0.5); // 洗牌
+
+  optionsEl.innerHTML = "";
+  let quizTimer = null;
+  let timeLeft = 10.0;
+  let isAnswered = false;
+
+  const finishQuiz = () => {
+    isAnswered = true;
+    clearInterval(quizTimer);
+    overlay.style.display = "none";
+    onComplete(); // 結束後呼叫原本的換關/商店邏輯
+  };
+
+  options.forEach((opt) => {
+    let btn = document.createElement("button");
+    btn.className = "menu-item-macaron macaron-blue";
+    btn.style.width = "100%";
+    btn.style.fontSize = "28px";
+    btn.style.fontFamily = "'Orbitron', sans-serif";
+    btn.innerText = opt;
+    btn.onclick = () => {
+      if (isAnswered) return;
+      if (opt === ans) {
+        // ★ 答對：正向增強 (加命、加分、華麗特效)
+        playSfx("music");
+        pl.lives++;
+        pl.score += 500;
+        burst(400, 300, "#FBBF24");
+        floatTexts.push({
+          t: "❤️ +1  &  +500 PT!",
+          life: 2,
+          x: 400,
+          y: 300,
+          c: "#F6A6C1",
+          big: true,
+        });
+      } else {
+        // ★ 答錯：無懲罰，僅提示
+        floatTexts.push({
+          t: "答錯了！",
+          life: 1.5,
+          x: 400,
+          y: 300,
+          c: "#8A7E9C",
+          big: true,
+        });
+      }
+      finishQuiz();
+    };
+    optionsEl.appendChild(btn);
+  });
+
+  overlay.style.display = "flex";
+
+  // 4. 啟動 10 秒倒數
+  quizTimer = setInterval(() => {
+    timeLeft -= 0.1;
+    timerEl.innerText = timeLeft.toFixed(1) + "s";
+    if (timeLeft <= 0) {
+      floatTexts.push({
+        t: "TIME UP!",
+        life: 1.5,
+        x: 400,
+        y: 300,
+        c: "#8A7E9C",
+        big: true,
+      });
+      finishQuiz();
+    }
+  }, 100);
+}
+
 export function updateGameState(dt, cv) {
   if (mode === 2) {
     gameTimeRemaining -= (dt * 16.6) / 1000;
@@ -1250,9 +1402,8 @@ export function updateGameState(dt, cv) {
   }
 
   if (bricks.length === 0 && !boss.active && !isLevelClearing) {
-    isLevelClearing = true; // 鎖定狀態，避免重複觸發
+    isLevelClearing = true;
 
-    // ★ 全場清空時先噴出大字提示，並給予 1.5 秒的視覺爽快感緩衝
     floatTexts.push({
       t: "✨ 全場爆破!! ✨",
       life: 1.5,
@@ -1262,110 +1413,116 @@ export function updateGameState(dt, cv) {
       big: true,
     });
 
-    // 設定 1.5 秒後才執行真正的換關/結算邏輯
     setTimeout(() => {
       for (const pl of activePlayers) pl.score += 200;
 
-      // 嚴格限制只有「單機單人模式」才會暫停進入結算商店
-      if (mode === 1 && !onlineMode) {
-        running = false;
+      // === 將原本的過關換波與商店邏輯打包 ===
+      const proceedWithLevelClear = () => {
+        if (mode === 1 && !onlineMode) {
+          running = false;
+          const overlay = document.getElementById("level-clear-overlay");
+          const buttons = Array.from(overlay.querySelectorAll("button"));
+          const shopBtn = buttons.find(
+            (b) =>
+              b.innerText.includes("商店")
+              || b.getAttribute("onclick")?.includes("Shop"),
+          );
+          const nextBtn = buttons.find(
+            (b) =>
+              b.innerText.includes("下一關")
+              || b.getAttribute("onclick")?.includes("proceedToNextLevel"),
+          );
 
-        const overlay = document.getElementById("level-clear-overlay");
-        const buttons = Array.from(overlay.querySelectorAll("button"));
-        const shopBtn = buttons.find(
-          (b) =>
-            b.innerText.includes("商店")
-            || b.getAttribute("onclick")?.includes("Shop"),
-        );
-        const nextBtn = buttons.find(
-          (b) =>
-            b.innerText.includes("下一關")
-            || b.getAttribute("onclick")?.includes("proceedToNextLevel"),
-        );
+          if (shopBtn)
+            shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
+          overlay.style.display = "flex";
 
-        if (shopBtn)
-          shopBtn.style.display = chemDLCEnabled ? "inline-block" : "none";
-        overlay.style.display = "flex";
+          let statsDiv = document.getElementById("level-chem-stats");
+          // ... 原本創建 statsDiv 的防呆邏輯 ...
+          if (!statsDiv) {
+            statsDiv = document.createElement("div");
+            statsDiv.id = "level-chem-stats";
+            statsDiv.style.margin = "15px auto";
+            statsDiv.style.padding = "15px";
+            statsDiv.style.background = "rgba(255,255,255,0.85)";
+            statsDiv.style.border = "2px solid rgba(201, 177, 232, 0.4)";
+            statsDiv.style.borderRadius = "12px";
+            statsDiv.style.fontSize = "14px";
+            statsDiv.style.textAlign = "left";
+            statsDiv.style.width = "80%";
+            statsDiv.style.maxWidth = "300px";
+            statsDiv.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
 
-        let statsDiv = document.getElementById("level-chem-stats");
-        if (!statsDiv) {
-          statsDiv = document.createElement("div");
-          statsDiv.id = "level-chem-stats";
-          statsDiv.style.margin = "15px auto";
-          statsDiv.style.padding = "15px";
-          statsDiv.style.background = "rgba(255,255,255,0.85)";
-          statsDiv.style.border = "2px solid rgba(201, 177, 232, 0.4)";
-          statsDiv.style.borderRadius = "12px";
-          statsDiv.style.fontSize = "14px";
-          statsDiv.style.textAlign = "left";
-          statsDiv.style.width = "80%";
-          statsDiv.style.maxWidth = "300px";
-          statsDiv.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
-
-          const btnsContainer =
-            shopBtn ? shopBtn.parentNode
-            : nextBtn ? nextBtn.parentNode
-            : overlay;
-          btnsContainer.parentNode.insertBefore(statsDiv, btnsContainer);
-        }
-
-        if (chemDLCEnabled && typeof levelStats !== "undefined") {
-          const { gained, used } = levelStats;
-          const formatElements = (obj, color) => {
-            const entries = Object.entries(obj).filter(([_, qty]) => qty > 0);
-            if (entries.length === 0)
-              return `<span style="color:#8a7e9c;">無</span>`;
-            return entries
-              .map(
-                ([sym, qty]) =>
-                  `<span style="display:inline-block; margin-right:8px; color:${color}; font-family:serif; font-weight:900;">${sym} <span style="font-size:0.9em; opacity:0.8;">x${qty}</span></span>`,
-              )
-              .join("");
-          };
-
-          statsDiv.innerHTML = `
-            <div style="font-weight:900; margin-bottom:10px; color:#5D576B; text-align:center; font-size:16px;">📊 結算</div>
-            <div style="margin-bottom:6px;">📥 獲得：${formatElements(gained, "#2EB886")}</div>
-            <div>🔥 消耗：${formatElements(used, "#E0576B")}</div>
-          `;
-          statsDiv.style.display = "block";
-        } else {
-          statsDiv.style.display = "none";
-        }
-
-        if (chemDLCEnabled && nextBtn) {
-          let count = 10;
-          if (!nextBtn.dataset.originalText) {
-            nextBtn.dataset.originalText = nextBtn.innerText
-              .split("(")[0]
-              .trim();
+            const btnsContainer =
+              shopBtn ? shopBtn.parentNode
+              : nextBtn ? nextBtn.parentNode
+              : overlay;
+            btnsContainer.parentNode.insertBefore(statsDiv, btnsContainer);
           }
-          const baseText = nextBtn.dataset.originalText;
-          nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
 
-          clearInterval(nextLevelTimer);
-          nextLevelTimer = setInterval(() => {
-            count--;
+          if (chemDLCEnabled && typeof levelStats !== "undefined") {
+            const { gained, used } = levelStats;
+            const formatElements = (obj, color) => {
+              const entries = Object.entries(obj).filter(([_, qty]) => qty > 0);
+              if (entries.length === 0)
+                return `<span style="color:#8a7e9c;">無</span>`;
+              return entries
+                .map(
+                  ([sym, qty]) =>
+                    `<span style="display:inline-block; margin-right:8px; color:${color}; font-family:serif; font-weight:900;">${sym} <span style="font-size:0.9em; opacity:0.8;">x${qty}</span></span>`,
+                )
+                .join("");
+            };
+            statsDiv.innerHTML = `
+              <div style="font-weight:900; margin-bottom:10px; color:#5D576B; text-align:center; font-size:16px;">📊 結算</div>
+              <div style="margin-bottom:6px;">📥 獲得：${formatElements(gained, "#2EB886")}</div>
+              <div>🔥 消耗：${formatElements(used, "#E0576B")}</div>
+            `;
+            statsDiv.style.display = "block";
+          } else {
+            statsDiv.style.display = "none";
+          }
+
+          // 如果沒開 DLC，自動倒數 3 秒進入下一關
+          if (!chemDLCEnabled && nextBtn) {
+            let count = 3;
+            if (!nextBtn.dataset.originalText)
+              nextBtn.dataset.originalText = nextBtn.innerText
+                .split("(")[0]
+                .trim();
+            const baseText = nextBtn.dataset.originalText;
             nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
-            if (count <= 0) window.proceedToNextLevel();
-          }, 1000);
-        }
-      } else {
-        // 雙人模式 與 多人連線生存模式：直接無縫進入下一波
-        level++;
-        buildLevel(level, cv);
-        resetRound(cv);
 
-        floatTexts.push({
-          t: "NEXT WAVE!",
-          life: 1.5,
-          x: cv.width / 2,
-          y: cv.height / 2 - 50,
-          c: "#5FA8D3",
-          big: true,
-        });
+            clearInterval(nextLevelTimer);
+            nextLevelTimer = setInterval(() => {
+              count--;
+              nextBtn.innerHTML = `${baseText} <span style="font-size:14px; opacity:0.8;">(${count}s)</span>`;
+              if (count <= 0) window.proceedToNextLevel();
+            }, 1000);
+          }
+        } else {
+          // 雙人/連線模式：直接無縫進入下一波
+          level++;
+          buildLevel(level, cv);
+          resetRound(cv);
+          floatTexts.push({
+            t: "NEXT WAVE!",
+            life: 1.5,
+            x: cv.width / 2,
+            y: cv.height / 2 - 50,
+            c: "#5FA8D3",
+            big: true,
+          });
+        }
+      };
+
+      // ★ 核心路由：如果有開化學 DLC 就照舊；沒開 DLC 就觸發數學極限挑戰！
+      if (!chemDLCEnabled) {
+        startMathQuiz(p1, proceedWithLevelClear);
+      } else {
+        proceedWithLevelClear();
       }
-    }, 1500); // ★ 延遲 1.5 秒
+    }, 1500);
   }
 
   if (onlineMode) {
@@ -1430,6 +1587,7 @@ export function loop(ts, cv) {
         drops,
         particles,
         floatTexts,
+        ghostBalls,
         boss,
         p1,
         p2,
@@ -1557,33 +1715,50 @@ window.addEventListener("keydown", (e) => {
 // ==========================================
 // ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據與特效
 // ==========================================
-const originalBackToMain = window.backToMainMenu;
-window.backToMainMenu = function (...args) {
+function wipeGameUIState() {
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
     resetSkillCooldowns();
   }
-  // ★ 強制清除技能發光外框
+
+  // 1. 強制清除技能發光外框
   const wrapEl = document.getElementById("wrap");
   if (wrapEl) {
     wrapEl.classList.remove("skill-active-glow");
     wrapEl.style.removeProperty("--glow-color");
   }
+
+  // 2. ★ 強制洗白玩家殘留的 Buff，避免卡在 HTML HUD 輪播上
+  if (p1) p1.activeBuffs = {};
+  if (p2) p2.activeBuffs = {};
+
+  // 3. ★ 強制清空殘存的幽靈球
+  ghostBalls.length = 0;
+
+  // 4. ★ 強制隱藏與清空所有 DOM 狀態列，解決大廳殘影問題
+  const topHud = document.getElementById("top-hud-buff-display");
+  if (topHud) {
+    topHud.style.display = "none";
+    topHud.innerHTML = "";
+  }
+  const centerText = document.getElementById("center-event-text");
+  if (centerText) {
+    centerText.style.opacity = "0";
+    centerText.innerText = "";
+  }
+  const statusEl = document.getElementById("status");
+  if (statusEl) statusEl.style.display = "none";
+}
+
+const originalBackToMain = window.backToMainMenu;
+window.backToMainMenu = function (...args) {
+  wipeGameUIState();
   if (originalBackToMain) originalBackToMain(...args);
 };
 
 const originalReturnToLobby = window.returnToLobby;
 window.returnToLobby = function (...args) {
-  if (chemDLCEnabled && typeof resetChemistryState === "function") {
-    resetChemistryState();
-    resetSkillCooldowns();
-  }
-  // ★ 強制清除技能發光外框
-  const wrapEl = document.getElementById("wrap");
-  if (wrapEl) {
-    wrapEl.classList.remove("skill-active-glow");
-    wrapEl.style.removeProperty("--glow-color");
-  }
+  wipeGameUIState();
   if (originalReturnToLobby) originalReturnToLobby(...args);
 };
 

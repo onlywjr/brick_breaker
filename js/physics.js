@@ -204,18 +204,44 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       gb.x += gb.dx * dt;
       gb.y += gb.dy * dt;
       gb.life -= dt / 60;
-      if (gb.life <= 0 || gb.y > cv.height) {
+
+      // ★ 修正 2：時間到才死亡。把掉出畫面的判定改為「撞擊地板反彈」
+      if (gb.life <= 0) {
         ghostBalls.splice(i, 1);
         continue;
       }
+
+      // 左右牆壁反彈
       if (gb.x < gb.r || gb.x > cv.width - gb.r) {
         gb.dx *= -1;
         gb.x = Math.max(gb.r, Math.min(gb.x, cv.width - gb.r));
       }
+      // 天花板反彈
       if (gb.y < gb.r) {
         gb.dy *= -1;
         gb.y = gb.r;
       }
+      // ★ 新增：地板反彈 (讓幽靈球在場上盡情破壞，直到壽命結束)
+      if (gb.y > cv.height - gb.r) {
+        gb.dy *= -1;
+        gb.y = cv.height - gb.r;
+      }
+
+      // ★ 修正 1：讓幽靈球可以被擋板接住反彈，否則它們掉出畫面就永遠消失了！
+      for (const targetPl of activePlayers) {
+        if (
+          gb.dy > 0
+          && gb.y + gb.r > targetPl.y
+          && gb.y - gb.r < targetPl.y + targetPl.h
+          && gb.x > targetPl.x
+          && gb.x < targetPl.x + targetPl.w
+        ) {
+          gb.dy *= -1;
+          gb.y = targetPl.y - gb.r;
+          playSfx("bounce"); // 加上接球音效
+        }
+      }
+
       for (const br of bricks) {
         if (br.hp <= 0 || gb.hitBricks.has(br)) continue;
         if (
@@ -668,11 +694,17 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         if (b.isPiercing) triggerVFX(3);
         burst(b.x, b.y);
         if (br.hp <= 0) {
-          // ★ 新增：將原子加入庫存，並自動判定裝備技能
-          if (br.symbol && chemDLCEnabled) {
-            const pId = pl === p2 ? 1 : 0; // ★ 判斷是 1P 還是 2P 打破的
-            addAtom(br.symbol, 1, pId);
-            updateInventoryUI();
+          // ★ 新增：將原子加入庫存，或收集數學符號
+          const targetPlayer = pl === p2 ? p2 : p1; // 確認是 1P 或 2P 打破的
+
+          if (br.symbol) {
+            if (chemDLCEnabled) {
+              addAtom(br.symbol, 1, targetPlayer === p1 ? 0 : 1);
+              updateInventoryUI();
+            } else {
+              // ★ 數學極限模式：將打破的符號收集到專屬題庫中
+              targetPlayer.mathInventory.push(br.symbol);
+            }
           }
 
           if (!chemDLCEnabled) {
@@ -1189,16 +1221,18 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "create_ghost_ball":
-      let ghostCount = Math.round(Number(power));
+      let ghostCount = Math.max(3, Math.round(Number(power) || 3));
+
+      // ★ 修正 2：計算完美的扇形擴散角度 (避免貼齊 180 度平飛)
+      let angleStep = Math.PI / (ghostCount + 1);
+
       for (let i = 0; i < ghostCount; i++) {
-        // ★ 修正 2：利用數學扇形分佈，確保多顆幽靈球絕對不會重疊
-        let angle = Math.PI + (Math.PI * i) / Math.max(1, ghostCount - 1); // 扇形往上發射
-        if (ghostCount === 1) angle = Math.PI * 1.5; // 單顆直接垂直往上
-        let spd = 5 + Math.random() * 2;
+        let angle = Math.PI + angleStep * (i + 1); // 均勻分佈在 180~360度之間 (往上發射)
+        let spd = 5 + Math.random() * 3; // 提升速度差異，確保軌跡錯開
 
         gameState.ghostBalls.push({
-          x: pl.ball.x + (Math.random() - 0.5) * 10, // 給予隨機初始微小偏移
-          y: pl.ball.y + (Math.random() - 0.5) * 10,
+          x: pl.ball.x, // 直接從母球中心散開
+          y: pl.ball.y - 10,
           r: 8,
           dx: Math.cos(angle) * spd,
           dy: Math.sin(angle) * spd,

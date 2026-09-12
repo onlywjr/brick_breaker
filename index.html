@@ -415,6 +415,66 @@
         </div>
       </div>
 
+      <!-- ★ 新增：數學極限模式 10 秒挑戰介面 -->
+      <div
+        id="math-quiz-overlay"
+        style="
+          display: none;
+          position: absolute;
+          inset: 0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          z-index: 350;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+        ">
+        <div
+          id="math-quiz-timer"
+          style="
+            font-family: &quot;Orbitron&quot;, sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #e0576b;
+            margin-bottom: 10px;
+          ">
+          10.0s
+        </div>
+        <div
+          style="
+            font-size: 18px;
+            font-weight: 900;
+            color: #8a7e9c;
+            margin-bottom: 10px;
+          ">
+          ⚡ 解開算式獲得獎勵！ ⚡
+        </div>
+        <h2
+          id="math-quiz-question"
+          style="
+            font-family: &quot;Orbitron&quot;, sans-serif;
+            font-size: 56px;
+            font-weight: 900;
+            color: #5d576b;
+            margin: 0 0 30px 0;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          ">
+          15 × 3 = ?
+        </h2>
+        <div
+          id="math-quiz-options"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 80%;
+            max-width: 400px;
+          ">
+          <!-- 按鈕由 JS 動態生成 -->
+        </div>
+      </div>
+
       <div id="status">
         <div class="stat-card" id="p1-card">
           <div style="display: flex; gap: 2px; align-items: center">

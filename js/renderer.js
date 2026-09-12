@@ -434,40 +434,61 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     // 元素文字渲染
     ctx.save();
     ctx.textBaseline = "middle";
-    if (b.symbol && ELEMENT_DATA[b.symbol]) {
-      const zhName = ELEMENT_DATA[b.symbol][0];
-      ctx.font = "900 14px Orbitron, sans-serif";
-      const engWidth = ctx.measureText(b.symbol).width;
-      ctx.font = "500 14px 'Noto Sans TC', sans-serif";
-      const zhWidth = ctx.measureText(zhName).width;
-      const gap = 5;
-      const totalWidth = engWidth + gap + zhWidth;
-      const startX = b.x + b.w / 2 - totalWidth / 2;
 
-      if (neededSet.has(b.symbol)) {
-        ctx.beginPath();
-        ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#F6D98B";
-        if (!PERFORMANCE_MODE) {
-          ctx.shadowColor = "#F6D98B";
-          ctx.shadowBlur = 8;
+    if (b.symbol) {
+      if (chemDLCEnabled && ELEMENT_DATA[b.symbol]) {
+        // --- 化學 DLC 模式：渲染元素符號與中文 ---
+        const zhName = ELEMENT_DATA[b.symbol][0];
+        ctx.font = "900 14px Orbitron, sans-serif";
+        const engWidth = ctx.measureText(b.symbol).width;
+        ctx.font = "500 14px 'Noto Sans TC', sans-serif";
+        const zhWidth = ctx.measureText(zhName).width;
+        const gap = 5;
+        const totalWidth = engWidth + gap + zhWidth;
+        const startX = b.x + b.w / 2 - totalWidth / 2;
+
+        if (neededSet.has(b.symbol)) {
+          ctx.beginPath();
+          ctx.arc(startX - 10, b.y + b.h / 2, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "#F6D98B";
+          if (!PERFORMANCE_MODE) {
+            ctx.shadowColor = "#F6D98B";
+            ctx.shadowBlur = 8;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
         }
-        ctx.fill();
-        ctx.shadowBlur = 0;
+
+        ctx.font = "900 14px Orbitron, sans-serif";
+        ctx.fillStyle = "#FFFDFB";
+        ctx.textAlign = "left";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.75)";
+        ctx.strokeText(b.symbol, startX, b.y + b.h / 2 + 1);
+        ctx.fillText(b.symbol, startX, b.y + b.h / 2 + 1);
+
+        ctx.font = "400 14px 'Noto Sans TC', sans-serif";
+        ctx.fillStyle = "#761c1c";
+        ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
+      } else if (!chemDLCEnabled) {
+        // --- ★ 數學極限模式：渲染數字與運算符號 ---
+        const isOperator = ["+", "-", "×", "÷", "( )", "x", "y"].includes(
+          b.symbol,
+        );
+
+        ctx.font = "900 18px Orbitron, sans-serif"; // 數學符號稍微放大，增加打擊爽度
+        ctx.textAlign = "center";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.85)";
+
+        // 視覺區分：運算子顯示為亮黃色，數字維持純白色
+        ctx.fillStyle = isOperator ? "#F6D98B" : "#FFFDFB";
+
+        ctx.strokeText(b.symbol, b.x + b.w / 2, b.y + b.h / 2 + 1);
+        ctx.fillText(b.symbol, b.x + b.w / 2, b.y + b.h / 2 + 1);
       }
-
-      ctx.font = "900 14px Orbitron, sans-serif";
-      ctx.fillStyle = "#FFFDFB";
-      ctx.textAlign = "left";
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgba(0,0,0,0.75)";
-      ctx.strokeText(b.symbol, startX, b.y + b.h / 2 + 1);
-      ctx.fillText(b.symbol, startX, b.y + b.h / 2 + 1);
-
-      ctx.font = "400 14px 'Noto Sans TC', sans-serif";
-      ctx.fillStyle = "#761c1c";
-      ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
     } else {
+      // 防呆備用方案：若完全沒有 symbol 則畫原本的人名
       const name = member.name;
       ctx.font = "900 14px Orbitron, sans-serif";
       ctx.textAlign = "center";
