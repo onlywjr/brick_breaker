@@ -24,6 +24,8 @@ import {
   chemDLCEnabled,
   triggerGameEvent,
   triggerVFX,
+  isLevelClearing, // ★ 補上匯入
+  levelStartTime, // ★ 補上匯入
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -893,6 +895,10 @@ export let globalDotState = { active: false, power: 0, end: 0, lastTick: 0 };
 // ==========================================
 export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
   const now = performance.now();
+
+  // ★ 修正 1：防止「假延續」錯覺！結算過關期間，與剛開局的 1.5 秒內，嚴禁自動施法
+  if (isLevelClearing || now - levelStartTime < 1500) return;
+
   const eq = chemStates[pId].equipped;
 
   for (let i = 0; i < eq.length; i++) {
@@ -1183,19 +1189,29 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "create_ghost_ball":
-      for (let i = 0; i < power; i++) {
+      let ghostCount = Math.round(Number(power));
+      for (let i = 0; i < ghostCount; i++) {
+        // ★ 修正 2：利用數學扇形分佈，確保多顆幽靈球絕對不會重疊
+        let angle = Math.PI + (Math.PI * i) / Math.max(1, ghostCount - 1); // 扇形往上發射
+        if (ghostCount === 1) angle = Math.PI * 1.5; // 單顆直接垂直往上
+        let spd = 5 + Math.random() * 2;
+
         gameState.ghostBalls.push({
-          x: pl.ball.x,
-          y: pl.ball.y,
+          x: pl.ball.x + (Math.random() - 0.5) * 10, // 給予隨機初始微小偏移
+          y: pl.ball.y + (Math.random() - 0.5) * 10,
           r: 8,
-          dx: (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 2),
-          dy: -(4 + Math.random() * 2),
+          dx: Math.cos(angle) * spd,
+          dy: Math.sin(angle) * spd,
           life: duration,
           owner: pl,
-          hitBricks: new Set(), // ★ 新增碰撞記憶
+          hitBricks: new Set(),
         });
       }
-      triggerGameEvent(`👻 產生 ${power} 顆幽靈球！`, false, pl === p1 ? 0 : 1);
+      triggerGameEvent(
+        `👻 產生 ${ghostCount} 顆幽靈球！`,
+        false,
+        pl === p1 ? 0 : 1,
+      );
       break;
 
     case "temporary_immunity":

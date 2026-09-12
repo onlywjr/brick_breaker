@@ -115,6 +115,7 @@ export let mode = 1;
 export let level = 1;
 export let running = false;
 export let isLevelClearing = false; // ★ 新增：過關緩衝狀態
+export let levelStartTime = 0; // ★ 新增：關卡開始時間紀錄
 export let animId = null;
 export let showVirtual = false;
 export let gameTimeRemaining = 180;
@@ -549,6 +550,15 @@ function spawnBoss(lv, cv) {
 
 function resetRound(cv) {
   isLevelClearing = false; // ★ 重置過關狀態
+  levelStartTime = performance.now(); // ★ 重置開局時間，防止技能瞬間連發
+
+  // ★ 確保換關或重新開始時，強制解除殘留的光暈外框
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
+  }
+
   // ★ 強制清洗跨關卡的 Global DOT 毒霧狀態
   if (typeof resetGlobalDotState === "function") {
     resetGlobalDotState();
@@ -1545,13 +1555,19 @@ window.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據
+// ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據與特效
 // ==========================================
 const originalBackToMain = window.backToMainMenu;
 window.backToMainMenu = function (...args) {
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
     resetSkillCooldowns();
+  }
+  // ★ 強制清除技能發光外框
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
   }
   if (originalBackToMain) originalBackToMain(...args);
 };
@@ -1561,6 +1577,12 @@ window.returnToLobby = function (...args) {
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
     resetSkillCooldowns();
+  }
+  // ★ 強制清除技能發光外框
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
   }
   if (originalReturnToLobby) originalReturnToLobby(...args);
 };

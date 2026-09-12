@@ -58,11 +58,11 @@
       "molecularWeight": 17,
       "elements": { "N": 1, "H": 3 },
       "category": "攻擊",
-      "description": "具有強烈刺鼻氣味的鹼性氣體。 【單人】Lv.1 擋板寬度增加 10%，持續 4 秒。 【多人】Lv.1 對手擋板縮小 5%，持續 4 秒。",
+      "description": "具有強烈刺鼻氣味的鹼性氣體。 【單人】Lv.1 發散毒霧，全場方塊受到持續腐蝕，持續 4 秒。 【多人】Lv.1 對手擋板縮小 5%，持續 4 秒。",
       "effectSingle": {
-        "target": "self_paddle",
-        "action": "modify_width",
-        "params": { "power": 1.1, "durationSec": 4 }
+        "target": "board_bricks",
+        "action": "global_corrosion",
+        "params": { "power": 1, "durationSec": 4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
