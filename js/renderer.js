@@ -436,8 +436,22 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.textBaseline = "middle";
 
     if (b.symbol) {
-      if (chemDLCEnabled && ELEMENT_DATA[b.symbol]) {
-        // --- 化學 DLC 模式：渲染元素符號與中文 ---
+      // ★ 新增：陷阱方塊的最高優先級專屬畫法
+      if (b.symbol === "☠️") {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 24px 'Noto Sans TC', sans-serif";
+        ctx.textAlign = "center";
+
+        // 加一點危險的紅色陰影
+        if (!PERFORMANCE_MODE) {
+          ctx.shadowColor = "#E0576B";
+          ctx.shadowBlur = 10;
+        }
+        ctx.fillText("☠️", b.x + b.w / 2, b.y + b.h / 2 + 2); // 微調垂直位置
+        ctx.shadowBlur = 0; // 恢復設定
+      }
+      // --- 化學 DLC 模式：渲染元素符號與中文 ---
+      else if (chemDLCEnabled && ELEMENT_DATA[b.symbol]) {
         const zhName = ELEMENT_DATA[b.symbol][0];
         ctx.font = "900 14px Orbitron, sans-serif";
         const engWidth = ctx.measureText(b.symbol).width;
@@ -470,7 +484,9 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         ctx.font = "400 14px 'Noto Sans TC', sans-serif";
         ctx.fillStyle = "#761c1c";
         ctx.fillText(zhName, startX + engWidth + gap, b.y + b.h / 2);
-      } else if (!chemDLCEnabled) {
+      }
+      // 數學極限模式的畫法
+      else if (!chemDLCEnabled) {
         // --- ★ 數學極限模式：渲染數字與運算符號 ---
         const isOperator = ["+", "-", "×", "÷", "( )", "x", "y"].includes(
           b.symbol,

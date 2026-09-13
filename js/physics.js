@@ -696,17 +696,48 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         if (br.hp <= 0) {
           const targetPlayer = pl === p2 ? p2 : p1;
 
-          // ★ 方案 B 陷阱機制：被一般球打碎時觸發 15% 範圍傷害 (護盾可抵擋)
+          // ★ 方案 B 陷阱機制：觸發 15% 傷害，並引發範圍爆破
           if (br.symbol === "☠️") {
             applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
-            triggerVFX(8, "255, 50, 50", 0.3);
+            triggerVFX(10, "255, 50, 50", 0.4); // 加大玩家受傷特效
             floatTexts.push({
-              t: "陷阱觸發！-15% HP",
+              t: "陷阱爆破！HP -15%",
               life: 1.5,
               x: br.x,
               y: br.y,
               c: "#E0576B",
               big: true,
+            });
+
+            // 💥 附加效果：炸毀周圍半徑 90px 內的磚塊
+            const trapCx = br.x + br.w / 2;
+            const trapCy = br.y + br.h / 2;
+            const explosionRadius = 90;
+
+            bricks.forEach((b) => {
+              if (b.status === 1 && b !== br) {
+                const bcx = b.x + b.w / 2;
+                const bcy = b.y + b.h / 2;
+                if (Math.hypot(bcx - trapCx, bcy - trapCy) < explosionRadius) {
+                  b.hp -= 3; // 給予 3 點爆炸破壞力
+
+                  // 若方塊被炸毀，一樣給予分數與判定
+                  if (b.hp <= 0) {
+                    b.status = 0;
+                    targetPlayer.score += 10;
+                    triggerVFX(3, "255, 100, 50", 0.2); // 方塊炸毀的小特效
+
+                    // 如果炸毀的方塊也有符號，正常收集 (防止連環炸把元素炸不見)
+                    if (b.symbol && b.symbol !== "☠️") {
+                      if (chemDLCEnabled && typeof addAtom === "function") {
+                        addAtom(b.symbol, 1, targetPlayer === p1 ? 0 : 1);
+                      } else if (targetPlayer.mathInventory) {
+                        targetPlayer.mathInventory.push(b.symbol);
+                      }
+                    }
+                  }
+                }
+              }
             });
           } else if (br.symbol) {
             // 一般元素收集
