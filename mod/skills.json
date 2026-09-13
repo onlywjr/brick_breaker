@@ -27,10 +27,7 @@
       "name": "太初星火",
       "formula": "HeH+(氦氫離子)",
       "molecularWeight": 5,
-      "elements": {
-        "He": 1,
-        "H": 1
-      },
+      "elements": { "He": 1, "H": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "攻擊",
       "description": "宇宙誕生後最早形成的分子。",
@@ -39,17 +36,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 16.8
-        }
+        "params": { "powerPercent": 16.8 }
       },
       "progression": {
         "initialLevel": 1,
@@ -69,10 +61,7 @@
       "name": "沼氣燃動",
       "formula": "CH4(甲烷)",
       "molecularWeight": 16,
-      "elements": {
-        "C": 1,
-        "H": 4
-      },
+      "elements": { "C": 1, "H": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "特殊",
       "description": "最簡單的有機化合物，天然氣的主要成分。",
@@ -90,10 +79,7 @@
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fog_blind",
-        "params": {
-          "durationSec": 2,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 2, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -102,10 +88,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 16,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -113,23 +96,16 @@
       "name": "刺鼻迷霧",
       "formula": "NH3(氨氣)",
       "molecularWeight": 17,
-      "elements": {
-        "N": 1,
-        "H": 3
-      },
+      "elements": { "N": 1, "H": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "具有強烈刺鼻氣味的鹼性氣體。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 4 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 4 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 5%，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 1,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -149,10 +125,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 17,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -160,10 +133,7 @@
       "name": "生命之源",
       "formula": "H2O(水)",
       "molecularWeight": 18,
-      "elements": {
-        "H": 2,
-        "O": 1
-      },
+      "elements": { "H": 2, "O": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "防禦",
       "description": "孕育生命的基礎，覆蓋地球表面的大部分。",
@@ -172,16 +142,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 5
-        }
+        "params": { "powerPercent": 5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -201,14 +167,11 @@
       "name": "氧化沸騰",
       "formula": "H2O2(雙氧水)",
       "molecularWeight": 34,
-      "elements": {
-        "H": 2,
-        "O": 2
-      },
+      "elements": { "H": 2, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "強效的氧化劑，常用於消毒與漂白。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 1.5)，持續 5 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 1.5)，持續 5 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 15.0% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
@@ -222,9 +185,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 15.0
-        }
+        "params": { "powerPercent": 15.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -244,11 +205,7 @@
       "name": "強鹼淨化",
       "formula": "NaOH(氫氧化鈉)",
       "molecularWeight": 40,
-      "elements": {
-        "Na": 1,
-        "O": 1,
-        "H": 1
-      },
+      "elements": { "Na": 1, "O": 1, "H": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "防禦",
       "description": "強鹼性物質，能與酸劇烈中和。",
@@ -257,16 +214,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "clear_rows",
-        "params": {
-          "power": 1
-        }
+        "params": { "power": 1 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -286,10 +239,7 @@
       "name": "耐火壁壘",
       "formula": "MgO(氧化鎂)",
       "molecularWeight": 40,
-      "elements": {
-        "Mg": 1,
-        "O": 1
-      },
+      "elements": { "Mg": 1, "O": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "耐高溫的白色固體，常用作耐火材料。",
@@ -298,16 +248,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -327,10 +273,7 @@
       "name": "窒息氣流",
       "formula": "CO2(二氧化碳)",
       "molecularWeight": 44,
-      "elements": {
-        "C": 1,
-        "O": 2
-      },
+      "elements": { "C": 1, "O": 2 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "燃燒與呼吸作用的產物，能產生溫室效應。",
@@ -365,10 +308,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 44,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -376,11 +316,7 @@
       "name": "烈焰佳釀",
       "formula": "C2H6O(乙醇)",
       "molecularWeight": 46,
-      "elements": {
-        "C": 2,
-        "H": 6,
-        "O": 1
-      },
+      "elements": { "C": 2, "H": 6, "O": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "控制",
       "description": "醇類的一種，可燃且具有微毒性。",
@@ -389,18 +325,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -420,10 +350,7 @@
       "name": "石灰熱浪",
       "formula": "CaO(氧化鈣)",
       "molecularWeight": 56,
-      "elements": {
-        "Ca": 1,
-        "O": 1
-      },
+      "elements": { "Ca": 1, "O": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "遇水會釋放大量熱能的生石灰。",
@@ -432,20 +359,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 3,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": {
-          "power": 1,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -465,32 +384,21 @@
       "name": "結晶干擾",
       "formula": "NaCl(氯化鈉)",
       "molecularWeight": 58.5,
-      "elements": {
-        "Na": 1,
-        "Cl": 1
-      },
+      "elements": { "Na": 1, "Cl": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "最常見的鹽類，維持生命運作的必需品。",
-      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 6 秒。",
+      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球，持續 6 秒。",
       "descriptionMulti": "Lv.1 使對手球軌跡嚴重混亂，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -510,10 +418,7 @@
       "name": "幻影晶牆",
       "formula": "SiO2(二氧化矽)",
       "molecularWeight": 60,
-      "elements": {
-        "Si": 1,
-        "O": 2
-      },
+      "elements": { "Si": 1, "O": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "構成石英與玻璃的主要成分，堅硬透明。",
@@ -522,18 +427,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -553,11 +452,7 @@
       "name": "躍遷閃爍",
       "formula": "HArF(氟氫化氬)",
       "molecularWeight": 60,
-      "elements": {
-        "H": 1,
-        "Ar": 1,
-        "F": 1
-      },
+      "elements": { "H": 1, "Ar": 1, "F": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "極低溫下才能短暫存在的惰性氣體化合物。",
@@ -566,18 +461,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -597,32 +486,21 @@
       "name": "氣泡衝擊",
       "formula": "H2CO3(碳酸)",
       "molecularWeight": 62,
-      "elements": {
-        "H": 2,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "H": 2, "C": 1, "O": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "溶有二氧化碳的微酸性液體，易產生氣泡。",
-      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 5 秒。",
+      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球，持續 5 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -642,32 +520,21 @@
       "name": "酸蝕印記",
       "formula": "HNO3(硝酸)",
       "molecularWeight": 63,
-      "elements": {
-        "H": 1,
-        "N": 1,
-        "O": 3
-      },
+      "elements": { "H": 1, "N": 1, "O": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "具強烈腐蝕性與氧化性的三大強酸之一。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 7 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 7 秒。",
       "descriptionMulti": "Lv.1 反轉對手操作方向，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 1,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -687,11 +554,7 @@
       "name": "寧靜天秤",
       "formula": "Li2CO3(碳酸鋰)",
       "molecularWeight": 74,
-      "elements": {
-        "Li": 2,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Li": 2, "C": 1, "O": 3 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "常用於穩定神經與情緒的鋰鹽製劑。",
@@ -724,10 +587,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 92.5,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -735,10 +595,7 @@
       "name": "螢石光盾",
       "formula": "CaF2(氟化鈣)",
       "molecularWeight": 78,
-      "elements": {
-        "Ca": 1,
-        "F": 2
-      },
+      "elements": { "Ca": 1, "F": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "天然的螢石礦物，在紫外光下會發光。",
@@ -747,16 +604,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -776,10 +629,7 @@
       "name": "光能閃耀",
       "formula": "TiO2(二氧化鈦)",
       "molecularWeight": 80,
-      "elements": {
-        "Ti": 1,
-        "O": 2
-      },
+      "elements": { "Ti": 1, "O": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "特殊",
       "description": "優良的光催化劑與最白的天然顏料。",
@@ -788,17 +638,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 6.0
-        }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -818,31 +663,21 @@
       "name": "黑化侵蝕",
       "formula": "CuO(氧化銅)",
       "molecularWeight": 80,
-      "elements": {
-        "Cu": 1,
-        "O": 1
-      },
+      "elements": { "Cu": 1, "O": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "黑色的氧化銅粉末，具備催化特性。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 6 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 2)，持續 6 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -862,33 +697,21 @@
       "name": "湧泉氣泡",
       "formula": "NaHCO3(碳酸氫鈉)",
       "molecularWeight": 84,
-      "elements": {
-        "Na": 1,
-        "H": 1,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Na": 1, "H": 1, "C": 1, "O": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "小蘇打，遇酸迅速產生二氧化碳氣泡。",
-      "descriptionSingle": "Lv.1 召喚 4 顆幽靈球在場上肆虐，持續 5 秒。",
+      "descriptionSingle": "Lv.1 召喚 4 顆幽靈球，持續 5 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 4,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -908,10 +731,7 @@
       "name": "無盡連鎖",
       "formula": "MnO2(二氧化錳)",
       "molecularWeight": 87,
-      "elements": {
-        "Mn": 1,
-        "O": 2
-      },
+      "elements": { "Mn": 1, "O": 2 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "強效催化劑，能加速雙氧水分解。",
@@ -920,11 +740,7 @@
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -944,10 +760,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 108.8,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -955,10 +768,7 @@
       "name": "螢光標記",
       "formula": "ZnS(硫化鋅)",
       "molecularWeight": 97,
-      "elements": {
-        "Zn": 1,
-        "S": 1
-      },
+      "elements": { "Zn": 1, "S": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "特殊",
       "description": "常見的磷光材料，吸收光能後會持續發光。",
@@ -967,19 +777,12 @@
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -999,24 +802,16 @@
       "name": "毀滅酸雨",
       "formula": "H2SO4(硫酸)",
       "molecularWeight": 98,
-      "elements": {
-        "H": 2,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "H": 2, "S": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "工業之母，具強烈脫水性與腐蝕性的強酸。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 9%，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 1,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1036,10 +831,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 122.5,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1047,11 +839,7 @@
       "name": "岩石甲殼",
       "formula": "CaCO3(碳酸鈣)",
       "molecularWeight": 100,
-      "elements": {
-        "Ca": 1,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Ca": 1, "C": 1, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "構成大自然中石灰岩與貝殼的堅硬構造。",
@@ -1060,16 +848,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 12.0
-        }
+        "params": { "powerPercent": 12.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 12.0
-        }
+        "params": { "powerPercent": 12.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1089,11 +873,7 @@
       "name": "火藥爆破",
       "formula": "KNO3(硝酸鉀)",
       "molecularWeight": 101,
-      "elements": {
-        "K": 1,
-        "N": 1,
-        "O": 3
-      },
+      "elements": { "K": 1, "N": 1, "O": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "俗稱硝石，製造黑火藥的核心成分。",
@@ -1102,18 +882,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 4,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 35
-        }
+        "params": { "powerPercent": 35 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1133,10 +907,7 @@
       "name": "藍寶石之壁",
       "formula": "Al2O3(氧化鋁)",
       "molecularWeight": 102,
-      "elements": {
-        "Al": 2,
-        "O": 3
-      },
+      "elements": { "Al": 2, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "構成藍寶石與紅寶石的高硬度晶體。",
@@ -1145,16 +916,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 12.0
-        }
+        "params": { "powerPercent": 12.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 12.0
-        }
+        "params": { "powerPercent": 12.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1174,10 +941,7 @@
       "name": "光纖視界",
       "formula": "GeO2(二氧化鍺)",
       "molecularWeight": 105,
-      "elements": {
-        "Ge": 1,
-        "O": 2
-      },
+      "elements": { "Ge": 1, "O": 2 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "具備高折射率，光纖通訊的核心材料。",
@@ -1210,10 +974,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 131.2,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1221,10 +982,7 @@
       "name": "海綿吸收",
       "formula": "PdH(氫化鈀)",
       "molecularWeight": 107,
-      "elements": {
-        "Pd": 1,
-        "H": 1
-      },
+      "elements": { "Pd": 1, "H": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "輔助",
       "description": "鈀金屬能像海綿般吸附大量氫氣。",
@@ -1233,16 +991,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 11.2
-        }
+        "params": { "powerPercent": 11.2 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1262,10 +1016,7 @@
       "name": "不穩定爆破",
       "formula": "KrF2(二氟化氪)",
       "molecularWeight": 122,
-      "elements": {
-        "Kr": 1,
-        "F": 2
-      },
+      "elements": { "Kr": 1, "F": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "極不穩定的惰性氣體化合物，易發生爆裂。",
@@ -1274,18 +1025,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 5,
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 35
-        }
+        "params": { "powerPercent": 35 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1305,30 +1050,21 @@
       "name": "陶瓷利刃",
       "formula": "ZrO2(二氧化鋯)",
       "molecularWeight": 123,
-      "elements": {
-        "Zr": 1,
-        "O": 2
-      },
+      "elements": { "Zr": 1, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 7 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 3)，持續 7 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 35% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 35
-        }
+        "params": { "powerPercent": 35 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1348,11 +1084,7 @@
       "name": "極寒冰牢",
       "formula": "Ne·6H2O(氖籠形水合物)",
       "molecularWeight": 128,
-      "elements": {
-        "Ne": 1,
-        "H": 12,
-        "O": 6
-      },
+      "elements": { "Ne": 1, "H": 12, "O": 6 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "惰性氣體被冰晶籠困住的特殊水合物。",
@@ -1361,18 +1093,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1392,10 +1118,7 @@
       "name": "真視之眼",
       "formula": "CoCl2(氯化亞鈷)",
       "molecularWeight": 130,
-      "elements": {
-        "Co": 1,
-        "Cl": 2
-      },
+      "elements": { "Co": 1, "Cl": 2 },
       "categorySingle": "輔助",
       "categoryMulti": "特殊",
       "description": "隨濕度改變顏色的無機化合物。",
@@ -1404,19 +1127,12 @@
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": {
-          "power": 4,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1436,10 +1152,7 @@
       "name": "雷暴過載",
       "formula": "RuO2(二氧化釕)",
       "molecularWeight": 133,
-      "elements": {
-        "Ru": 1,
-        "O": 2
-      },
+      "elements": { "Ru": 1, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "導電性極佳的電極材料，能引發電流過載。",
@@ -1448,19 +1161,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 6,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 6, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1480,10 +1186,7 @@
       "name": "航太裝甲",
       "formula": "Sc2O3(氧化鈧)",
       "molecularWeight": 138,
-      "elements": {
-        "Sc": 2,
-        "O": 3
-      },
+      "elements": { "Sc": 2, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "控制",
       "description": "提升合金強度的稀有航太材料。",
@@ -1492,9 +1195,7 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1525,31 +1226,21 @@
       "name": "暗影殘跡",
       "formula": "AgCl(氯化銀)",
       "molecularWeight": 143,
-      "elements": {
-        "Ag": 1,
-        "Cl": 1
-      },
+      "elements": { "Ag": 1, "Cl": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "遇光會分解變黑的感光材料。",
-      "descriptionSingle": "Lv.1 召喚 4 顆幽靈球在場上肆虐，持續 6 秒。",
+      "descriptionSingle": "Lv.1 召喚 4 顆幽靈球，持續 6 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 4,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1569,10 +1260,7 @@
       "name": "奪目強光",
       "formula": "GaAs(砷化鎵)",
       "molecularWeight": 145,
-      "elements": {
-        "Ga": 1,
-        "As": 1
-      },
+      "elements": { "Ga": 1, "As": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "應用於高速半導體與高亮度LED的光電材料。",
@@ -1581,18 +1269,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1612,11 +1294,7 @@
       "name": "緋紅煙火",
       "formula": "SrCO3(碳酸鍶)",
       "molecularWeight": 148,
-      "elements": {
-        "Sr": 1,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Sr": 1, "C": 1, "O": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "燃燒時會發出耀眼紅光的煙火焰色劑。",
@@ -1625,19 +1303,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 6,
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 6, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1657,32 +1328,21 @@
       "name": "雷光麻痺",
       "formula": "NiSO4(硫酸鎳)",
       "molecularWeight": 155,
-      "elements": {
-        "Ni": 1,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Ni": 1, "S": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "電鍍工業常用的溶液，帶有獨特綠色。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 5 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 5 秒。",
       "descriptionMulti": "Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1702,31 +1362,21 @@
       "name": "紫焰淨化",
       "formula": "KMnO4(高錳酸鉀)",
       "molecularWeight": 158,
-      "elements": {
-        "K": 1,
-        "Mn": 1,
-        "O": 4
-      },
+      "elements": { "K": 1, "Mn": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "呈現深紫色的強效氧化劑與消毒劑。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1746,10 +1396,7 @@
       "name": "鐵鏽護甲",
       "formula": "Fe2O3(氧化鐵)",
       "molecularWeight": 160,
-      "elements": {
-        "Fe": 2,
-        "O": 3
-      },
+      "elements": { "Fe": 2, "O": 3 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "常見的紅色鐵鏽，質地堅硬的氧化層。",
@@ -1782,10 +1429,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 272.0,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1793,31 +1437,21 @@
       "name": "蒼藍毒泉",
       "formula": "CuSO4(硫酸銅)",
       "molecularWeight": 160,
-      "elements": {
-        "Cu": 1,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Cu": 1, "S": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "呈現澄澈藍色的電解質溶液，具毒性。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 7 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 7 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 2,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1837,10 +1471,7 @@
       "name": "滑行穿透",
       "formula": "MoS2(二硫化鉬)",
       "molecularWeight": 160,
-      "elements": {
-        "Mo": 1,
-        "S": 2
-      },
+      "elements": { "Mo": 1, "S": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "極佳的固態潤滑劑，能大幅降低摩擦力。",
@@ -1849,18 +1480,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 9,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -1880,11 +1505,7 @@
       "name": "生機縫合",
       "formula": "ZnSO4(硫酸鋅)",
       "molecularWeight": 161,
-      "elements": {
-        "Zn": 1,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Zn": 1, "S": 1, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "防禦",
       "description": "具收斂與防腐作用的無機鹽類。",
@@ -1893,16 +1514,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18
-        }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 12.0
-        }
+        "params": { "powerPercent": 12.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1922,23 +1539,16 @@
       "name": "深度腐蝕",
       "formula": "FeCl3(氯化鐵)",
       "molecularWeight": 162,
-      "elements": {
-        "Fe": 1,
-        "Cl": 3
-      },
+      "elements": { "Fe": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "溶於水呈黃褐色，具強烈腐蝕性的酸性鹽。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 2)，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板減速 19%，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 2,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -1958,10 +1568,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 275.4,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1969,10 +1576,7 @@
       "name": "晶格禁錮",
       "formula": "CsCl(氯化銫)",
       "molecularWeight": 168.5,
-      "elements": {
-        "Cs": 1,
-        "Cl": 1
-      },
+      "elements": { "Cs": 1, "Cl": 1 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "形成典型立方晶體結構的銫鹽。",
@@ -1992,10 +1596,7 @@
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2004,10 +1605,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 286.4,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -2015,31 +1613,21 @@
       "name": "白銀烙印",
       "formula": "AgNO3(硝酸銀)",
       "molecularWeight": 170,
-      "elements": {
-        "Ag": 1,
-        "N": 1,
-        "O": 3
-      },
+      "elements": { "Ag": 1, "N": 1, "O": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 2)，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 2,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2059,10 +1647,7 @@
       "name": "全知飛彈",
       "formula": "CeO2(二氧化鈰)",
       "molecularWeight": 172,
-      "elements": {
-        "Ce": 1,
-        "O": 2
-      },
+      "elements": { "Ce": 1, "O": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "攻擊",
       "description": "優良的拋光與光學催化劑。",
@@ -2071,17 +1656,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 9,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2101,11 +1681,7 @@
       "name": "能量湧動",
       "formula": "C6H12O6(葡萄糖)",
       "molecularWeight": 180,
-      "elements": {
-        "C": 6,
-        "H": 12,
-        "O": 6
-      },
+      "elements": { "C": 6, "H": 12, "O": 6 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "生物體內最重要的能量來源。",
@@ -2114,9 +1690,7 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18
-        }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "opponent_ball",
@@ -2145,30 +1719,21 @@
       "name": "催化火種",
       "formula": "V2O5(五氧化二釩)",
       "molecularWeight": 182,
-      "elements": {
-        "V": 2,
-        "O": 5
-      },
+      "elements": { "V": 2, "O": 5 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "硫酸工業中不可或缺的接觸法催化劑。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 7 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 3)，持續 7 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2188,11 +1753,7 @@
       "name": "核子顯影",
       "formula": "NaTcO4(高鎝酸鈉)",
       "molecularWeight": 185,
-      "elements": {
-        "Na": 1,
-        "Tc": 1,
-        "O": 4
-      },
+      "elements": { "Na": 1, "Tc": 1, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "醫學核子造影中最常用的放射性追蹤劑。",
@@ -2210,11 +1771,7 @@
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2234,10 +1791,7 @@
       "name": "顯影快門",
       "formula": "AgBr(溴化銀)",
       "molecularWeight": 188,
-      "elements": {
-        "Ag": 1,
-        "Br": 1
-      },
+      "elements": { "Ag": 1, "Br": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "特殊",
       "description": "傳統底片中最重要的感光乳劑成分。",
@@ -2255,10 +1809,7 @@
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2278,10 +1829,7 @@
       "name": "量子尋星",
       "formula": "CdSe(硒化鎘)",
       "molecularWeight": 191,
-      "elements": {
-        "Cd": 1,
-        "Se": 1
-      },
+      "elements": { "Cd": 1, "Se": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "應用於尖端顯示器技術的發光量子點。",
@@ -2299,10 +1847,7 @@
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2322,10 +1867,7 @@
       "name": "金剛不壞",
       "formula": "WC(碳化鎢)",
       "molecularWeight": 196,
-      "elements": {
-        "W": 1,
-        "C": 1
-      },
+      "elements": { "W": 1, "C": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "硬度僅次於鑽石，廣泛用於工業切削。",
@@ -2334,16 +1876,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2363,11 +1901,7 @@
       "name": "無敵重甲",
       "formula": "BaCO3(碳酸鋇)",
       "molecularWeight": 197,
-      "elements": {
-        "Ba": 1,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Ba": 1, "C": 1, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "用於製造光學玻璃與陶瓷的重型結構材料。",
@@ -2376,16 +1910,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 13.4
-        }
+        "params": { "powerPercent": 13.4 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2405,10 +1935,7 @@
       "name": "極地崩塌",
       "formula": "XeF4(四氟化氙)",
       "molecularWeight": 207,
-      "elements": {
-        "Xe": 1,
-        "F": 4
-      },
+      "elements": { "Xe": 1, "F": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "證明惰性氣體也能參與反應的強氧化劑。",
@@ -2417,19 +1944,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 8,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 8, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2449,20 +1969,17 @@
       "name": "時空催化",
       "formula": "RhCl3(三氯化銠)",
       "molecularWeight": 209.5,
-      "elements": {
-        "Rh": 1,
-        "Cl": 3
-      },
+      "elements": { "Rh": 1, "Cl": 3 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "貴金屬催化劑，能大幅加速化學反應。",
-      "descriptionSingle": "Lv.1 球速提升 75%，持續 8 秒。",
+      "descriptionSingle": "Lv.1 球速減緩 50%，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板減速 25%，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
         "params": {
-          "power": 1.75,
+          "power": 0.5,
           "durationSec": 8,
           "clearOnLevelComplete": true
         }
@@ -2485,10 +2002,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 356.1,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -2496,10 +2010,7 @@
       "name": "絕緣屏障",
       "formula": "HfO2(二氧化鉿)",
       "molecularWeight": 210,
-      "elements": {
-        "Hf": 1,
-        "O": 2
-      },
+      "elements": { "Hf": 1, "O": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "半導體製程中關鍵的高介電絕緣材料。",
@@ -2508,16 +2019,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2537,11 +2044,7 @@
       "name": "豐饒賜福",
       "formula": "Rb2CO3(碳酸銣)",
       "molecularWeight": 230,
-      "elements": {
-        "Rb": 2,
-        "C": 1,
-        "O": 3
-      },
+      "elements": { "Rb": 2, "C": 1, "O": 3 },
       "categorySingle": "輔助",
       "categoryMulti": "防禦",
       "description": "常見於特種玻璃與高能材料的銣鹽。",
@@ -2550,16 +2053,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18
-        }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 18.0
-        }
+        "params": { "powerPercent": 18.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2579,10 +2078,7 @@
       "name": "磁極引力",
       "formula": "Fe3O4(磁鐵礦)",
       "molecularWeight": 232,
-      "elements": {
-        "Fe": 3,
-        "O": 4
-      },
+      "elements": { "Fe": 3, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "天然具有磁性的黑色氧化鐵礦物。",
@@ -2600,11 +2096,7 @@
       "effectMulti": {
         "target": "opponent_ball",
         "action": "magnetic_pull",
-        "params": {
-          "power": 3,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2624,11 +2116,7 @@
       "name": "透視之眼",
       "formula": "BaSO4(硫酸鋇)",
       "molecularWeight": 233,
-      "elements": {
-        "Ba": 1,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Ba": 1, "S": 1, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "特殊",
       "description": "醫學上常用作X光腸胃顯影劑的鋇餐。",
@@ -2646,10 +2134,7 @@
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": {
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -2669,30 +2154,21 @@
       "name": "血色疫病",
       "formula": "HgS(硫化汞)",
       "molecularWeight": 233,
-      "elements": {
-        "Hg": 1,
-        "S": 1
-      },
+      "elements": { "Hg": 1, "S": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "鮮紅色的劇毒礦物，俗稱辰砂。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2712,10 +2188,7 @@
       "name": "喚雨凝雲",
       "formula": "AgI(碘化銀)",
       "molecularWeight": 235,
-      "elements": {
-        "Ag": 1,
-        "I": 1
-      },
+      "elements": { "Ag": 1, "I": 1 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "人工降雨時用作冰晶凝結核的核心試劑。",
@@ -2750,10 +2223,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 399.5,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -2761,10 +2231,7 @@
       "name": "光能轉換",
       "formula": "CdTe(碲化鎘)",
       "molecularWeight": 240,
-      "elements": {
-        "Cd": 1,
-        "Te": 1
-      },
+      "elements": { "Cd": 1, "Te": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "太陽能電池薄膜的高效光電材料。",
@@ -2773,16 +2240,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2802,30 +2265,21 @@
       "name": "猛毒蒸氣",
       "formula": "OsO4(四氧化鋨)",
       "molecularWeight": 254,
-      "elements": {
-        "Os": 1,
-        "O": 4
-      },
+      "elements": { "Os": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "揮發性極強且毒性猛烈的金屬氧化物。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 2,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2845,10 +2299,7 @@
       "name": "抗熱塗層",
       "formula": "Nb2O5(五氧化二鈮)",
       "molecularWeight": 266,
-      "elements": {
-        "Nb": 2,
-        "O": 5
-      },
+      "elements": { "Nb": 2, "O": 5 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "能提升合金耐熱與抗腐蝕性的保護層。",
@@ -2857,16 +2308,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 20.2
-        }
+        "params": { "powerPercent": 20.2 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2886,10 +2333,7 @@
       "name": "生命昇華",
       "formula": "FlH(氫化鈇)",
       "molecularWeight": 290,
-      "elements": {
-        "Fl": 1,
-        "H": 1
-      },
+      "elements": { "Fl": 1, "H": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "輔助",
       "description": "存在於理論預測中的超重元素氫化物。",
@@ -2898,16 +2342,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18.8
-        }
+        "params": { "powerPercent": 18.8 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18.8
-        }
+        "params": { "powerPercent": 18.8 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2927,10 +2367,7 @@
       "name": "泰坦之盾",
       "formula": "No2O(氧化諾)",
       "molecularWeight": 291,
-      "elements": {
-        "No": 1,
-        "O": 2
-      },
+      "elements": { "No": 1, "O": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "放射性人造元素構成的超重氧化物。",
@@ -2939,16 +2376,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2968,31 +2401,21 @@
       "name": "量子悖論",
       "formula": "RfO2(二氧化鑪)",
       "molecularWeight": 293,
-      "elements": {
-        "Rf": 1,
-        "O": 2
-      },
+      "elements": { "Rf": 1, "O": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "極不穩定，帶有未知量子特性的實驗化合物。",
-      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 6 秒。",
+      "descriptionSingle": "Lv.1 召喚 3 顆幽靈球，持續 6 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3012,11 +2435,7 @@
       "name": "赤炎狂流",
       "formula": "K2Cr2O7(重鉻酸鉀)",
       "molecularWeight": 294,
-      "elements": {
-        "K": 2,
-        "Cr": 2,
-        "O": 7
-      },
+      "elements": { "K": 2, "Cr": 2, "O": 7 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。",
@@ -3034,9 +2453,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3056,10 +2473,7 @@
       "name": "雷射共鳴",
       "formula": "RgF(氟化錀)",
       "molecularWeight": 301,
-      "elements": {
-        "Rg": 1,
-        "F": 1
-      },
+      "elements": { "Rg": 1, "F": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "理論上存在的第111號元素氟化物。",
@@ -3068,18 +2482,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 13,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3099,10 +2507,7 @@
       "name": "超重庇護",
       "formula": "CnO(氧化鎶)",
       "molecularWeight": 301,
-      "elements": {
-        "Cn": 1,
-        "O": 1
-      },
+      "elements": { "Cn": 1, "O": 1 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "半衰期極短的超重金屬氧化物。",
@@ -3111,16 +2516,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3140,10 +2541,7 @@
       "name": "點石成金",
       "formula": "AuCl3(三氯化金)",
       "molecularWeight": 303.5,
-      "elements": {
-        "Au": 1,
-        "Cl": 3
-      },
+      "elements": { "Au": 1, "Cl": 3 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "溶於水呈現黃色，為提煉純金的前驅物。",
@@ -3161,10 +2559,7 @@
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3184,10 +2579,7 @@
       "name": "電磁脈衝",
       "formula": "BkF3(氟化鉳)",
       "molecularWeight": 304,
-      "elements": {
-        "Bk": 1,
-        "F": 3
-      },
+      "elements": { "Bk": 1, "F": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "具強烈放射性的人造阿克系元素氟化物。",
@@ -3196,18 +2588,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 13,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3227,10 +2613,7 @@
       "name": "電漿干擾",
       "formula": "NhF(氟化鉨)",
       "molecularWeight": 305,
-      "elements": {
-        "Nh": 1,
-        "F": 1
-      },
+      "elements": { "Nh": 1, "F": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "極端條件下短暫生成的高能放射性物質。",
@@ -3239,18 +2622,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 13,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3270,10 +2647,7 @@
       "name": "高能裂變",
       "formula": "McO(氧化鏌)",
       "molecularWeight": 306,
-      "elements": {
-        "Mc": 1,
-        "O": 1
-      },
+      "elements": { "Mc": 1, "O": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "壽命僅在毫秒之間的第115號元素氧化物。",
@@ -3282,16 +2656,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
-        "params": {
-          "power": 6
-        }
+        "params": { "power": 6 }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3311,31 +2681,21 @@
       "name": "天降巨石",
       "formula": "Fe-Ni-Ir(隕石合金)",
       "molecularWeight": 307,
-      "elements": {
-        "Fe": 1,
-        "Ni": 1,
-        "Ir": 1
-      },
+      "elements": { "Fe": 1, "Ni": 1, "Ir": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 3)，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 3,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3355,10 +2715,7 @@
       "name": "湮滅衝擊",
       "formula": "MtO2(二氧化䥑)",
       "molecularWeight": 310,
-      "elements": {
-        "Mt": 1,
-        "O": 2
-      },
+      "elements": { "Mt": 1, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "放射性極強，存在時間以微秒計的超重氧化物。",
@@ -3367,16 +2724,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
-        "params": {
-          "power": 7
-        }
+        "params": { "power": 7 }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3396,23 +2749,16 @@
       "name": "虛空塌縮",
       "formula": "SgO3(三氧化𨭎)",
       "molecularWeight": 314,
-      "elements": {
-        "Sg": 1,
-        "O": 3
-      },
+      "elements": { "Sg": 1, "O": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "理論推測具備極高能量狀態的反常物質。",
-      "descriptionSingle": "Lv.1 召喚 6 顆幽靈球在場上肆虐，持續 8 秒。",
+      "descriptionSingle": "Lv.1 召喚 6 顆幽靈球，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 6,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 6, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -3432,10 +2778,7 @@
         "elementRarity": "legendary",
         "upgradeCostBase": 533.8,
         "upgradeCostGrowth": 1.15,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -3443,10 +2786,7 @@
       "name": "能量干擾",
       "formula": "MdF3(氟化鍆)",
       "molecularWeight": 315,
-      "elements": {
-        "Md": 1,
-        "F": 3
-      },
+      "elements": { "Md": 1, "F": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "控制",
       "description": "透過粒子加速器合成的極微量高能氟化物。",
@@ -3455,18 +2795,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 13,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3486,10 +2820,7 @@
       "name": "激能火花",
       "formula": "DbF3(氟化𨧀)",
       "molecularWeight": 325,
-      "elements": {
-        "Db": 1,
-        "F": 3
-      },
+      "elements": { "Db": 1, "F": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "產生強烈電磁擾動的過渡金屬氟化物。",
@@ -3498,18 +2829,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 13,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3529,10 +2854,7 @@
       "name": "無盡屏障",
       "formula": "LvF2(二氟化鉝)",
       "molecularWeight": 331,
-      "elements": {
-        "Lv": 1,
-        "F": 2
-      },
+      "elements": { "Lv": 1, "F": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "在粒子對撞中短暫現身的超重金屬鹵化物。",
@@ -3541,16 +2863,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3570,10 +2888,7 @@
       "name": "創世之盾",
       "formula": "OgF2(二氟化鿫)",
       "molecularWeight": 332,
-      "elements": {
-        "Og": 1,
-        "F": 2
-      },
+      "elements": { "Og": 1, "F": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "週期表最後一個元素的推測化合物。",
@@ -3582,16 +2897,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3611,10 +2922,7 @@
       "name": "爆裂引信",
       "formula": "Sb2S3(三硫化二銻)",
       "molecularWeight": 340,
-      "elements": {
-        "Sb": 2,
-        "S": 3
-      },
+      "elements": { "Sb": 2, "S": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "黑灰色的針狀晶體，早期煙火與火柴原料。",
@@ -3632,9 +2940,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3654,23 +2960,16 @@
       "name": "強酸突刺",
       "formula": "AmCl3(氯化鋂)",
       "molecularWeight": 349.5,
-      "elements": {
-        "Am": 1,
-        "Cl": 3
-      },
+      "elements": { "Am": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "呈現粉紅色的超鈾元素放射性鹽類。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 3,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -3690,10 +2989,7 @@
         "elementRarity": "legendary",
         "upgradeCostBase": 594.1,
         "upgradeCostGrowth": 1.15,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -3701,10 +2997,7 @@
       "name": "銅牆鐵壁",
       "formula": "DsCl2(二氯化鐽)",
       "molecularWeight": 352,
-      "elements": {
-        "Ds": 1,
-        "Cl": 2
-      },
+      "elements": { "Ds": 1, "Cl": 2 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "在加速器中費盡心血合成的短暫存在。",
@@ -3713,16 +3006,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3742,23 +3031,16 @@
       "name": "裂解強襲",
       "formula": "EsCl3(氯化鑀)",
       "molecularWeight": 358.5,
-      "elements": {
-        "Es": 1,
-        "Cl": 3
-      },
+      "elements": { "Es": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "用於研究超鈾元素特性的高放射性化合物。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 5,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -3778,10 +3060,7 @@
         "elementRarity": "legendary",
         "upgradeCostBase": 609.4,
         "upgradeCostGrowth": 1.15,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -3789,12 +3068,7 @@
       "name": "粉紅庇護",
       "formula": "C7H5BiO4(次水楊酸鉍)",
       "molecularWeight": 362,
-      "elements": {
-        "C": 7,
-        "H": 5,
-        "Bi": 1,
-        "O": 4
-      },
+      "elements": { "C": 7, "H": 5, "Bi": 1, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "輔助",
       "description": "常見於腸胃藥，呈現鮮明粉紅色。",
@@ -3803,16 +3077,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18
-        }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 18
-        }
+        "params": { "powerPercent": 18 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3832,32 +3102,21 @@
       "name": "電磁風暴",
       "formula": "TsCl2(二氯化鿬)",
       "molecularWeight": 365,
-      "elements": {
-        "Ts": 1,
-        "Cl": 2
-      },
+      "elements": { "Ts": 1, "Cl": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "週期表第117號元素的鹵素同族化合物。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
       "descriptionMulti": "Lv.1 召喚電磁風暴強烈干擾對手，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 5,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": {
-          "power": 4,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -3877,30 +3136,21 @@
       "name": "狂怒穿刺",
       "formula": "LrCl3(氯化鐒)",
       "molecularWeight": 372.5,
-      "elements": {
-        "Lr": 1,
-        "Cl": 3
-      },
+      "elements": { "Lr": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "錒系元素最後一個成員的高能放射鹽。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 5,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3920,30 +3170,21 @@
       "name": "腐朽打擊",
       "formula": "BhCl3(氯化𨨏)",
       "molecularWeight": 376.5,
-      "elements": {
-        "Bh": 1,
-        "Cl": 3
-      },
+      "elements": { "Bh": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
-      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
+      "description": "具強烈輻射，迅速衰變的超重金屬氯化物。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 4,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3963,31 +3204,21 @@
       "name": "破曉光束",
       "formula": "Er2O3(氧化鉺)",
       "molecularWeight": 382,
-      "elements": {
-        "Er": 2,
-        "O": 3
-      },
+      "elements": { "Er": 2, "O": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
-      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。",
-      "descriptionSingle": "Lv.1 召喚 7 顆幽靈球在場上肆虐，持續 8 秒。",
+      "description": "粉紅色的稀土氧化物，光纖放大器核心材料。",
+      "descriptionSingle": "Lv.1 召喚 7 顆幽靈球，持續 8 秒。",
       "descriptionMulti": "Lv.1 遮蔽對手視線，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 7,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 7, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4007,10 +3238,7 @@
       "name": "絕對防禦",
       "formula": "HsF6(六氟化𨭆)",
       "molecularWeight": 391,
-      "elements": {
-        "Hs": 1,
-        "F": 6
-      },
+      "elements": { "Hs": 1, "F": 6 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "揮發性極高的第108號元素六氟化物。",
@@ -4019,16 +3247,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 22.5
-        }
+        "params": { "powerPercent": 22.5 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4048,10 +3272,7 @@
       "name": "凝滯領域",
       "formula": "Yb2O3(氧化鐿)",
       "molecularWeight": 394,
-      "elements": {
-        "Yb": 2,
-        "O": 3
-      },
+      "elements": { "Yb": 2, "O": 3 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "用於製造超高精度原子鐘的稀土材料。",
@@ -4071,10 +3292,7 @@
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4083,10 +3301,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 669.8,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -4094,11 +3309,7 @@
       "name": "隱形迴廊",
       "formula": "In2O3·SnO2(氧化銦錫)",
       "molecularWeight": 429,
-      "elements": {
-        "In": 2,
-        "Sn": 1,
-        "O": 4
-      },
+      "elements": { "In": 2, "Sn": 1, "O": 4 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "觸控螢幕中不可或缺的透明導電薄膜。",
@@ -4107,18 +3318,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": {
-          "durationSec": 15,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 15, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": {
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4138,10 +3343,7 @@
       "name": "蓄能護盾",
       "formula": "Ta2O5(五氧化二鉭)",
       "molecularWeight": 442,
-      "elements": {
-        "Ta": 2,
-        "O": 5
-      },
+      "elements": { "Ta": 2, "O": 5 },
       "categorySingle": "輔助",
       "categoryMulti": "輔助",
       "description": "高階電子設備電容器的關鍵儲能材料。",
@@ -4150,16 +3352,12 @@
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 22.4
-        }
+        "params": { "powerPercent": 22.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": {
-          "powerPercent": 22.4
-        }
+        "params": { "powerPercent": 22.4 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4179,23 +3377,16 @@
       "name": "酸化侵蝕",
       "formula": "Re2O7(七氧化二錸)",
       "molecularWeight": 484,
-      "elements": {
-        "Re": 2,
-        "O": 7
-      },
+      "elements": { "Re": 2, "O": 7 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 35%，持續 16 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 4,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -4215,10 +3406,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 822.8,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -4226,31 +3414,21 @@
       "name": "無形鴆毒",
       "formula": "Tl2SO4(硫酸亞鉈)",
       "molecularWeight": 504,
-      "elements": {
-        "Tl": 2,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Tl": 2, "S": 1, "O": 4 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "無色無味，歷史上曾為滅鼠藥的劇毒物質。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 5 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 5 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 5,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": {
-          "powerPercent": 50
-        }
+        "params": { "powerPercent": 50 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4270,12 +3448,7 @@
       "name": "翠綠折射",
       "formula": "Be3Al2Si6O18(綠柱石)",
       "molecularWeight": 537,
-      "elements": {
-        "Be": 3,
-        "Al": 2,
-        "Si": 6,
-        "O": 18
-      },
+      "elements": { "Be": 3, "Al": 2, "Si": 6, "O": 18 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "構成祖母綠與海藍寶石的美麗矽酸鹽礦物。",
@@ -4284,16 +3457,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 24.0
-        }
+        "params": { "powerPercent": 24.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 24.0
-        }
+        "params": { "powerPercent": 24.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4313,10 +3482,7 @@
       "name": "堅壁清野",
       "formula": "Cm2O3(氧化鋦)",
       "molecularWeight": 542,
-      "elements": {
-        "Cm": 2,
-        "O": 3
-      },
+      "elements": { "Cm": 2, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "釋放強烈阿爾法射線的放射性稀土替代物。",
@@ -4325,16 +3491,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4354,10 +3516,7 @@
       "name": "耐火重甲",
       "formula": "Cf2O3(氧化鉲)",
       "molecularWeight": 550,
-      "elements": {
-        "Cf": 2,
-        "O": 3
-      },
+      "elements": { "Cf": 2, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "每微克價值連城，強大的中子放射源。",
@@ -4366,16 +3525,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4395,10 +3550,7 @@
       "name": "無懈可擊",
       "formula": "Fm2O3(氧化鐨)",
       "molecularWeight": 562,
-      "elements": {
-        "Fm": 2,
-        "O": 3
-      },
+      "elements": { "Fm": 2, "O": 3 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "僅能以極微量存在，實驗室中的極致造物。",
@@ -4407,16 +3559,12 @@
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": {
-          "powerPercent": 30.0
-        }
+        "params": { "powerPercent": 30.0 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4436,15 +3584,10 @@
       "name": "超導奔流",
       "formula": "YBa2Cu3O7(釔鋇銅氧化物)",
       "molecularWeight": 667,
-      "elements": {
-        "Y": 1,
-        "Ba": 2,
-        "Cu": 3,
-        "O": 7
-      },
+      "elements": { "Y": 1, "Ba": 2, "Cu": 3, "O": 7 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
-      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。",
+      "description": "著名的高溫超導體，電阻趨近於零。",
       "descriptionSingle": "Lv.1 改變球的反彈角度，更容易攻擊死角，持續 11 秒。",
       "descriptionMulti": "Lv.1 完全凍結對手擋板，持續 9 秒。",
       "effectSingle": {
@@ -4459,10 +3602,7 @@
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": {
-          "durationSec": 9,
-          "clearOnLevelComplete": true
-        }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4471,10 +3611,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 1133.9,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -4482,16 +3619,12 @@
       "name": "萬象牽引",
       "formula": "Nd2Fe14B(釹鐵硼磁鐵)",
       "molecularWeight": 1083,
-      "elements": {
-        "Nd": 2,
-        "Fe": 14,
-        "B": 1
-      },
+      "elements": { "Nd": 2, "Fe": 14, "B": 1 },
       "categorySingle": "輔助",
       "categoryMulti": "控制",
       "description": "目前人類已知磁力最強的永久磁鐵。",
       "descriptionSingle": "Lv.1 自身擋板加寬 89%，持續 20 秒。",
-      "descriptionMulti": "Lv.1 以強烈磁力牽引對手球軌跡，持續 10 秒。",
+      "descriptionMulti": "Lv.1 強磁力牽引對手球軌跡，持續 10 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
@@ -4528,10 +3661,7 @@
       "name": "極光放射",
       "formula": "LaB6(六硼化鑭)",
       "molecularWeight": 203.7,
-      "elements": {
-        "La": 1,
-        "B": 6
-      },
+      "elements": { "La": 1, "B": 6 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "優異電子發射能力，用於高性能電子發射元件。",
@@ -4540,20 +3670,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "add_piercing",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "power_speed_boost",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4573,10 +3695,7 @@
       "name": "翠焰干涉",
       "formula": "PrCl3(氯化鐠)",
       "molecularWeight": 247.4,
-      "elements": {
-        "Pr": 1,
-        "Cl": 3
-      },
+      "elements": { "Pr": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "可用於特殊光學與材料研究。",
@@ -4585,20 +3704,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "shockwave",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": {
-          "power": 1,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4618,10 +3729,7 @@
       "name": "放射倒數",
       "formula": "PmCl3(氯化鉕)",
       "molecularWeight": 251.5,
-      "elements": {
-        "Pm": 1,
-        "Cl": 3
-      },
+      "elements": { "Pm": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "含有不穩定的放射性元素鉕。",
@@ -4630,20 +3738,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": {
-          "power": 3,
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "unstable_countdown",
-        "params": {
-          "power": 1,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4663,10 +3763,7 @@
       "name": "拓撲壁壘",
       "formula": "SmB6(六硼化釤)",
       "molecularWeight": 215.2,
-      "elements": {
-        "Sm": 1,
-        "B": 6
-      },
+      "elements": { "Sm": 1, "B": 6 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "特殊電子性質，低溫物理研究中受重視。",
@@ -4684,11 +3781,7 @@
       "effectMulti": {
         "target": "self",
         "action": "temporary_immunity",
-        "params": {
-          "power": 1,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4708,10 +3801,7 @@
       "name": "赤色螢光",
       "formula": "EuS(硫化銪)",
       "molecularWeight": 184.1,
-      "elements": {
-        "Eu": 1,
-        "S": 1
-      },
+      "elements": { "Eu": 1, "S": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "特殊磁性與光學性質，呈現明顯光學反應。",
@@ -4720,20 +3810,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "highlight_targets",
-        "params": {
-          "power": 1,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "power": 1,
-          "durationSec": 2,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 2, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4753,14 +3835,11 @@
       "name": "磁域塌縮",
       "formula": "GdN(氮化釓)",
       "molecularWeight": 171.3,
-      "elements": {
-        "Gd": 1,
-        "N": 1
-      },
+      "elements": { "Gd": 1, "N": 1 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "可用於研究磁性與電子性質。",
-      "descriptionSingle": "Lv.1 magnetic_trajectory 1.5，持續 6 秒。",
+      "descriptionSingle": "Lv.1 以磁力引導 1.5，持續 6 秒。",
       "descriptionMulti": "Lv.1 使對手球軌跡嚴重混亂，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -4774,11 +3853,7 @@
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": {
-          "power": 2,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4798,10 +3873,7 @@
       "name": "翠光閃爆",
       "formula": "TbCl3(氯化鋱)",
       "molecularWeight": 265.4,
-      "elements": {
-        "Tb": 1,
-        "Cl": 3
-      },
+      "elements": { "Tb": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "鋱常被應用於螢光與磁性材料。",
@@ -4819,11 +3891,7 @@
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": {
-          "power": 2,
-          "durationSec": 2,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 2, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4843,10 +3911,7 @@
       "name": "磁暴牽引",
       "formula": "DyF3(氟化鏑)",
       "molecularWeight": 219.5,
-      "elements": {
-        "Dy": 1,
-        "F": 3
-      },
+      "elements": { "Dy": 1, "F": 3 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "含強磁性特徵的稀土元素鏑。",
@@ -4855,20 +3920,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "trajectory_guide",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "magnetic_pull",
-        "params": {
-          "power": 1,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4888,32 +3945,21 @@
       "name": "全息脈衝",
       "formula": "HoF3(氟化鈥)",
       "molecularWeight": 221.9,
-      "elements": {
-        "Ho": 1,
-        "F": 3
-      },
+      "elements": { "Ho": 1, "F": 3 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "鈥具有特殊的磁性與光譜特徵。",
-      "descriptionSingle": "Lv.1 召喚 2 顆幽靈球在場上肆虐，持續 6 秒。",
+      "descriptionSingle": "Lv.1 召喚 2 顆幽靈球，持續 6 秒。",
       "descriptionMulti": "Lv.1 製造假球幻影干擾對手判斷，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fake_ball_illusion",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -4933,10 +3979,7 @@
       "name": "藍焰折射",
       "formula": "TmF3(氟化銩)",
       "molecularWeight": 225.9,
-      "elements": {
-        "Tm": 1,
-        "F": 3
-      },
+      "elements": { "Tm": 1, "F": 3 },
       "categorySingle": "控制",
       "categoryMulti": "控制",
       "description": "可用於特殊光學與材料研究。",
@@ -4978,10 +4021,7 @@
       "name": "稀土終焉",
       "formula": "LuCl3(氯化鑥)",
       "molecularWeight": 281.5,
-      "elements": {
-        "Lu": 1,
-        "Cl": 3
-      },
+      "elements": { "Lu": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "鑥具有高密度與穩定的材料特性。",
@@ -4990,11 +4030,7 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "increase_brick_damage",
-        "params": {
-          "power": 3,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
@@ -5023,23 +4059,16 @@
       "name": "重鉛壓制",
       "formula": "PbI2(碘化鉛)",
       "molecularWeight": 461,
-      "elements": {
-        "Pb": 1,
-        "I": 2
-      },
+      "elements": { "Pb": 1, "I": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
-      "description": "具有明顯光電特性，可形成特殊的晶體結構。",
-      "descriptionSingle": "Lv.1 化身重球，撞擊引發範圍爆破 (威力 4)，持續 6 秒。",
+      "description": "具明顯光電特性，可形成特殊晶體結構。",
+      "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 4)，持續 6 秒。",
       "descriptionMulti": "Lv.1 對手擋板減速 60%，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": {
-          "power": 4,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
@@ -5059,10 +4088,7 @@
         "elementRarity": "rare",
         "upgradeCostBase": 783.7,
         "upgradeCostGrowth": 1.08,
-        "scaling": {
-          "type": "bounded_control",
-          "minMultiplier": 0.4
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -5070,32 +4096,21 @@
       "name": "放射崩解",
       "formula": "PoO2(二氧化釙)",
       "molecularWeight": 241,
-      "elements": {
-        "Po": 1,
-        "O": 2
-      },
+      "elements": { "Po": 1, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "含高度放射性的元素釙。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 對手受到放射性干擾，持續扣除 2% HP，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "radiation_debuff",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5115,10 +4130,7 @@
       "name": "幽靈鹵化",
       "formula": "AtCl(氯化砈)",
       "molecularWeight": 245.5,
-      "elements": {
-        "At": 1,
-        "Cl": 1
-      },
+      "elements": { "At": 1, "Cl": 1 },
       "categorySingle": "特殊",
       "categoryMulti": "攻擊",
       "description": "含罕見且不穩定的元素砈。",
@@ -5127,20 +4139,12 @@
       "effectSingle": {
         "target": "self_ball",
         "action": "phase_piercing",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "unstable_debuff",
-        "params": {
-          "power": 2,
-          "durationSec": 4,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5160,10 +4164,7 @@
       "name": "幽冥逸散",
       "formula": "RnF2(二氟化氡)",
       "molecularWeight": 260,
-      "elements": {
-        "Rn": 1,
-        "F": 2
-      },
+      "elements": { "Rn": 1, "F": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "屬極罕見且具有高度不穩定性的氡化合物。",
@@ -5172,20 +4173,12 @@
       "effectSingle": {
         "target": "board_environment",
         "action": "dispel_brick_effects",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fog_blind",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5205,10 +4198,7 @@
       "name": "王者裂變",
       "formula": "FrCl(氯化鍅)",
       "molecularWeight": 258.5,
-      "elements": {
-        "Fr": 1,
-        "Cl": 1
-      },
+      "elements": { "Fr": 1, "Cl": 1 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "含有極端稀有且高度不穩定的元素鍅。",
@@ -5250,11 +4240,7 @@
       "name": "鐳光核心",
       "formula": "RaSO4(硫酸鐳)",
       "molecularWeight": 322.1,
-      "elements": {
-        "Ra": 1,
-        "S": 1,
-        "O": 4
-      },
+      "elements": { "Ra": 1, "S": 1, "O": 4 },
       "categorySingle": "輔助",
       "categoryMulti": "輔助",
       "description": "鐳的化合物，鐳會自發發光、具放射性。",
@@ -5296,10 +4282,7 @@
       "name": "原初核光",
       "formula": "AcCl3(氯化錒)",
       "molecularWeight": 333.5,
-      "elements": {
-        "Ac": 1,
-        "Cl": 3
-      },
+      "elements": { "Ac": 1, "Cl": 3 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "錒系元素的起點，象徵強大的放射性能量。",
@@ -5317,11 +4300,7 @@
       "effectMulti": {
         "target": "self_ball",
         "action": "add_piercing",
-        "params": {
-          "power": 4,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5341,10 +4320,7 @@
       "name": "核能壁壘",
       "formula": "ThF4(四氟化釷)",
       "molecularWeight": 308,
-      "elements": {
-        "Th": 1,
-        "F": 4
-      },
+      "elements": { "Th": 1, "F": 4 },
       "categorySingle": "防禦",
       "categoryMulti": "防禦",
       "description": "重元素釷的穩定氟化物。",
@@ -5362,11 +4338,7 @@
       "effectMulti": {
         "target": "self",
         "action": "temporary_immunity",
-        "params": {
-          "power": 2,
-          "durationSec": 8,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5386,10 +4358,7 @@
       "name": "裂變前兆",
       "formula": "PaF5(五氟化鏷)",
       "molecularWeight": 326,
-      "elements": {
-        "Pa": 1,
-        "F": 5
-      },
+      "elements": { "Pa": 1, "F": 5 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "極為稀有的錒系元素鏷，高階且不穩定。",
@@ -5398,20 +4367,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "charged_explosion",
-        "params": {
-          "power": 5,
-          "durationSec": 3,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 5, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "charge_next_hit",
-        "params": {
-          "power": 4,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5431,32 +4392,21 @@
       "name": "離心風暴",
       "formula": "UF6(六氟化鈾)",
       "molecularWeight": 352,
-      "elements": {
-        "U": 1,
-        "F": 6
-      },
+      "elements": { "U": 1, "F": 6 },
       "categorySingle": "攻擊",
       "categoryMulti": "特殊",
       "description": "具特殊物理性質與鈾同位素分離相關。",
       "descriptionSingle": "Lv.1 引發能量風暴，全場受到持續傷害 (威力 4)，持續 7 秒。",
-      "descriptionMulti": "Lv.1 召喚電磁風暴強烈干擾對手，持續 5 秒。",
+      "descriptionMulti": "Lv.1 電磁暴強烈干擾對手，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_damage_over_time",
-        "params": {
-          "power": 4,
-          "durationSec": 7,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 4, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": {
-          "power": 3,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5476,10 +4426,7 @@
       "name": "中子迷霧",
       "formula": "NpO2(二氧化鎿)",
       "molecularWeight": 269,
-      "elements": {
-        "Np": 1,
-        "O": 2
-      },
+      "elements": { "Np": 1, "O": 2 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "人工放射性元素鎿的氧化物，神秘且不穩定。",
@@ -5488,20 +4435,12 @@
       "effectSingle": {
         "target": "board_bricks",
         "action": "disable_special_bricks",
-        "params": {
-          "power": 2,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": {
-          "power": 2,
-          "durationSec": 5,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
@@ -5521,10 +4460,7 @@
       "name": "超臨界爆發",
       "formula": "PuO2(二氧化鈽)",
       "molecularWeight": 276,
-      "elements": {
-        "Pu": 1,
-        "O": 2
-      },
+      "elements": { "Pu": 1, "O": 2 },
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "可儲存大量核能相關的高密度能量概念。",
@@ -5542,11 +4478,7 @@
       "effectMulti": {
         "target": "self_ball",
         "action": "berserk_boost",
-        "params": {
-          "power": 3,
-          "durationSec": 6,
-          "clearOnLevelComplete": true
-        }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "progression": {
         "initialLevel": 1,
