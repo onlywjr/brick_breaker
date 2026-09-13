@@ -7,21 +7,21 @@
    1. 全域與基礎彈出視窗設定
 ------------------------------------------ */
 #chem-ui-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(230, 238, 238, 1);
-    backdrop-filter: blur(20px);
-    z-index: 1000;
-    display: none; /* JS 會切換成 flex */
-    flex-direction: column;
-    
-    /* ★ 新增：強制垂直與水平置中 */
-    justify-content: center;    
-    
-    /* ★ 修正：將原本的 70px 頂部 padding 改為對稱，避免視覺偏下 */
-    padding: 20px; 
-    box-sizing: border-box;
-    font-family: 'Noto Sans TC', sans-serif;
+  position: fixed;
+  inset: 0;
+  background: rgba(230, 238, 238, 1);
+  backdrop-filter: blur(20px);
+  z-index: 1000;
+  display: none; /* JS 會切換成 flex */
+  flex-direction: column;
+
+  /* ★ 新增：強制垂直與水平置中 */
+  justify-content: center;
+
+  /* ★ 修正：將原本的 70px 頂部 padding 改為對稱，避免視覺偏下 */
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: "Noto Sans TC", sans-serif;
 }
 
 /* 預設在桌面版隱藏手機專屬的三顆切換按鈕 */
@@ -129,6 +129,8 @@
   grid-template-columns: repeat(5, 1fr); /* 電腦版固定一排 5 張 */
   grid-template-rows: repeat(2, 1fr);
   gap: 12px;
+  min-height: 232px;
+  align-content: start; /* 讓卡片靠上對齊，不要被拉扯 */
 }
 
 .shop-nav-btn {
@@ -784,7 +786,6 @@
    行動裝置專屬：卡片區與元素表完美切換 (適用於手機、小平板與橫屏)
 ========================================================================= */
 @media (max-width: 1024px), (max-height: 600px), (max-aspect-ratio: 17/10) {
-
   /* ==========================================
      等比縮放畫布設定與滿版覆蓋
   ========================================== */
@@ -801,17 +802,17 @@
     z-index: 9999 !important;
   }
 
-/* 鎖死基礎解析度，由 JS 的 transform 接管縮放 */
+  /* 鎖死基礎解析度，由 JS 的 transform 接管縮放 */
   #chem-ui-scaler {
     width: 900px !important;
     height: 400px !important;
     position: absolute !important; /* ★ 致命錯誤修正：改為絕對定位 */
-    top: 50% !important;           /* ★ 強制把畫布頂部推到螢幕一半 */
-    left: 50% !important;          /* ★ 強制把畫布左側推到螢幕一半 */
-    transform-origin: center center !important; 
+    top: 50% !important; /* ★ 強制把畫布頂部推到螢幕一半 */
+    left: 50% !important; /* ★ 強制把畫布左側推到螢幕一半 */
+    transform-origin: center center !important;
     background: transparent !important;
   }
-  
+
   #chem-ui-scaler > * {
     max-width: 100% !important;
   }
@@ -829,7 +830,7 @@
   #chem-close-btn {
     display: none !important;
   }
-  
+
   /* ------------------------------------------
      B. 手機專屬按鈕容器 (支援「購買」、「返回」、「關閉」三態切換)
   ------------------------------------------ */
@@ -938,7 +939,9 @@
     grid-template-rows: repeat(2, 1fr) !important;
     gap: 10px !important;
     padding: 0 0 10px 0 !important;
-    height: 100% !important; /* 強制撐滿剩餘高度 */
+    height: 100% !important;
+    min-height: 220px !important;
+    align-content: start !important;
     margin-bottom: 0 !important;
   }
 
@@ -1223,8 +1226,12 @@
 }
 
 @keyframes tiltPhone {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-90deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-90deg);
+  }
 }
 
 /* ★ 當行動裝置且處於「直向 (Portrait)」時，顯示提示並強制隱藏商店 UI */

@@ -228,7 +228,8 @@ function makePlayer(color, lightColor) {
     reversed: false,
     reversedTimer: 0,
     invincibleTimer: 0,
-    lives: 3,
+    hp: 100, // ★ V2.0：開局 100% 真實裝甲
+    shield: 0, // ★ V2.0：開局 0% 護盾
     mathInventory: [],
   };
 }
@@ -237,20 +238,21 @@ function generateBrickSymbol(gameMode, currentLevel) {
   // ★ 新增：未開啟化學 DLC 時，改為生成數學符號
   if (!chemDLCEnabled) {
     const operators = ["+", "-"];
-    if (currentLevel >= 4) operators.push("×", "÷");
+    if (currentLevel >= 4) operators.push("×", "÷", "(", ")");
+    if (currentLevel >= 7) operators.push("[", "]");
+    if (currentLevel >= 10) operators.push("x", "=");
 
     let numMax = 9;
     if (currentLevel >= 4) numMax = 50;
     if (currentLevel >= 7) numMax = 99;
 
-    // 70% 機率生成數字，30% 機率生成運算子
-    if (Math.random() < 0.7) {
+    // 60% 機率生成數字，40% 機率生成運算子或括號
+    if (Math.random() < 0.6) {
       return Math.floor(Math.random() * numMax + 1).toString();
     } else {
       return operators[Math.floor(Math.random() * operators.length)];
     }
   }
-
   // --- 以下保留原本的化學 DLC 邏輯 ---
   const basicPool = ["H", "C", "O", "N"];
   let rarePool = [];
@@ -895,7 +897,7 @@ export function startOnlineGame(state, cv) {
   document.getElementById("p1-label").style.display = "none";
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
-  document.getElementById("global-leave-btn").style.display = "block";
+  document.getElementById("global-leave-btn").style.display = "none";
 
   // ★ 正確補上：在連線模式中啟動並顯示中央 HUD
   if (typeof setupEventHUDs === "function") setupEventHUDs();
@@ -1143,7 +1145,7 @@ export function onlineReceiveAttack(d) {
 }
 
 // ==========================================
-// ★ 數學極限模式：出題引擎 (10秒挑戰)
+// ★ 數學極限模式：單人出題引擎 (10秒挑戰)
 // ==========================================
 function startMathQuiz(pl, onComplete) {
   const overlay = document.getElementById("math-quiz-overlay");
@@ -1156,55 +1158,22 @@ function startMathQuiz(pl, onComplete) {
     return;
   }
 
-  // 1. 從玩家本局打破的方塊中萃取數字與運算符號
-  let nums = pl.mathInventory.filter((s) => !isNaN(s));
-  let ops = pl.mathInventory.filter(
-    (s) => isNaN(s) && ["+", "-", "×", "÷"].includes(s),
-  );
+  // 1. 呼叫新的數學生成引擎
+  const problem = buildMathProblem(pl.mathInventory, level);
+  const { qStr, ans, options } = problem;
 
-  // 系統防呆：如果玩家打太快沒收集到足夠符號，給予預設難度
-  if (nums.length < 2) nums.push("7", "9", "15", "20");
-  if (ops.length < 1) ops.push("+", "-", "×");
-
-  let n1 = parseInt(nums[Math.floor(Math.random() * nums.length)]);
-  let n2 = parseInt(nums[Math.floor(Math.random() * nums.length)]);
-  let op = ops[Math.floor(Math.random() * ops.length)];
-
-  // 2. 確保運算合理化 (避免負數與無法整除)
-  if (op === "-" && n1 < n2) {
-    [n1, n2] = [n2, n1];
-  }
-  if (op === "÷") {
-    n1 = n1 * Math.max(1, n2);
-  } // 反向相乘確保能被完美整除
-
-  let ans = 0;
-  if (op === "+") ans = n1 + n2;
-  else if (op === "-") ans = n1 - n2;
-  else if (op === "×") ans = n1 * n2;
-  else if (op === "÷") ans = n1 / n2;
-
-  questionEl.innerText = `${n1} ${op} ${n2} = ?`;
-
-  // 3. 產生 1 個正確選項 + 3 個隨機誘答
-  let options = [ans];
-  while (options.length < 4) {
-    let fake = ans + (Math.floor(Math.random() * 21) - 10); // 誤差範圍 +- 10
-    if (fake !== ans && fake >= 0 && !options.includes(fake))
-      options.push(fake);
-  }
-  options.sort(() => Math.random() - 0.5); // 洗牌
-
+  questionEl.innerHTML = qStr;
   optionsEl.innerHTML = "";
+
   let quizTimer = null;
   let timeLeft = 10.0;
   let isAnswered = false;
 
-  const finishQuiz = () => {
+  const finishQuiz = (msg, color) => {
     isAnswered = true;
     clearInterval(quizTimer);
-    overlay.style.display = "none";
-    onComplete(); // 結束後呼叫原本的換關/商店邏輯
+    overlay.style.display = "none"; // 瞬間關閉答題畫面
+    onComplete(msg, color); // 將結果傳遞給結算畫面
   };
 
   options.forEach((opt) => {
@@ -1217,63 +1186,268 @@ function startMathQuiz(pl, onComplete) {
     btn.onclick = () => {
       if (isAnswered) return;
       if (opt === ans) {
-        // ★ 答對：正向增強 (加命、加分、華麗特效)
         playSfx("music");
         pl.lives++;
         pl.score += 500;
         burst(400, 300, "#FBBF24");
-        floatTexts.push({
-          t: "❤️ +1  &  +500 PT!",
-          life: 2,
-          x: 400,
-          y: 300,
-          c: "#F6A6C1",
-          big: true,
-        });
+        finishQuiz("答對了！ ❤️ +1", "#D96C8E"); // 答對傳遞粉色訊息
       } else {
-        // ★ 答錯：無懲罰，僅提示
-        floatTexts.push({
-          t: "答錯了！",
-          life: 1.5,
-          x: 400,
-          y: 300,
-          c: "#8A7E9C",
-          big: true,
-        });
+        finishQuiz("答錯了！", "#8A7E9C"); // 答錯傳遞紫灰訊息
       }
-      finishQuiz();
     };
     optionsEl.appendChild(btn);
   });
 
   overlay.style.display = "flex";
 
-  // 4. 啟動 10 秒倒數
+  // 啟動 10 秒倒數
   quizTimer = setInterval(() => {
     timeLeft -= 0.1;
     timerEl.innerText = timeLeft.toFixed(1) + "s";
     if (timeLeft <= 0) {
-      floatTexts.push({
-        t: "TIME UP!",
-        life: 1.5,
-        x: 400,
-        y: 300,
-        c: "#8A7E9C",
-        big: true,
-      });
-      finishQuiz();
+      finishQuiz("TIME UP!", "#8A7E9C");
     }
   }, 100);
 }
 
+// ==========================================
+// ★ 數學極限模式：雙人搶答引擎 (10秒挑戰)
+// ==========================================
+function startMathQuiz2P(onComplete) {
+  const overlay = document.getElementById("math-quiz-overlay");
+  const questionEl = document.getElementById("math-quiz-question");
+  const optionsEl = document.getElementById("math-quiz-options");
+  const timerEl = document.getElementById("math-quiz-timer");
+
+  if (!overlay) {
+    onComplete();
+    return;
+  }
+
+  // 1. 結合雙方題庫並呼叫新引擎
+  let combinedInventory = [...p1.mathInventory, ...p2.mathInventory];
+  const problem = buildMathProblem(combinedInventory, level);
+  const { qStr, ans, options } = problem;
+
+  questionEl.innerHTML = qStr;
+  optionsEl.innerHTML = "";
+
+  let quizTimer = null;
+  let timeLeft = 10.0;
+  let quizActive = true;
+  let p1Locked = false;
+  let p2Locked = false;
+
+  const finishQuiz = () => {
+    quizActive = false;
+    clearInterval(quizTimer);
+    window.removeEventListener("keydown", handleQuizKey);
+    setTimeout(() => {
+      overlay.style.display = "none";
+      onComplete(); // 呼叫最終結算畫面
+    }, 1500); // 留 1.5 秒讓玩家看搶答結果
+  };
+
+  // 定義雙方搶答按鍵
+  const p1Keys = ["1", "2", "3", "4"];
+  const p2Keys = ["7", "8", "9", "0"];
+
+  options.forEach((opt, idx) => {
+    let btn = document.createElement("div");
+    btn.className = "menu-item-macaron macaron-blue";
+    btn.style.width = "100%";
+    btn.style.padding = "10px";
+    btn.style.display = "flex";
+    btn.style.flexDirection = "column";
+    btn.style.pointerEvents = "none"; // 禁用滑鼠，強制用鍵盤搶答
+
+    btn.innerHTML = `
+       <span style="font-family: 'Orbitron', sans-serif; font-size:28px; font-weight:900;">${opt}</span>
+       <div style="display:flex; justify-content:space-between; width:100%; margin-top:8px; font-size:13px; color:#5D576B; font-weight:900;">
+         <span style="background:rgba(217, 108, 142, 0.2); padding:2px 6px; border-radius:4px;">1P 按 ${p1Keys[idx]}</span>
+         <span style="background:rgba(95, 168, 211, 0.2); padding:2px 6px; border-radius:4px;">2P 按 ${p2Keys[idx]}</span>
+       </div>
+    `;
+    optionsEl.appendChild(btn);
+  });
+
+  overlay.style.display = "flex";
+
+  // 監聽鍵盤事件
+  const handleQuizKey = (e) => {
+    if (!quizActive) return;
+    const key = e.key;
+
+    let p1Choice = p1Keys.indexOf(key);
+    let p2Choice = p2Keys.indexOf(key);
+
+    // 1P 判定
+    if (p1Choice !== -1 && !p1Locked) {
+      if (options[p1Choice] === ans) {
+        p1.score += 500;
+        questionEl.innerHTML = `<span style="color:#D96C8E;">1P 搶答成功！ +500 PT</span>`;
+        finishQuiz();
+      } else {
+        p1Locked = true; // 答錯鎖定
+        if (p1Locked && p2Locked) {
+          questionEl.innerHTML = `<span style="color:#8A7E9C;">雙方皆答錯！</span>`;
+          finishQuiz();
+        }
+      }
+    }
+
+    // 2P 判定
+    if (p2Choice !== -1 && !p2Locked) {
+      if (options[p2Choice] === ans) {
+        p2.score += 500;
+        questionEl.innerHTML = `<span style="color:#5FA8D3;">2P 搶答成功！ +500 PT</span>`;
+        finishQuiz();
+      } else {
+        p2Locked = true;
+        if (p1Locked && p2Locked) {
+          questionEl.innerHTML = `<span style="color:#8A7E9C;">雙方皆答錯！</span>`;
+          finishQuiz();
+        }
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleQuizKey);
+
+  // 啟動 10 秒倒數
+  quizTimer = setInterval(() => {
+    timeLeft -= 0.1;
+    timerEl.innerText = timeLeft.toFixed(1) + "s";
+    if (timeLeft <= 0) {
+      questionEl.innerHTML = `<span style="color:#8A7E9C;">TIME UP!</span>`;
+      finishQuiz();
+    }
+  }, 100);
+}
+// ==========================================
+// ★ 數學極限模式：四則運算與代數生成引擎
+// ==========================================
+function buildMathProblem(inventory, currentLevel) {
+  let nums = inventory.filter((s) => !isNaN(s)).map(Number);
+  let ops = inventory.filter((s) => ["+", "-", "×", "÷"].includes(s));
+
+  // 防呆機制：若收集太少，自動補發基礎數字與符號
+  while (nums.length < 4) nums.push(Math.floor(Math.random() * 10) + 1);
+  while (ops.length < 3)
+    ops.push(["+", "-", "×", "÷"][Math.floor(Math.random() * 4)]);
+
+  const getNum = () => nums[Math.floor(Math.random() * nums.length)];
+  const getOp = (excludeDiv = false) => {
+    let pool = excludeDiv ? ops.filter((o) => o !== "÷") : ops;
+    if (pool.length === 0) pool = ["+", "-", "×"];
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+
+  let qStr = "";
+  let ans = 0;
+
+  if (currentLevel >= 10) {
+    // Lv10+: 一元一次方程式 (Ax + B = C)
+    let x = getNum();
+    let A = Math.floor(Math.random() * 5) + 2;
+    let B = getNum();
+    let op = getOp(true);
+    let C = op === "+" ? A * x + B : A * x - B;
+
+    qStr = `${A}x ${op} ${B} = ${C} <br><span style="font-size:20px; color:#D96C8E;">(求 x)</span>`;
+    ans = x;
+  } else if (currentLevel >= 7) {
+    // Lv7-9: 中括號四則運算 [A + (B * C)] - D
+    let A = getNum(),
+      B = Math.floor(Math.random() * 9) + 1,
+      C = Math.floor(Math.random() * 9) + 1,
+      D = getNum();
+    let op1 = getOp(true),
+      op2 = getOp(true);
+
+    // 避免小括號出現負數
+    if (op1 === "-" && B < C) [B, C] = [C, B];
+    let inner =
+      op1 === "+" ? B + C
+      : op1 === "-" ? B - C
+      : B * C;
+    let bracket =
+      op2 === "+" ? A + inner
+      : op2 === "-" ? A - inner
+      : A * inner;
+
+    ans = bracket - D;
+    qStr = `[ ${A} <span style="color:#FBBF24;">${op2}</span> ( ${B} <span style="color:#FBBF24;">${op1}</span> ${C} ) ] <span style="color:#FBBF24;">-</span> ${D} = ?`;
+  } else if (currentLevel >= 4) {
+    // Lv4-6: 小括號四則運算 (A + B) * C
+    let A = getNum(),
+      B = getNum(),
+      C = Math.floor(Math.random() * 9) + 1;
+    let op1 = getOp(true);
+
+    if (op1 === "-" && A < B) [A, B] = [B, A];
+    let inner =
+      op1 === "+" ? A + B
+      : op1 === "-" ? A - B
+      : A * B;
+
+    ans = inner * C;
+    qStr = `( ${A} <span style="color:#FBBF24;">${op1}</span> ${B} ) <span style="color:#FBBF24;">×</span> ${C} = ?`;
+  } else {
+    // Lv1-3: 基礎四則運算
+    let A = getNum(),
+      B = getNum(),
+      op = getOp();
+    if (op === "-" && A < B) [A, B] = [B, A];
+    if (op === "÷") A = A * Math.max(1, B); // 確保整除
+
+    ans =
+      op === "+" ? A + B
+      : op === "-" ? A - B
+      : op === "×" ? A * B
+      : A / B;
+    qStr = `${A} <span style="color:#FBBF24;">${op}</span> ${B} = ?`;
+  }
+
+  // 產生 3 個具有動態縮放誤差的誘答選項
+  let options = [ans];
+  let offsetScale = Math.max(5, Math.floor(Math.abs(ans) * 0.15)); // 答案越大，誤差選項跳距越大
+  while (options.length < 4) {
+    let fake =
+      ans + (Math.floor(Math.random() * offsetScale * 2) - offsetScale);
+    if (fake !== ans && !options.includes(fake)) options.push(fake);
+  }
+  options.sort(() => Math.random() - 0.5); // 洗牌
+
+  return { qStr, ans, options };
+}
+
 export function updateGameState(dt, cv) {
   if (mode === 2) {
-    gameTimeRemaining -= (dt * 16.6) / 1000;
-    document.getElementById("timer-txt").textContent = formatTime(
-      Math.max(0, gameTimeRemaining),
-    );
+    if (gameTimeRemaining > 0) {
+      gameTimeRemaining -= (dt * 16.6) / 1000;
+      document.getElementById("timer-txt").textContent = formatTime(
+        Math.max(0, gameTimeRemaining),
+      );
+    }
+
     if (gameTimeRemaining <= 0) {
-      endGame();
+      if (!isLevelClearing) {
+        isLevelClearing = true; // 鎖定狀態避免重複觸發
+
+        // ★ 時間到，強制暫停物理引擎運作，畫面凍結
+        running = false;
+
+        if (!chemDLCEnabled) {
+          // 進入雙人數學搶答，搶答結束後才呼叫 endGame
+          startMathQuiz2P(() => {
+            endGame();
+          });
+        } else {
+          // 有開化學模式就照舊直接結算
+          endGame();
+        }
+      }
       return;
     }
   }
@@ -1379,13 +1553,26 @@ export function updateGameState(dt, cv) {
     }
   }
 
-  // ★ 1. 將 1P 的生命改為「❤️ x 數字」格式 (適用於單人與連線對戰)
+  // ★ V2.0 狀態列：顯示真實 HP 與護盾值
   const livesEl = document.getElementById("p1-lives");
   if (livesEl && (mode === 1 || onlineMode)) {
     livesEl.style.display = "flex";
     livesEl.style.alignItems = "center";
-    livesEl.innerHTML = `<span style="font-size: 16px; margin-left: 15px; color: #ffb0b0">💗</span><span style="font-size: 16px; font-weight: 900; color: #d96c8e;">x ${Math.max(0, p1.lives)}</span>`;
+
+    // 超過 100% 時顯示金色，低於 30% 顯示危險紅色
+    const hpColor =
+      p1.hp > 100 ? "#FBBF24"
+      : p1.hp <= 30 ? "#E0576B"
+      : "#d96c8e";
+    let statusHtml = `<span style="font-size: 16px; margin-left: 15px; color: ${hpColor}">💗</span><span style="font-size: 16px; font-weight: 900; color: ${hpColor}; margin-right: 15px;"> ${Math.round(p1.hp)}%</span>`;
+
+    // 若有護盾則額外顯示護盾值
+    if (p1.shield > 0) {
+      statusHtml += `<span style="font-size: 16px; color: #5FA8D3">🛡️</span><span style="font-size: 16px; font-weight: 900; color: #5FA8D3;"> ${Math.round(p1.shield)}%</span>`;
+    }
+    livesEl.innerHTML = statusHtml;
   }
+
   if (p1.reversedTimer > 0) {
     p1.reversedTimer -= dt / 60;
     if (p1.reversedTimer <= 0) {
@@ -1414,13 +1601,63 @@ export function updateGameState(dt, cv) {
     });
 
     setTimeout(() => {
-      for (const pl of activePlayers) pl.score += 200;
+      for (const pl of activePlayers) {
+        pl.score += 200;
+
+        // ★ 1. 過關基礎獎勵
+        pl.hp += 15;
+
+        // ★ 2. 護盾溢出變現機制 (上限 100%，溢出部分 2:1 轉換為 HP)
+        if (pl.shield > 100) {
+          const overflow = pl.shield - 100;
+          pl.shield = 100;
+          const convertedHp = Math.round(overflow / 2);
+          pl.hp += convertedHp;
+          floatTexts.push({
+            t: `護盾變現 +${convertedHp}% HP!`,
+            life: 2,
+            x: cv.width / 2,
+            y: cv.height / 2 + 20,
+            c: "#2EB886",
+            big: true,
+          });
+        }
+
+        // ★ 3. 徹底清空所有限時狀態 Buff 與計時器 (實作 clearOnLevelComplete)
+        if (pl.timers) {
+          Object.values(pl.timers).forEach((timer) => clearTimeout(timer));
+          pl.timers = {};
+        }
+        pl.activeBuffs = {};
+        pl.speed = 9;
+        pl.invincibleTimer = 0;
+        pl.magneticDebuffTimer = 0;
+        pl.chaosTimer = 0;
+        pl.reversed = false;
+        pl.w = 120; // 恢復預設寬度
+        pl.scoreMultiplier = 1; // 恢復分數倍率
+        if (pl.ball) {
+          pl.ball.isPiercing = false;
+          pl.ball.isHeavy = false;
+        }
+      }
 
       // === 將原本的過關換波與商店邏輯打包 ===
-      const proceedWithLevelClear = () => {
+      const proceedWithLevelClear = (quizMsg, quizColor) => {
         if (mode === 1 && !onlineMode) {
           running = false;
           const overlay = document.getElementById("level-clear-overlay");
+
+          // ★ 動態替換「STAGE CLEAR!」的標題與顏色
+          const titleEl = overlay.querySelector("h1");
+          if (quizMsg) {
+            titleEl.innerHTML = quizMsg;
+            titleEl.style.color = quizColor;
+          } else {
+            titleEl.innerHTML = "STAGE CLEAR!";
+            titleEl.style.color = "#dda15e";
+          }
+
           const buttons = Array.from(overlay.querySelectorAll("button"));
           const shopBtn = buttons.find(
             (b) =>
@@ -1438,7 +1675,6 @@ export function updateGameState(dt, cv) {
           overlay.style.display = "flex";
 
           let statsDiv = document.getElementById("level-chem-stats");
-          // ... 原本創建 statsDiv 的防呆邏輯 ...
           if (!statsDiv) {
             statsDiv = document.createElement("div");
             statsDiv.id = "level-chem-stats";
@@ -1501,18 +1737,30 @@ export function updateGameState(dt, cv) {
             }, 1000);
           }
         } else {
-          // 雙人/連線模式：直接無縫進入下一波
+          // 雙人/連線模式無縫過關：如果帶有測驗結果，則顯示為中央大字提示
           level++;
           buildLevel(level, cv);
           resetRound(cv);
-          floatTexts.push({
-            t: "NEXT WAVE!",
-            life: 1.5,
-            x: cv.width / 2,
-            y: cv.height / 2 - 50,
-            c: "#5FA8D3",
-            big: true,
-          });
+
+          if (quizMsg) {
+            floatTexts.push({
+              t: quizMsg,
+              life: 2,
+              x: cv.width / 2,
+              y: cv.height / 2 - 50,
+              c: quizColor,
+              big: true,
+            });
+          } else {
+            floatTexts.push({
+              t: "NEXT WAVE!",
+              life: 1.5,
+              x: cv.width / 2,
+              y: cv.height / 2 - 50,
+              c: "#5FA8D3",
+              big: true,
+            });
+          }
         }
       };
 

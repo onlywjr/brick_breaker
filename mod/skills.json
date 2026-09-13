@@ -1,9 +1,17 @@
 {
   "meta": {
-    "description": "BRICK RUSH 99 化學技能對照表。已重新分配 Action 權重，大幅增加重球、幽靈球、毒霧、延遲爆炸及多人模式的視線與軌跡干擾，確保單一機制的佔比皆在 10% 以下。",
-    "derivedFieldsNote": "atomCount 由 elements 內所有數量加總得出；avgAtomicWeight = molecularWeight / atomCount；strength 由下方公式在遊戲載入時即時計算，不寫死在本檔案中。",
+    "description": "BRICK RUSH 99 化學技能表 V2.0。採純百分比 HP / Shield、動態掉球懲罰、跨關護盾折算與分子量分級成長。",
+    "derivedFieldsNote": "atomCount 由 elements 內所有數量加總得出；avgAtomicWeight = molecularWeight / atomCount；strength 由下方公式在遊戲載入時即時計算，不寫死在本檔案中。 V2.0：所有技能起始 Lv.1；升級上限依分子量；HP/Shield/Damage 使用百分比。",
     "strengthFormula": "strength = clamp(molecularWeight * STRENGTH_BASE_COEFFICIENT - avgAtomicWeight * AVG_ATOMIC_WEIGHT_PENALTY_COEFFICIENT, MIN_STRENGTH, MAX_STRENGTH)",
-    "costFormula": "cost = molecularWeight * MOLECULAR_WEIGHT_TO_COST_RATIO"
+    "costFormula": "cost = molecularWeight * MOLECULAR_WEIGHT_TO_COST_RATIO",
+    "version": null,
+    "balanceNotes": [
+      "Ball drop remains the primary death threat; dropPenalty formula is unchanged at 20 + level × 2 percent.",
+      "Light damage keeps 0.18 growth and max Lv.15.",
+      "Medium damage growth reduced from 0.28 to 0.20 to keep Lv.10 near 98% HP.",
+      "Heavy damage growth reduced from 0.55 to 0.50; 60% Lv.1 heavy skills are normalized to 50%, giving Lv.5 = 150%.",
+      "Healing and shield scaling are unchanged from the source baseline."
+    ]
   },
   "constants": {
     "MOLECULAR_WEIGHT_TO_COST_RATIO": 1,
@@ -20,16 +28,28 @@
       "molecularWeight": 5,
       "elements": { "He": 1, "H": 1 },
       "category": "特殊",
-      "description": "宇宙誕生後最早形成的分子。 【單人】Lv.1 獲得貫穿屬性 3 秒。 【多人】Lv.1 扣除對手 3 點生命。",
+      "description": "宇宙誕生後最早形成的分子。 【單人】Lv.1 獲得貫穿屬性，持續 3 秒。【多人】Lv.1 對對手造成 16.8% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 16.8 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "rare",
+        "upgradeCostBase": 5,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.18 × (level - 1))"
+        }
       }
     },
     {
@@ -38,17 +58,30 @@
       "formula": "CH4(甲烷)",
       "molecularWeight": 16,
       "elements": { "C": 1, "H": 4 },
-      "category": "輔助",
-      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 釋放濃霧遮蔽對手 2 秒。",
+      "category": "攻擊",
+      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 14%，持續 4 秒。【多人】Lv.1 釋放濃霧遮蔽對手，持續 2 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 1.15, "durationSec": 4 }
+        "params": {
+          "power": 1.15,
+          "durationSec": 4,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fog_blind",
-        "params": { "durationSec": 2 }
+        "params": { "durationSec": 2, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 16,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -58,16 +91,31 @@
       "molecularWeight": 17,
       "elements": { "N": 1, "H": 3 },
       "category": "攻擊",
-      "description": "具有強烈刺鼻氣味的鹼性氣體。 【單人】Lv.1 發散毒霧，全場方塊受到持續腐蝕，持續 4 秒。 【多人】Lv.1 對手擋板縮小 5%，持續 4 秒。",
+      "description": "具有強烈刺鼻氣味的鹼性氣體。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 4 秒。【多人】Lv.1 對手擋板縮小 5%，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 1, "durationSec": 4 }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.95, "durationSec": 4 }
+        "params": {
+          "power": 0.95,
+          "durationSec": 4,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 17,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -77,16 +125,28 @@
       "molecularWeight": 18,
       "elements": { "H": 2, "O": 1 },
       "category": "防禦",
-      "description": "孕育生命的基礎，覆蓋地球表面的大部分。 【單人】Lv.1 回復 1 點生命。 【多人】Lv.1 獲得 1 層護盾。",
+      "description": "孕育生命的基礎，覆蓋地球表面的大部分。 【單人】Lv.1 回復 5% HP。【多人】Lv.1 獲得 6.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 18,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.15 × (level - 1))"
+        }
       }
     },
     {
@@ -96,16 +156,32 @@
       "molecularWeight": 34,
       "elements": { "H": 2, "O": 2 },
       "category": "攻擊",
-      "description": "強效的氧化劑，常用於消毒與漂白。 【單人】Lv.1 化身重球，引發範圍爆破，持續 5 秒。 【多人】Lv.1 扣除對手 3 點生命。",
+      "description": "強效的氧化劑，常用於消毒與漂白。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 1.5)，持續 5 秒。【多人】Lv.1 對對手造成 15.0% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 1.5, "durationSec": 5 }
+        "params": {
+          "power": 1.5,
+          "durationSec": 5,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 15.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 34,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.18 × (level - 1))"
+        }
       }
     },
     {
@@ -115,7 +191,7 @@
       "molecularWeight": 40,
       "elements": { "Na": 1, "O": 1, "H": 1 },
       "category": "輔助",
-      "description": "強鹼性物質，能與酸劇烈中和。 【單人】Lv.1 瞬間消除底層 1 排磚塊。 【多人】Lv.1 獲得 1 層護盾。",
+      "description": "強鹼性物質，能與酸劇烈中和。 【單人】Lv.1 瞬間消除底層 1 排磚塊。【多人】Lv.1 獲得 6.0% 護盾。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "clear_rows",
@@ -124,7 +200,19 @@
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 40,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -134,16 +222,28 @@
       "molecularWeight": 40,
       "elements": { "Mg": 1, "O": 1 },
       "category": "防禦",
-      "description": "耐高溫的白色固體，常用作耐火材料。 【單人】Lv.1 獲得 1 層護盾。 【多人】Lv.1 獲得 1 層護盾。",
+      "description": "耐高溫的白色固體，常用作耐火材料。 【單人】Lv.1 獲得 6.0% 護盾。【多人】Lv.1 獲得 6.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 40,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -152,17 +252,38 @@
       "formula": "CO2(二氧化碳)",
       "molecularWeight": 44,
       "elements": { "C": 1, "O": 2 },
-      "category": "控制",
-      "description": "燃燒與呼吸作用的產物，能產生溫室效應。 【單人】Lv.1 減緩球速 10%，持續 4 秒。 【多人】Lv.1 對手擋板減速 5%，持續 4 秒。",
+      "category": "防禦",
+      "description": "燃燒與呼吸作用的產物，能產生溫室效應。 【單人】Lv.1 球速減緩 9%，持續 4 秒。【多人】Lv.1 對手擋板減速 5%，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 0.9, "durationSec": 4 }
+        "params": {
+          "power": 0.9,
+          "durationSec": 4,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.95, "durationSec": 4 }
+        "params": {
+          "power": 0.95,
+          "durationSec": 4,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 44,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -171,17 +292,30 @@
       "formula": "C2H6O(乙醇)",
       "molecularWeight": 46,
       "elements": { "C": 2, "H": 6, "O": 1 },
-      "category": "輔助",
-      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 15%，持續 4 秒。 【多人】Lv.1 使對手球軌跡混亂，持續 5 秒。",
+      "category": "攻擊",
+      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 14%，持續 4 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 1.15, "durationSec": 4 }
+        "params": {
+          "power": 1.15,
+          "durationSec": 4,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 15,
+        "molecularWeightTier": "light",
+        "elementRarity": "common",
+        "upgradeCostBase": 46,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -191,16 +325,28 @@
       "molecularWeight": 56,
       "elements": { "Ca": 1, "O": 1 },
       "category": "攻擊",
-      "description": "遇水會釋放大量熱能的生石灰。 【單人】Lv.2 蓄積高熱，4 秒後引發大範圍爆發。 【多人】Lv.2 產生熱浪風暴干擾對手，持續 5 秒。",
+      "description": "遇水會釋放大量熱能的生石灰。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 3)，持續 4 秒。【多人】Lv.1 召喚電磁風暴強烈干擾對手，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 3, "durationSec": 4 }
+        "params": { "power": 3, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": { "power": 1, "durationSec": 5 }
+        "params": { "power": 1, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 70.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -210,16 +356,28 @@
       "molecularWeight": 58.5,
       "elements": { "Na": 1, "Cl": 1 },
       "category": "控制",
-      "description": "最常見的鹽類，維持生命運作的必需品。 【單人】Lv.2 產生 3 顆結晶幽靈球，持續 6 秒。 【多人】Lv.2 使對手球軌跡混亂，持續 6 秒。",
+      "description": "最常見的鹽類，維持生命運作的必需品。 【單人】Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 6 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 73.1,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -229,16 +387,28 @@
       "molecularWeight": 60,
       "elements": { "Si": 1, "O": 2 },
       "category": "特殊",
-      "description": "構成石英與玻璃的主要成分，堅硬透明。 【單人】Lv.2 獲得貫穿屬性 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "構成石英與玻璃的主要成分，堅硬透明。 【單人】Lv.1 獲得貫穿屬性，持續 5 秒。【多人】Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 5 }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 75.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -248,16 +418,28 @@
       "molecularWeight": 60,
       "elements": { "H": 1, "Ar": 1, "F": 1 },
       "category": "特殊",
-      "description": "極低溫下才能短暫存在的惰性氣體化合物。 【單人】Lv.2 獲得貫穿屬性 5 秒。 【多人】Lv.2 反轉對手操作 4 秒。",
+      "description": "極低溫下才能短暫存在的惰性氣體化合物。 【單人】Lv.1 獲得貫穿屬性，持續 5 秒。【多人】Lv.1 反轉對手操作方向，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 5 }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 75.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -267,16 +449,28 @@
       "molecularWeight": 62,
       "elements": { "H": 2, "C": 1, "O": 3 },
       "category": "特殊",
-      "description": "溶有二氧化碳的微酸性液體，易產生氣泡。 【單人】Lv.2 產生 3 顆氣泡幽靈球在場上穿梭，持續 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "溶有二氧化碳的微酸性液體，易產生氣泡。 【單人】Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 5 秒。【多人】Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 5 }
+        "params": { "power": 3, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 77.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -286,16 +480,28 @@
       "molecularWeight": 63,
       "elements": { "H": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "具強烈腐蝕性與氧化性的三大強酸之一。 【單人】Lv.2 發散強酸，全場方塊受到持續腐蝕，持續 7 秒。 【多人】Lv.2 反轉對手操作 4 秒。",
+      "description": "具強烈腐蝕性與氧化性的三大強酸之一。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 7 秒。【多人】Lv.1 反轉對手操作方向，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 1, "durationSec": 7 }
+        "params": { "power": 1, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 78.8,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -305,16 +511,35 @@
       "molecularWeight": 74,
       "elements": { "Li": 2, "C": 1, "O": 3 },
       "category": "輔助",
-      "description": "常用於穩定神經與情緒的鋰鹽製劑。 【單人】Lv.2 擋板寬度增加 20%，持續 6 秒。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "description": "常用於穩定神經與情緒的鋰鹽製劑。 【單人】Lv.1 自身擋板加寬 19%，持續 6 秒。【多人】Lv.1 對手擋板縮小 9%，持續 6 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
-        "params": { "power": 1.2, "durationSec": 6 }
+        "params": {
+          "power": 1.2,
+          "durationSec": 6,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.9, "durationSec": 6 }
+        "params": {
+          "power": 0.9,
+          "durationSec": 6,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 92.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -324,16 +549,28 @@
       "molecularWeight": 78,
       "elements": { "Ca": 1, "F": 2 },
       "category": "防禦",
-      "description": "天然的螢石礦物，在紫外光下會發光。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 獲得 1 層護盾。",
+      "description": "天然的螢石礦物，在紫外光下會發光。 【單人】Lv.1 獲得 6.0% 護盾。【多人】Lv.1 獲得 6.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 97.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -343,16 +580,28 @@
       "molecularWeight": 80,
       "elements": { "Ti": 1, "O": 2 },
       "category": "防禦",
-      "description": "優良的光催化劑與最白的天然顏料。 【單人】Lv.2 獲得 1 層護盾。 【多人】Lv.2 閃瞎對手視線 3 秒。",
+      "description": "優良的光催化劑與最白的天然顏料。 【單人】Lv.1 獲得 6.0% 護盾。【多人】Lv.1 強烈閃瞎對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 1 }
+        "params": { "powerPercent": 6.0 }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 100.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -362,16 +611,28 @@
       "molecularWeight": 80,
       "elements": { "Cu": 1, "O": 1 },
       "category": "攻擊",
-      "description": "黑色的氧化銅粉末，具備催化特性。 【單人】Lv.2 化身重球，撞擊引發範圍爆炸，持續 6 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "黑色的氧化銅粉末，具備催化特性。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 6 秒。【多人】Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 100.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -381,16 +642,28 @@
       "molecularWeight": 84,
       "elements": { "Na": 1, "H": 1, "C": 1, "O": 3 },
       "category": "特殊",
-      "description": "俗稱小蘇打，遇酸會迅速產生二氧化碳氣泡。 【單人】Lv.2 分裂出 4 顆氣泡幽靈球，持續 5 秒。 【多人】Lv.2 遮蔽對手視線 3 秒。",
+      "description": "俗稱小蘇打，遇酸會迅速產生二氧化碳氣泡。 【單人】Lv.1 召喚 4 顆幽靈球在場上肆虐，持續 5 秒。【多人】Lv.1 遮蔽對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 4, "durationSec": 5 }
+        "params": { "power": 4, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 105.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -400,16 +673,31 @@
       "molecularWeight": 87,
       "elements": { "Mn": 1, "O": 2 },
       "category": "輔助",
-      "description": "強效催化劑，能加速雙氧水分解。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 對手擋板減速 10%，持續 5 秒。",
+      "description": "強效催化劑，能加速雙氧水分解。 【單人】Lv.1 積分獲取變為 3 倍，持續 6 秒。【多人】Lv.1 對手擋板減速 9%，持續 5 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.9, "durationSec": 5 }
+        "params": {
+          "power": 0.9,
+          "durationSec": 5,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 108.8,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -419,16 +707,28 @@
       "molecularWeight": 97,
       "elements": { "Zn": 1, "S": 1 },
       "category": "特殊",
-      "description": "常見的磷光材料，吸收光能後會持續發光。 【單人】Lv.2 積分獲取變為 3 倍，持續 6 秒。 【多人】Lv.2 閃瞎對手視線 3 秒。",
+      "description": "常見的磷光材料，吸收光能後會持續發光。 【單人】Lv.1 積分獲取變為 3 倍，持續 6 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 3 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "durationSec": 3 }
+        "params": { "durationSec": 3, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 121.2,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -438,16 +738,31 @@
       "molecularWeight": 98,
       "elements": { "H": 2, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "工業之母，具備強烈脫水性與腐蝕性的強酸。 【單人】Lv.2 降下酸雨，全場磚塊受到持續腐蝕傷害，持續 6 秒。 【多人】Lv.2 對手擋板縮小 10%，持續 6 秒。",
+      "description": "工業之母，具備強烈脫水性與腐蝕性的強酸。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 1 點腐蝕，持續 6 秒。【多人】Lv.1 對手擋板縮小 9%，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 1, "durationSec": 6 }
+        "params": { "power": 1, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.9, "durationSec": 6 }
+        "params": {
+          "power": 0.9,
+          "durationSec": 6,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 122.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -457,16 +772,28 @@
       "molecularWeight": 100,
       "elements": { "Ca": 1, "C": 1, "O": 3 },
       "category": "防禦",
-      "description": "構成大自然中石灰岩與貝殼的堅硬構造。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 獲得 2 層護盾。",
+      "description": "構成大自然中石灰岩與貝殼的堅硬構造。 【單人】Lv.1 獲得 12.0% 護盾。【多人】Lv.1 獲得 12.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 12.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 12.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 125.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -476,16 +803,28 @@
       "molecularWeight": 101,
       "elements": { "K": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "俗稱硝石，製造黑火藥的核心成分。 【單人】Lv.3 點燃火藥，4 秒後引發猛烈大爆炸。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "俗稱硝石，製造黑火藥的核心成分。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 4)，持續 4 秒。【多人】Lv.1 對對手造成 35% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 4, "durationSec": 4 }
+        "params": { "power": 4, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 9 }
+        "params": { "powerPercent": 35 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 126.2,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.20 × (level - 1))"
+        }
       }
     },
     {
@@ -495,16 +834,28 @@
       "molecularWeight": 102,
       "elements": { "Al": 2, "O": 3 },
       "category": "防禦",
-      "description": "構成藍寶石與紅寶石的高硬度晶體。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 獲得 2 層護盾。",
+      "description": "構成藍寶石與紅寶石的高硬度晶體。 【單人】Lv.1 獲得 12.0% 護盾。【多人】Lv.1 獲得 12.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 12.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 12.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 127.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -514,16 +865,35 @@
       "molecularWeight": 105,
       "elements": { "Ge": 1, "O": 2 },
       "category": "輔助",
-      "description": "具備高折射率，光纖通訊的核心材料。 【單人】Lv.3 擋板寬度增加 30%，持續 8 秒。 【多人】Lv.3 對手擋板縮小 15%，持續 8 秒。",
+      "description": "具備高折射率，光纖通訊的核心材料。 【單人】Lv.1 自身擋板加寬 30%，持續 8 秒。【多人】Lv.1 對手擋板縮小 15%，持續 8 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
-        "params": { "power": 1.3, "durationSec": 8 }
+        "params": {
+          "power": 1.3,
+          "durationSec": 8,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.85, "durationSec": 8 }
+        "params": {
+          "power": 0.85,
+          "durationSec": 8,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 131.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -533,16 +903,28 @@
       "molecularWeight": 107,
       "elements": { "Pd": 1, "H": 1 },
       "category": "防禦",
-      "description": "鈀金屬能像海綿般吸附大量氫氣。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 回復 2 點生命。",
+      "description": "鈀金屬能像海綿般吸附大量氫氣。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 回復 11.2% HP。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 11.2 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 133.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.20 × (level - 1))"
+        }
       }
     },
     {
@@ -552,16 +934,28 @@
       "molecularWeight": 122,
       "elements": { "Kr": 1, "F": 2 },
       "category": "攻擊",
-      "description": "極不穩定的惰性氣體化合物，易發生爆裂。 【單人】Lv.3 注入極不穩定能量，3 秒後引發毀滅大爆炸。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "極不穩定的惰性氣體化合物，易發生爆裂。 【單人】Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 5)，持續 3 秒。【多人】Lv.1 對對手造成 35% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 5, "durationSec": 3 }
+        "params": { "power": 5, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 9 }
+        "params": { "powerPercent": 35 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 152.5,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.20 × (level - 1))"
+        }
       }
     },
     {
@@ -571,16 +965,28 @@
       "molecularWeight": 123,
       "elements": { "Zr": 1, "O": 2 },
       "category": "攻擊",
-      "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。 【單人】Lv.3 化身重球，撞擊引發範圍爆炸，持續 7 秒。 【多人】Lv.3 扣除對手 9 點生命。",
+      "description": "具備極高硬度與耐磨性的陶瓷刀刃材料。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 7 秒。【多人】Lv.1 對對手造成 35% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 7 }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 9 }
+        "params": { "powerPercent": 35 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 153.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.20 × (level - 1))"
+        }
       }
     },
     {
@@ -590,16 +996,28 @@
       "molecularWeight": 128,
       "elements": { "Ne": 1, "H": 12, "O": 6 },
       "category": "特殊",
-      "description": "惰性氣體被冰晶籠困住的特殊水合物。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
+      "description": "惰性氣體被冰晶籠困住的特殊水合物。 【單人】Lv.1 獲得貫穿屬性，持續 7 秒。【多人】Lv.1 完全凍結對手擋板，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 7 }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 160.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -609,16 +1027,28 @@
       "molecularWeight": 130,
       "elements": { "Co": 1, "Cl": 2 },
       "category": "特殊",
-      "description": "隨濕度改變顏色的無機化合物，猶如真視之眼。 【單人】Lv.3 積分獲取變為 4 倍，持續 8 秒。 【多人】Lv.3 扭曲對手畫面視線 4 秒。",
+      "description": "隨濕度改變顏色的無機化合物，猶如真視之眼。 【單人】Lv.1 積分獲取變為 4 倍，持續 8 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 4 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 4, "durationSec": 8 }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 162.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -628,16 +1058,28 @@
       "molecularWeight": 133,
       "elements": { "Ru": 1, "O": 2 },
       "category": "控制",
-      "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.3 注入過載能量，4 秒後引發大爆炸。 【多人】Lv.3 完全凍結對手擋板 4 秒。",
+      "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 6)，持續 4 秒。【多人】Lv.1 完全凍結對手擋板，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 6, "durationSec": 4 }
+        "params": { "power": 6, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 166.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -647,16 +1089,34 @@
       "molecularWeight": 138,
       "elements": { "Sc": 2, "O": 3 },
       "category": "防禦",
-      "description": "提升合金強度的稀有航太材料。 【單人】Lv.3 獲得 2 層護盾。 【多人】Lv.3 對手擋板縮小 15%，持續 8 秒。",
+      "description": "提升合金強度的稀有航太材料。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 對手擋板縮小 15%，持續 8 秒。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.85, "durationSec": 8 }
+        "params": {
+          "power": 0.85,
+          "durationSec": 8,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 172.5,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -666,16 +1126,28 @@
       "molecularWeight": 143,
       "elements": { "Ag": 1, "Cl": 1 },
       "category": "特殊",
-      "description": "遇光會分解變黑的感光材料。 【單人】Lv.3 產生 4 顆暗影幽靈球，持續 6 秒。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "description": "遇光會分解變黑的感光材料。 【單人】Lv.1 召喚 4 顆幽靈球在場上肆虐，持續 6 秒。【多人】Lv.1 遮蔽對手視線，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 4, "durationSec": 6 }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 178.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -685,16 +1157,28 @@
       "molecularWeight": 145,
       "elements": { "Ga": 1, "As": 1 },
       "category": "控制",
-      "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.3 獲得貫穿屬性 7 秒。 【多人】Lv.3 強烈閃瞎對手視線 4 秒。",
+      "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.1 獲得貫穿屬性，持續 7 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 7 }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "rare",
+        "upgradeCostBase": 181.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -704,16 +1188,28 @@
       "molecularWeight": 148,
       "elements": { "Sr": 1, "C": 1, "O": 3 },
       "category": "攻擊",
-      "description": "燃燒時會發出耀眼紅光的煙火焰色劑。 【單人】Lv.3 發射緋紅引信，3 秒後引發大範圍爆炸。 【多人】Lv.3 遮蔽對手視線 4 秒。",
+      "description": "燃燒時會發出耀眼紅光的煙火焰色劑。 【單人】Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 6)，持續 3 秒。【多人】Lv.1 遮蔽對手視線，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 6, "durationSec": 3 }
+        "params": { "power": 6, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 4 }
+        "params": { "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 185.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -723,16 +1219,28 @@
       "molecularWeight": 155,
       "elements": { "Ni": 1, "S": 1, "O": 4 },
       "category": "控制",
-      "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.4 釋放麻痺毒霧，全場方塊受到持續侵蝕，持續 5 秒。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 5 秒。【多人】Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 5 }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 263.5,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -742,16 +1250,28 @@
       "molecularWeight": 158,
       "elements": { "K": 1, "Mn": 1, "O": 4 },
       "category": "攻擊",
-      "description": "呈現深紫色的強效氧化劑與消毒劑。 【單人】Lv.4 釋放紫焰毒霧，全場方塊受到持續侵蝕，持續 6 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "呈現深紫色的強效氧化劑與消毒劑。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 6 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 12 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 268.6,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -761,16 +1281,35 @@
       "molecularWeight": 160,
       "elements": { "Fe": 2, "O": 3 },
       "category": "防禦",
-      "description": "常見的紅色鐵鏽，質地堅硬的氧化層。 【單人】Lv.4 擋板寬度增加 40%，持續 10 秒。 【多人】Lv.4 對手擋板縮小 20%，持續 10 秒。",
+      "description": "常見的紅色鐵鏽，質地堅硬的氧化層。 【單人】Lv.1 自身擋板加寬 39%，持續 10 秒。【多人】Lv.1 對手擋板縮小 19%，持續 10 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
-        "params": { "power": 1.4, "durationSec": 10 }
+        "params": {
+          "power": 1.4,
+          "durationSec": 10,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.8, "durationSec": 10 }
+        "params": {
+          "power": 0.8,
+          "durationSec": 10,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 272.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -780,16 +1319,28 @@
       "molecularWeight": 160,
       "elements": { "Cu": 1, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "呈現澄澈藍色的電解質溶液，具毒性。 【單人】Lv.4 釋放蒼藍毒霧，全場方塊受到持續侵蝕，持續 7 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "呈現澄澈藍色的電解質溶液，具毒性。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 7 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 7 }
+        "params": { "power": 2, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 12 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 272.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -799,16 +1350,28 @@
       "molecularWeight": 160,
       "elements": { "Mo": 1, "S": 2 },
       "category": "輔助",
-      "description": "極佳的固態潤滑劑，能大幅降低摩擦力。 【單人】Lv.4 獲得貫穿屬性 9 秒。 【多人】Lv.4 反轉對手操作 6 秒。",
+      "description": "極佳的固態潤滑劑，能大幅降低摩擦力。 【單人】Lv.1 獲得貫穿屬性，持續 9 秒。【多人】Lv.1 反轉對手操作方向，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 9 }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 6 }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 272.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -818,16 +1381,28 @@
       "molecularWeight": 161,
       "elements": { "Zn": 1, "S": 1, "O": 4 },
       "category": "輔助",
-      "description": "具收斂與防腐作用的無機鹽類。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 獲得 2 層護盾。",
+      "description": "具收斂與防腐作用的無機鹽類。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 獲得 12.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 12.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 273.7,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -837,16 +1412,31 @@
       "molecularWeight": 162,
       "elements": { "Fe": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "溶於水呈黃褐色，具備強烈腐蝕性的酸性鹽。 【單人】Lv.4 化身腐蝕重球，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.4 對手擋板減速 20%，持續 7 秒。",
+      "description": "溶於水呈黃褐色，具備強烈腐蝕性的酸性鹽。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 8 秒。【多人】Lv.1 對手擋板減速 19%，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 8 }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.8, "durationSec": 7 }
+        "params": {
+          "power": 0.8,
+          "durationSec": 7,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 275.4,
+        "upgradeCostGrowth": 1.0,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -855,17 +1445,32 @@
       "formula": "CsCl(氯化銫)",
       "molecularWeight": 168.5,
       "elements": { "Cs": 1, "Cl": 1 },
-      "category": "控制",
-      "description": "形成典型立方晶體結構的銫鹽。 【單人】Lv.4 減緩球速 40%，持續 7 秒。 【多人】Lv.4 完全凍結對手擋板 5 秒。",
+      "category": "防禦",
+      "description": "形成典型立方晶體結構的銫鹽。 【單人】Lv.1 球速減緩 40%，持續 7 秒。【多人】Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 0.6, "durationSec": 7 }
+        "params": {
+          "power": 0.6,
+          "durationSec": 7,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 5 }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 286.4,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -875,16 +1480,28 @@
       "molecularWeight": 170,
       "elements": { "Ag": 1, "N": 1, "O": 3 },
       "category": "攻擊",
-      "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。 【單人】Lv.4 化身沉重白銀，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 2)，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 2, "durationSec": 8 }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 12 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 289.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -894,16 +1511,28 @@
       "molecularWeight": 172,
       "elements": { "Ce": 1, "O": 2 },
       "category": "特殊",
-      "description": "優良的拋光與光學催化劑。 【單人】Lv.4 獲得貫穿屬性 9 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "優良的拋光與光學催化劑。 【單人】Lv.1 獲得貫穿屬性，持續 9 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 9 }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 12 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 292.4,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -912,17 +1541,33 @@
       "formula": "C6H12O6(葡萄糖)",
       "molecularWeight": 180,
       "elements": { "C": 6, "H": 12, "O": 6 },
-      "category": "輔助",
-      "description": "生物體內最重要的能量來源。 【單人】Lv.4 回復 2 點生命。 【多人】Lv.4 自身球速提升 50%，持續 6 秒。",
+      "category": "攻擊",
+      "description": "生物體內最重要的能量來源。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 自身球速提升 50%，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "speed_boost",
-        "params": { "power": 1.5, "durationSec": 6 }
+        "params": {
+          "power": 1.5,
+          "durationSec": 6,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 306.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -932,16 +1577,28 @@
       "molecularWeight": 182,
       "elements": { "V": 2, "O": 5 },
       "category": "輔助",
-      "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.4 化身重球，引發催化範圍爆炸，持續 7 秒。 【多人】Lv.4 扣除對手 12 點生命。",
+      "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 7 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 7 }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 12 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 309.4,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -951,16 +1608,32 @@
       "molecularWeight": 185,
       "elements": { "Na": 1, "Tc": 1, "O": 4 },
       "category": "特殊",
-      "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 使對手球軌跡嚴重混亂，持續 6 秒。",
+      "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.1 積分獲取變為 5 倍，持續 10 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 5, "durationSec": 10 }
+        "params": {
+          "power": 5,
+          "durationSec": 10,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 314.5,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -970,16 +1643,32 @@
       "molecularWeight": 188,
       "elements": { "Ag": 1, "Br": 1 },
       "category": "特殊",
-      "description": "傳統底片中最重要的感光乳劑成分。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 強烈閃瞎對手視線 5 秒。",
+      "description": "傳統底片中最重要的感光乳劑成分。 【單人】Lv.1 積分獲取變為 5 倍，持續 10 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 5 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 5, "durationSec": 10 }
+        "params": {
+          "power": 5,
+          "durationSec": 10,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "durationSec": 5 }
+        "params": { "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 319.6,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -989,16 +1678,32 @@
       "molecularWeight": 191,
       "elements": { "Cd": 1, "Se": 1 },
       "category": "特殊",
-      "description": "應用於尖端顯示器技術的發光量子點。 【單人】Lv.4 積分獲取變為 5 倍，持續 10 秒。 【多人】Lv.4 反轉對手操作 6 秒。",
+      "description": "應用於尖端顯示器技術的發光量子點。 【單人】Lv.1 積分獲取變為 5 倍，持續 10 秒。【多人】Lv.1 反轉對手操作方向，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 5, "durationSec": 10 }
+        "params": {
+          "power": 5,
+          "durationSec": 10,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 6 }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 324.7,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1008,16 +1713,28 @@
       "molecularWeight": 196,
       "elements": { "W": 1, "C": 1 },
       "category": "防禦",
-      "description": "硬度僅次於鑽石，廣泛用於工業切削。 【單人】Lv.4 獲得 2 層護盾。 【多人】Lv.4 獲得 2 層護盾。",
+      "description": "硬度僅次於鑽石，廣泛用於工業切削。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 獲得 13.4% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 333.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1027,16 +1744,28 @@
       "molecularWeight": 197,
       "elements": { "Ba": 1, "C": 1, "O": 3 },
       "category": "防禦",
-      "description": "用於製造光學玻璃與陶瓷的重型結構材料。 【單人】Lv.4 獲得 2 層護盾。 【多人】Lv.4 獲得 2 層護盾。",
+      "description": "用於製造光學玻璃與陶瓷的重型結構材料。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 獲得 13.4% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2 }
+        "params": { "powerPercent": 13.4 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 334.9,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1046,16 +1775,28 @@
       "molecularWeight": 207,
       "elements": { "Xe": 1, "F": 4 },
       "category": "攻擊",
-      "description": "證明惰性氣體也能參與反應的強氧化劑。 【單人】Lv.5 注入極地能量，4 秒後引發毀滅大爆炸。 【多人】Lv.5 完全凍結對手擋板 6 秒。",
+      "description": "證明惰性氣體也能參與反應的強氧化劑。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 8)，持續 4 秒。【多人】Lv.1 完全凍結對手擋板，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 8, "durationSec": 4 }
+        "params": { "power": 8, "durationSec": 4, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 6 }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 351.9,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1064,17 +1805,36 @@
       "formula": "RhCl3(三氯化銠)",
       "molecularWeight": 209.5,
       "elements": { "Rh": 1, "Cl": 3 },
-      "category": "輔助",
-      "description": "貴金屬催化劑，能大幅加速化學反應。 【單人】Lv.5 球速提升 75%，持續 8 秒。 【多人】Lv.5 對手擋板減速 25%，持續 8 秒。",
+      "category": "攻擊",
+      "description": "貴金屬催化劑，能大幅加速化學反應。 【單人】Lv.1 球速提升 75%，持續 8 秒。【多人】Lv.1 對手擋板減速 25%，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 1.75, "durationSec": 8 }
+        "params": {
+          "power": 1.75,
+          "durationSec": 8,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.75, "durationSec": 8 }
+        "params": {
+          "power": 0.75,
+          "durationSec": 8,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 356.1,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1084,16 +1844,28 @@
       "molecularWeight": 210,
       "elements": { "Hf": 1, "O": 2 },
       "category": "特殊",
-      "description": "半導體製程中關鍵的高介電絕緣材料。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "description": "半導體製程中關鍵的高介電絕緣材料。 【單人】Lv.1 獲得 20.2% 護盾。【多人】Lv.1 獲得 20.2% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 357.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1103,16 +1875,28 @@
       "molecularWeight": 230,
       "elements": { "Rb": 2, "C": 1, "O": 3 },
       "category": "輔助",
-      "description": "常見於特種玻璃與高能材料的銣鹽。 【單人】Lv.5 回復 3 點生命。 【多人】Lv.5 獲得 3 層護盾。",
+      "description": "常見於特種玻璃與高能材料的銣鹽。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 獲得 18.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 391.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -1122,16 +1906,32 @@
       "molecularWeight": 232,
       "elements": { "Fe": 3, "O": 4 },
       "category": "控制",
-      "description": "天然具有磁性的黑色氧化鐵礦物。 【單人】Lv.5 擋板寬度增加 50%，持續 12 秒。 【多人】Lv.5 以磁力牽引對手球軌跡，持續 7 秒。",
+      "description": "天然具有磁性的黑色氧化鐵礦物。 【單人】Lv.1 自身擋板加寬 50%，持續 12 秒。【多人】Lv.1 以強烈磁力牽引對手球軌跡，持續 7 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
-        "params": { "power": 1.5, "durationSec": 12 }
+        "params": {
+          "power": 1.5,
+          "durationSec": 12,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "magnetic_pull",
-        "params": { "power": 3, "durationSec": 7 }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 394.4,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1141,16 +1941,32 @@
       "molecularWeight": 233,
       "elements": { "Ba": 1, "S": 1, "O": 4 },
       "category": "特殊",
-      "description": "醫學上常用作X光腸胃顯影劑的鋇餐。 【單人】Lv.5 積分獲取變為 6 倍，持續 12 秒。 【多人】Lv.5 嚴重扭曲對手畫面視線 6 秒。",
+      "description": "醫學上常用作X光腸胃顯影劑的鋇餐。 【單人】Lv.1 積分獲取變為 6 倍，持續 12 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 6, "durationSec": 12 }
+        "params": {
+          "power": 6,
+          "durationSec": 12,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": { "durationSec": 6 }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 396.1,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1160,16 +1976,28 @@
       "molecularWeight": 233,
       "elements": { "Hg": 1, "S": 1 },
       "category": "攻擊",
-      "description": "鮮紅色的劇毒礦物，俗稱辰砂。 【單人】Lv.5 散佈血色疫病，全場方塊受到強烈腐蝕，持續 6 秒。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "鮮紅色的劇毒礦物，俗稱辰砂。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 6 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 15 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 396.1,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1178,17 +2006,38 @@
       "formula": "AgI(碘化銀)",
       "molecularWeight": 235,
       "elements": { "Ag": 1, "I": 1 },
-      "category": "控制",
-      "description": "人工降雨時用作冰晶凝結核的核心試劑。 【單人】Lv.5 減緩球速 50%，持續 8 秒。 【多人】Lv.5 對手擋板減速 25%，持續 8 秒。",
+      "category": "防禦",
+      "description": "人工降雨時用作冰晶凝結核的核心試劑。 【單人】Lv.1 球速減緩 50%，持續 8 秒。【多人】Lv.1 對手擋板減速 25%，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 0.5, "durationSec": 8 }
+        "params": {
+          "power": 0.5,
+          "durationSec": 8,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.75, "durationSec": 8 }
+        "params": {
+          "power": 0.75,
+          "durationSec": 8,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 399.5,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1198,16 +2047,28 @@
       "molecularWeight": 240,
       "elements": { "Cd": 1, "Te": 1 },
       "category": "輔助",
-      "description": "太陽能電池薄膜的高效光電材料。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "description": "太陽能電池薄膜的高效光電材料。 【單人】Lv.1 獲得 20.2% 護盾。【多人】Lv.1 獲得 20.2% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 408.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1217,16 +2078,28 @@
       "molecularWeight": 254,
       "elements": { "Os": 1, "O": 4 },
       "category": "攻擊",
-      "description": "揮發性極強且毒性猛烈的金屬氧化物。 【單人】Lv.5 釋放猛毒蒸氣，全場磚塊受到劇烈的持續侵蝕，持續 8 秒。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "揮發性極強且毒性猛烈的金屬氧化物。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 2, "durationSec": 8 }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 15 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 431.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1236,16 +2109,28 @@
       "molecularWeight": 266,
       "elements": { "Nb": 2, "O": 5 },
       "category": "防禦",
-      "description": "能提升合金耐熱與抗腐蝕性的保護層。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "description": "能提升合金耐熱與抗腐蝕性的保護層。 【單人】Lv.1 獲得 20.2% 護盾。【多人】Lv.1 獲得 20.2% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 20.2 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 452.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1255,16 +2140,28 @@
       "molecularWeight": 290,
       "elements": { "Fl": 1, "H": 1 },
       "category": "防禦",
-      "description": "存在於理論預測中的超重元素氫化物。 【單人】Lv.5 回復 3 點生命。 【多人】Lv.5 回復 3 點生命。",
+      "description": "存在於理論預測中的超重元素氫化物。 【單人】Lv.1 回復 18.8% HP。【多人】Lv.1 回復 18.8% HP。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18.8 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18.8 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 493.0,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -1274,16 +2171,28 @@
       "molecularWeight": 291,
       "elements": { "No": 1, "O": 2 },
       "category": "防禦",
-      "description": "放射性人造元素構成的超重氧化物。 【單人】Lv.5 獲得 3 層護盾。 【多人】Lv.5 獲得 3 層護盾。",
+      "description": "放射性人造元素構成的超重氧化物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 494.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1293,16 +2202,28 @@
       "molecularWeight": 293,
       "elements": { "Rf": 1, "O": 2 },
       "category": "特殊",
-      "description": "極度不穩定，帶有未知量子特性的實驗化合物。 【單人】Lv.5 產生 3 顆量子幽靈球，持續 6 秒。 【多人】Lv.5 遮蔽對手視線 6 秒。",
+      "description": "極度不穩定，帶有未知量子特性的實驗化合物。 【單人】Lv.1 召喚 3 顆幽靈球在場上肆虐，持續 6 秒。【多人】Lv.1 遮蔽對手視線，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 6 }
+        "params": { "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 498.1,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1312,16 +2233,32 @@
       "molecularWeight": 294,
       "elements": { "K": 2, "Cr": 2, "O": 7 },
       "category": "攻擊",
-      "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。 【單人】Lv.5 注入狂流能量，4 秒後引發毀滅大爆炸。 【多人】Lv.5 扣除對手 15 點生命。",
+      "description": "呈現鮮豔橘紅色，具強烈毒性與氧化性。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 10)，持續 4 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 10, "durationSec": 4 }
+        "params": {
+          "power": 10,
+          "durationSec": 4,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 15 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 499.8,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1331,16 +2268,28 @@
       "molecularWeight": 301,
       "elements": { "Rg": 1, "F": 1 },
       "category": "攻擊",
-      "description": "理論上存在的第111號元素氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "description": "理論上存在的第111號元素氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 13 }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 511.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1350,16 +2299,28 @@
       "molecularWeight": 301,
       "elements": { "Cn": 1, "O": 1 },
       "category": "防禦",
-      "description": "半衰期極短的超重金屬氧化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "description": "半衰期極短的超重金屬氧化物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 511.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1369,16 +2330,32 @@
       "molecularWeight": 303.5,
       "elements": { "Au": 1, "Cl": 3 },
       "category": "輔助",
-      "description": "溶於水呈現黃色，為提煉純金的前驅物。 【單人】Lv.6 積分獲取變為 7 倍，持續 14 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "description": "溶於水呈現黃色，為提煉純金的前驅物。 【單人】Lv.1 積分獲取變為 7 倍，持續 14 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self",
         "action": "multiply_score",
-        "params": { "power": 7, "durationSec": 14 }
+        "params": {
+          "power": 7,
+          "durationSec": 14,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 515.9,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1388,16 +2365,28 @@
       "molecularWeight": 304,
       "elements": { "Bk": 1, "F": 3 },
       "category": "攻擊",
-      "description": "具強烈放射性的人造阿克系元素氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "description": "具強烈放射性的人造阿克系元素氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 13 }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 516.8,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1407,16 +2396,28 @@
       "molecularWeight": 305,
       "elements": { "Nh": 1, "F": 1 },
       "category": "攻擊",
-      "description": "極端條件下短暫生成的高能放射性物質。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "description": "極端條件下短暫生成的高能放射性物質。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 13 }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 518.5,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1426,7 +2427,7 @@
       "molecularWeight": 306,
       "elements": { "Mc": 1, "O": 1 },
       "category": "攻擊",
-      "description": "壽命僅在毫秒之間的第115號元素氧化物。 【單人】Lv.6 引發大範圍連環爆破。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "壽命僅在毫秒之間的第115號元素氧化物。 【單人】Lv.1 引發毀滅級連環爆破 (威力 6)。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
@@ -1435,7 +2436,19 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 520.2,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1445,16 +2458,28 @@
       "molecularWeight": 307,
       "elements": { "Fe": 1, "Ni": 1, "Ir": 1 },
       "category": "攻擊",
-      "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。 【單人】Lv.6 使球化身沉重隕石，撞擊時引發大範圍爆破，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "銥元素在地層中異常富集，常作為隕石撞擊的證據。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 3, "durationSec": 8 }
+        "params": { "power": 3, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 521.9,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1464,7 +2489,7 @@
       "molecularWeight": 310,
       "elements": { "Mt": 1, "O": 2 },
       "category": "攻擊",
-      "description": "放射性極強，存在時間以微秒計的超重氧化物。 【單人】Lv.6 引發毀滅級連環爆破。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "放射性極強，存在時間以微秒計的超重氧化物。 【單人】Lv.1 引發毀滅級連環爆破 (威力 7)。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
@@ -1473,7 +2498,19 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 527.0,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1483,16 +2520,31 @@
       "molecularWeight": 314,
       "elements": { "Sg": 1, "O": 3 },
       "category": "特殊",
-      "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.6 召喚 6 顆虛空幽靈球，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.1 召喚 6 顆幽靈球在場上肆虐，持續 8 秒。【多人】Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 6, "durationSec": 8 }
+        "params": { "power": 6, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.7, "durationSec": 14 }
+        "params": {
+          "power": 0.7,
+          "durationSec": 14,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 533.8,
+        "upgradeCostGrowth": 1.15,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1502,16 +2554,28 @@
       "molecularWeight": 315,
       "elements": { "Md": 1, "F": 3 },
       "category": "攻擊",
-      "description": "透過粒子加速器合成的極微量高能氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 反轉對手操作 8 秒。",
+      "description": "透過粒子加速器合成的極微量高能氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 13 }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "reverse_controls",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 535.5,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1521,16 +2585,28 @@
       "molecularWeight": 325,
       "elements": { "Db": 1, "F": 3 },
       "category": "攻擊",
-      "description": "產生強烈電磁擾動的過渡金屬氟化物。 【單人】Lv.6 獲得貫穿屬性 13 秒。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "description": "產生強烈電磁擾動的過渡金屬氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 遮蔽對手視線，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 13 }
+        "params": { "durationSec": 13, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 7 }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 552.5,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1540,16 +2616,28 @@
       "molecularWeight": 331,
       "elements": { "Lv": 1, "F": 2 },
       "category": "防禦",
-      "description": "在粒子對撞中短暫現身的超重金屬鹵化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "description": "在粒子對撞中短暫現身的超重金屬鹵化物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 562.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1559,16 +2647,28 @@
       "molecularWeight": 332,
       "elements": { "Og": 1, "F": 2 },
       "category": "防禦",
-      "description": "週期表最後一個元素的推測化合物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "description": "週期表最後一個元素的推測化合物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 564.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1578,16 +2678,32 @@
       "molecularWeight": 340,
       "elements": { "Sb": 2, "S": 3 },
       "category": "攻擊",
-      "description": "呈現黑灰色的針狀晶體，早期煙火與火柴的原料。 【單人】Lv.6 點燃引信，3 秒後引發毀滅性大爆炸。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "呈現黑灰色的針狀晶體，早期煙火與火柴的原料。 【單人】Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 10)，持續 3 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 10, "durationSec": 3 }
+        "params": {
+          "power": 10,
+          "durationSec": 3,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 578.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1597,16 +2713,31 @@
       "molecularWeight": 349.5,
       "elements": { "Am": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "呈現粉紅色的超鈾元素放射性鹽類。 【單人】Lv.6 發散致命強酸，全場受到劇烈腐蝕，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "呈現粉紅色的超鈾元素放射性鹽類。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 8 秒。【多人】Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 3, "durationSec": 8 }
+        "params": { "power": 3, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.7, "durationSec": 14 }
+        "params": {
+          "power": 0.7,
+          "durationSec": 14,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 594.1,
+        "upgradeCostGrowth": 1.15,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1616,16 +2747,28 @@
       "molecularWeight": 352,
       "elements": { "Ds": 1, "Cl": 2 },
       "category": "防禦",
-      "description": "科學家在加速器中費盡心血合成的短暫存在。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "description": "科學家在加速器中費盡心血合成的短暫存在。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 598.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1635,16 +2778,31 @@
       "molecularWeight": 358.5,
       "elements": { "Es": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "用於研究超鈾元素特性的高放射性化合物。 【單人】Lv.6 使球化身超重球，撞擊引發巨大範圍爆炸，持續 8 秒。 【多人】Lv.6 對手擋板縮小 30%，持續 14 秒。",
+      "description": "用於研究超鈾元素特性的高放射性化合物。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。【多人】Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.7, "durationSec": 14 }
+        "params": {
+          "power": 0.7,
+          "durationSec": 14,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 609.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1654,16 +2812,28 @@
       "molecularWeight": 362,
       "elements": { "C": 7, "H": 5, "Bi": 1, "O": 4 },
       "category": "輔助",
-      "description": "常見於腸胃藥，呈現鮮明粉紅色的次水楊酸鉍。 【單人】Lv.6 回復 3 點生命。 【多人】Lv.6 回復 3 點生命。",
+      "description": "常見於腸胃藥，呈現鮮明粉紅色的次水楊酸鉍。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 回復 18% HP。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 18 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 615.4,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -1673,16 +2843,28 @@
       "molecularWeight": 365,
       "elements": { "Ts": 1, "Cl": 2 },
       "category": "攻擊",
-      "description": "週期表第117號元素的鹵素同族化合物。 【單人】Lv.6 使球化身風暴重球，撞擊引發範圍爆炸，持續 8 秒。 【多人】Lv.6 召喚電磁風暴強烈干擾對手，持續 7 秒。",
+      "description": "週期表第117號元素的鹵素同族化合物。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。【多人】Lv.1 召喚電磁風暴強烈干擾對手，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": { "power": 4, "durationSec": 7 }
+        "params": { "power": 4, "durationSec": 7, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 620.5,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1692,16 +2874,28 @@
       "molecularWeight": 372.5,
       "elements": { "Lr": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "錒系元素最後一個成員的高能放射鹽。 【單人】Lv.6 狂怒重化，撞擊引發毀滅範圍爆炸，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "錒系元素最後一個成員的高能放射鹽。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 5)，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 5, "durationSec": 8 }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 633.2,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1711,16 +2905,28 @@
       "molecularWeight": 376.5,
       "elements": { "Bh": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。 【單人】Lv.6 散佈極致腐朽毒霧，全場方塊快速崩解，持續 8 秒。 【多人】Lv.6 扣除對手 18 點生命。",
+      "description": "發出強烈輻射，會迅速衰變的超重金屬氯化物。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 4, "durationSec": 8 }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 18 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 640.0,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1730,16 +2936,28 @@
       "molecularWeight": 382,
       "elements": { "Er": 2, "O": 3 },
       "category": "特殊",
-      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。 【單人】Lv.6 折射出 7 顆光束幽靈球，持續 8 秒。 【多人】Lv.6 遮蔽對手視線 7 秒。",
+      "description": "呈現粉紅色的稀土氧化物，光纖放大器的核心材料。 【單人】Lv.1 召喚 7 顆幽靈球在場上肆虐，持續 8 秒。【多人】Lv.1 遮蔽對手視線，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 7, "durationSec": 8 }
+        "params": { "power": 7, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 7 }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 649.4,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1749,16 +2967,28 @@
       "molecularWeight": 391,
       "elements": { "Hs": 1, "F": 6 },
       "category": "防禦",
-      "description": "揮發性極高的第108號元素六氟化物。 【單人】Lv.6 獲得 3 層護盾。 【多人】Lv.6 獲得 3 層護盾。",
+      "description": "揮發性極高的第108號元素六氟化物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 獲得 22.5% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3 }
+        "params": { "powerPercent": 22.5 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 664.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1767,17 +2997,32 @@
       "formula": "Yb2O3(氧化鐿)",
       "molecularWeight": 394,
       "elements": { "Yb": 2, "O": 3 },
-      "category": "特殊",
-      "description": "用於製造超高精度原子鐘的稀土材料。 【單人】Lv.6 減緩球速 60%，持續 9 秒。 【多人】Lv.6 完全凍結對手擋板 7 秒。",
+      "category": "防禦",
+      "description": "用於製造超高精度原子鐘的稀土材料。 【單人】Lv.1 球速減緩 60%，持續 9 秒。【多人】Lv.1 完全凍結對手擋板，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 0.4, "durationSec": 9 }
+        "params": {
+          "power": 0.4,
+          "durationSec": 9,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 7 }
+        "params": { "durationSec": 7, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 669.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1787,16 +3032,28 @@
       "molecularWeight": 429,
       "elements": { "In": 2, "Sn": 1, "O": 4 },
       "category": "特殊",
-      "description": "觸控螢幕中不可或缺的透明導電薄膜。 【單人】Lv.7 獲得貫穿屬性 15 秒。 【多人】Lv.7 遮蔽對手視線 8 秒。",
+      "description": "觸控螢幕中不可或缺的透明導電薄膜。 【單人】Lv.1 獲得貫穿屬性，持續 15 秒。【多人】Lv.1 遮蔽對手視線，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "enable_pierce",
-        "params": { "durationSec": 15 }
+        "params": { "durationSec": 15, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "blind_screen",
-        "params": { "durationSec": 8 }
+        "params": { "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 729.3,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1806,16 +3063,28 @@
       "molecularWeight": 442,
       "elements": { "Ta": 2, "O": 5 },
       "category": "輔助",
-      "description": "應用於高階電子設備電容器的關鍵儲能材料。 【單人】Lv.7 回復 4 點生命。 【多人】Lv.7 回復 4 點生命。",
+      "description": "應用於高階電子設備電容器的關鍵儲能材料。 【單人】Lv.1 回復 22.4% HP。【多人】Lv.1 回復 22.4% HP。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 22.4 }
       },
       "effectMulti": {
         "target": "self",
         "action": "heal_hp",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 22.4 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 751.4,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.40 × (level - 1))"
+        }
       }
     },
     {
@@ -1825,16 +3094,31 @@
       "molecularWeight": 484,
       "elements": { "Re": 2, "O": 7 },
       "category": "攻擊",
-      "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。 【單人】Lv.7 釋放終極酸霧，全場方塊受到極致腐蝕，持續 8 秒。 【多人】Lv.7 對手擋板縮小 35%，持續 16 秒。",
+      "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 8 秒。【多人】Lv.1 對手擋板縮小 35%，持續 16 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 4, "durationSec": 8 }
+        "params": { "power": 4, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "shrink_width",
-        "params": { "power": 0.65, "durationSec": 16 }
+        "params": {
+          "power": 0.65,
+          "durationSec": 16,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 822.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1844,16 +3128,28 @@
       "molecularWeight": 504,
       "elements": { "Tl": 2, "S": 1, "O": 4 },
       "category": "攻擊",
-      "description": "無色無味，歷史上曾作為滅鼠藥的劇毒物質。 【單人】Lv.7 散佈無形鴆毒，全場方塊快速崩解，持續 8 秒。 【多人】Lv.7 扣除對手 21 點生命。",
+      "description": "無色無味，歷史上曾作為滅鼠藥的劇毒物質。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 5 點腐蝕，持續 8 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 5, "durationSec": 8 }
+        "params": { "power": 5, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "power": 21 }
+        "params": { "powerPercent": 50 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 856.8,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
+        }
       }
     },
     {
@@ -1863,16 +3159,28 @@
       "molecularWeight": 537,
       "elements": { "Be": 3, "Al": 2, "Si": 6, "O": 18 },
       "category": "防禦",
-      "description": "構成祖母綠與海藍寶石的美麗矽酸鹽礦物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "description": "構成祖母綠與海藍寶石的美麗矽酸鹽礦物。 【單人】Lv.1 獲得 24.0% 護盾。【多人】Lv.1 獲得 24.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 24.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 24.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "common",
+        "upgradeCostBase": 912.9,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1882,16 +3190,28 @@
       "molecularWeight": 542,
       "elements": { "Cm": 2, "O": 3 },
       "category": "防禦",
-      "description": "釋放強烈阿爾法射線的放射性稀土替代物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "description": "釋放強烈阿爾法射線的放射性稀土替代物。 【單人】Lv.1 獲得 30.0% 護盾。【多人】Lv.1 獲得 30.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 921.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1901,16 +3221,28 @@
       "molecularWeight": 550,
       "elements": { "Cf": 2, "O": 3 },
       "category": "防禦",
-      "description": "每微克價值連城，強大的中子放射源。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "description": "每微克價值連城，強大的中子放射源。 【單人】Lv.1 獲得 30.0% 護盾。【多人】Lv.1 獲得 30.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 935.0,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1920,16 +3252,28 @@
       "molecularWeight": 562,
       "elements": { "Fm": 2, "O": 3 },
       "category": "防禦",
-      "description": "僅能以極微量存在，實驗室中的極致造物。 【單人】Lv.7 獲得 4 層護盾。 【多人】Lv.7 獲得 4 層護盾。",
+      "description": "僅能以極微量存在，實驗室中的極致造物。 【單人】Lv.1 獲得 30.0% 護盾。【多人】Lv.1 獲得 30.0% 護盾。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
       },
       "effectMulti": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 4 }
+        "params": { "powerPercent": 30.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 955.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -1938,17 +3282,30 @@
       "formula": "YBa2Cu3O7(釔鋇銅氧化物)",
       "molecularWeight": 667,
       "elements": { "Y": 1, "Ba": 2, "Cu": 3, "O": 7 },
-      "category": "輔助",
-      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。 【單人】Lv.8 球速提升 120%，持續 11 秒。 【多人】Lv.8 完全凍結對手擋板 9 秒。",
+      "category": "攻擊",
+      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。 【單人】Lv.1 球速提升 120%，持續 11 秒。【多人】Lv.1 完全凍結對手擋板，持續 9 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "modify_speed",
-        "params": { "power": 2.2, "durationSec": 11 }
+        "params": {
+          "power": 2.2,
+          "durationSec": 11,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "freeze",
-        "params": { "durationSec": 9 }
+        "params": { "durationSec": 9, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 1133.9,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -1958,16 +3315,36 @@
       "molecularWeight": 1083,
       "elements": { "Nd": 2, "Fe": 14, "B": 1 },
       "category": "控制",
-      "description": "目前人類已知磁力最強的永久磁鐵。 【單人】Lv.9 擋板寬度增加 90%，持續 20 秒。 【多人】Lv.9 以強烈磁力嚴重牽引對手球，持續 10 秒。",
+      "description": "目前人類已知磁力最強的永久磁鐵。 【單人】Lv.1 自身擋板加寬 89%，持續 20 秒。【多人】Lv.1 以強烈磁力牽引對手球軌跡，持續 10 秒。",
       "effectSingle": {
         "target": "self_paddle",
         "action": "modify_width",
-        "params": { "power": 1.9, "durationSec": 20 }
+        "params": {
+          "power": 1.9,
+          "durationSec": 20,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "magnetic_pull",
-        "params": { "power": 5, "durationSec": 10 }
+        "params": {
+          "power": 5,
+          "durationSec": 10,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 1841.1,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1977,16 +3354,28 @@
       "molecularWeight": 203.7,
       "elements": { "La": 1, "B": 6 },
       "category": "攻擊",
-      "description": "優異電子發射能力的材料，用於高性能電子發射元件。 【單人】使球進入高能穿透狀態，可連續穿透多個磚塊。 【多人】下一次球撞擊獲得強力穿透與加速。",
+      "description": "優異電子發射能力的材料，用於高性能電子發射元件。 【單人】Lv.1 獲得強力貫穿屬性，持續 6 秒。【多人】Lv.1 獲得強力穿透與 100% 加速，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "add_piercing",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "power_speed_boost",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 346.3,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -1996,16 +3385,28 @@
       "molecularWeight": 247.4,
       "elements": { "Pr": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "可用於特殊光學與材料研究。 【單人】球擊中磚塊時產生干涉波，波及周圍磚塊。 【多人】干擾對手視線與球的軌跡判斷。",
+      "description": "可用於特殊光學與材料研究。 【單人】Lv.1 擊中磚塊時產生震波 (威力 2)，持續 5 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "shockwave",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": { "power": 1, "durationSec": 4 }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 420.6,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2015,16 +3416,28 @@
       "molecularWeight": 251.5,
       "elements": { "Pm": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "含有不穩定的放射性元素鉕。 【單人】標記一批磚塊，倒數結束後產生能量爆發。 【多人】對對手施加不穩定倒數干擾。",
+      "description": "含有不穩定的放射性元素鉕。 【單人】Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 3)，持續 3 秒。【多人】Lv.1 標記對手，倒數後引爆 1% HP 傷害，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
-        "params": { "power": 3, "durationSec": 3 }
+        "params": { "power": 3, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "unstable_countdown",
-        "params": { "power": 1, "durationSec": 4 }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 427.6,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2034,16 +3447,32 @@
       "molecularWeight": 215.2,
       "elements": { "Sm": 1, "B": 6 },
       "category": "防禦",
-      "description": "特殊電子性質，低溫物理研究中受重視。 【單人】建立強化護盾，優先抵擋掉球傷害。 【多人】短時間抵擋一次負面狀態或攻擊。",
+      "description": "特殊電子性質，低溫物理研究中受重視。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 進入絕對免疫狀態，抵擋所有攻擊，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 2, "durationSec": null }
+        "params": {
+          "durationSec": null,
+          "clearOnLevelComplete": true,
+          "powerPercent": 13.4
+        }
       },
       "effectMulti": {
         "target": "self",
         "action": "temporary_immunity",
-        "params": { "power": 1, "durationSec": 6 }
+        "params": { "power": 1, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 365.8,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -2053,16 +3482,28 @@
       "molecularWeight": 184.1,
       "elements": { "Eu": 1, "S": 1 },
       "category": "輔助",
-      "description": "特殊磁性與光學性質，呈現明顯的光學反應。 【單人】使球帶有發光軌跡，提升特殊磚塊的命中判斷。 【多人】以強烈光效短暫干擾對手視線。",
+      "description": "特殊磁性與光學性質，呈現明顯的光學反應。 【單人】Lv.1 標記高價值磚塊並提供導引，持續 8 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 2 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "highlight_targets",
-        "params": { "power": 1, "durationSec": 8 }
+        "params": { "power": 1, "durationSec": 8, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "power": 1, "durationSec": 2 }
+        "params": { "power": 1, "durationSec": 2, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 313.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2072,16 +3513,32 @@
       "molecularWeight": 171.3,
       "elements": { "Gd": 1, "N": 1 },
       "category": "輔助",
-      "description": "可用於研究磁性與電子性質。 【單人】產生磁場，使球軌跡向附近磚塊偏轉。 【多人】干擾對手球的移動軌跡。",
+      "description": "可用於研究磁性與電子性質。 【單人】Lv.1 magnetic_trajectory 1.5，持續 6 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "magnetic_trajectory",
-        "params": { "power": 1.5, "durationSec": 6 }
+        "params": {
+          "power": 1.5,
+          "durationSec": 6,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "chaos_trajectory",
-        "params": { "power": 2, "durationSec": 4 }
+        "params": { "power": 2, "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 291.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2091,16 +3548,32 @@
       "molecularWeight": 265.4,
       "elements": { "Tb": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "鋱常被應用於螢光與磁性材料。 【單人】產生閃爆，瞬間削弱範圍內磚塊。 【多人】以強烈閃光遮蔽對手畫面。",
+      "description": "鋱常被應用於螢光與磁性材料。 【單人】Lv.1 產生閃爆，削弱範圍內磚塊 (威力 3)。【多人】Lv.1 強烈閃瞎對手視線，持續 2 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "area_damage",
-        "params": { "power": 3, "durationSec": null }
+        "params": {
+          "power": 3,
+          "durationSec": null,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "flash_blind",
-        "params": { "power": 2, "durationSec": 2 }
+        "params": { "power": 2, "durationSec": 2, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 451.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2110,16 +3583,28 @@
       "molecularWeight": 219.5,
       "elements": { "Dy": 1, "F": 3 },
       "category": "輔助",
-      "description": "含強磁性特徵的稀土元素鏑。 【單人】改變球的反彈角度，使其更容易攻擊死角。 【多人】使對手球的軌跡持續偏移。",
+      "description": "含強磁性特徵的稀土元素鏑。 【單人】Lv.1 改變球的反彈角度，更容易攻擊死角，持續 6 秒。【多人】Lv.1 以強烈磁力牽引對手球軌跡，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "trajectory_guide",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_ball",
         "action": "magnetic_pull",
-        "params": { "power": 1, "durationSec": 4 }
+        "params": { "power": 1, "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 373.1,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2129,16 +3614,28 @@
       "molecularWeight": 221.9,
       "elements": { "Ho": 1, "F": 3 },
       "category": "攻擊",
-      "description": "鈥具有特殊的磁性與光譜特徵。 【單人】產生幻影球，短時間增加額外攻擊路徑。 【多人】製造假球軌跡干擾對手判斷。",
+      "description": "鈥具有特殊的磁性與光譜特徵。 【單人】Lv.1 召喚 2 顆幽靈球在場上肆虐，持續 6 秒。【多人】Lv.1 製造假球幻影干擾對手判斷，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "create_ghost_ball",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fake_ball_illusion",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 377.2,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2148,16 +3645,36 @@
       "molecularWeight": 225.9,
       "elements": { "Tm": 1, "F": 3 },
       "category": "攻擊",
-      "description": "可用於特殊光學與材料研究。 【單人】提升球速並增加反彈角度變化。 【多人】球高速移動，使對手更難預測。",
+      "description": "可用於特殊光學與材料研究。 【單人】Lv.1 球速提升 60% 並增加反彈不可預測性，持續 6 秒。【多人】Lv.1 自身球速提升 80%，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "speed_and_randomize",
-        "params": { "power": 1.6, "durationSec": 6 }
+        "params": {
+          "power": 1.6,
+          "durationSec": 6,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "speed_boost",
-        "params": { "power": 1.8, "durationSec": 5 }
+        "params": {
+          "power": 1.8,
+          "durationSec": 5,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 384.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2167,16 +3684,32 @@
       "molecularWeight": 281.5,
       "elements": { "Lu": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "鑥具有高密度與穩定的材料特性。 【單人】下一段時間內大幅提升球對磚塊的傷害。 【多人】提升自身進攻能力與球速。",
+      "description": "鑥具有高密度與穩定的材料特性。 【單人】Lv.1 大幅提升球對磚塊的傷害 (威力 3)，持續 7 秒。【多人】Lv.1 獲得強力穿透與 120% 加速，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "increase_brick_damage",
-        "params": { "power": 3, "durationSec": 7 }
+        "params": { "power": 3, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "power_speed_boost",
-        "params": { "power": 2.2, "durationSec": 6 }
+        "params": {
+          "power": 2.2,
+          "durationSec": 6,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 478.6,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2186,16 +3719,31 @@
       "molecularWeight": 461,
       "elements": { "Pb": 1, "I": 2 },
       "category": "攻擊",
-      "description": "具有明顯光電特性，可形成特殊的晶體結構。 【單人】使球進入重擊狀態，對磚塊造成高額傷害。 【多人】產生沉重壓制，使對手擋板移動變慢。",
+      "description": "具有明顯光電特性，可形成特殊的晶體結構。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 4)，持續 6 秒。【多人】Lv.1 對手擋板減速 60%，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
-        "params": { "power": 4, "durationSec": 6 }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_paddle",
         "action": "slow_speed",
-        "params": { "power": 0.4, "durationSec": 5 }
+        "params": {
+          "power": 0.4,
+          "durationSec": 5,
+          "clearOnLevelComplete": true,
+          "minMultiplier": 0.4,
+          "stackingFloor": 0.4
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 783.7,
+        "upgradeCostGrowth": 1.08,
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -2205,16 +3753,28 @@
       "molecularWeight": 241,
       "elements": { "Po": 1, "O": 2 },
       "category": "攻擊",
-      "description": "含高度放射性的元素釙。 【單人】使磚塊持續崩解並受到額外傷害。 【多人】對對手施加持續性干擾。",
+      "description": "含高度放射性的元素釙。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 3 點腐蝕，持續 6 秒。【多人】Lv.1 對手受到放射性干擾，持續扣除 2% HP，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "radiation_debuff",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 409.7,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2224,16 +3784,28 @@
       "molecularWeight": 245.5,
       "elements": { "At": 1, "Cl": 1 },
       "category": "攻擊",
-      "description": "含罕見且不穩定的元素砈，短暫存在、難以掌握。 【單人】使球短暫進入幽靈狀態，可無視部分特殊磚塊。 【多人】使對手受到不穩定干擾。",
+      "description": "含罕見且不穩定的元素砈，短暫存在、難以掌握。 【單人】Lv.1 獲得幽靈穿透屬性，無視部分反彈，持續 5 秒。【多人】Lv.1 對手陷入不穩定狀態，流失 2% HP，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "phase_piercing",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "unstable_debuff",
-        "params": { "power": 2, "durationSec": 4 }
+        "params": { "power": 2, "durationSec": 4, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 417.3,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2243,16 +3815,28 @@
       "molecularWeight": 260,
       "elements": { "Rn": 1, "F": 2 },
       "category": "攻擊",
-      "description": "屬於極罕見且具有高度不穩定性的氡化合物。 【單人】在場上形成持續迷霧，使特殊磚塊失去防護效果。 【多人】產生濃霧遮蔽對手視線。",
+      "description": "屬於極罕見且具有高度不穩定性的氡化合物。 【單人】Lv.1 使特殊磚塊失去防護效果，持續 6 秒。【多人】Lv.1 釋放濃霧遮蔽對手，持續 5 秒。",
       "effectSingle": {
         "target": "board_environment",
         "action": "dispel_brick_effects",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "fog_blind",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 442.0,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2262,16 +3846,36 @@
       "molecularWeight": 258.5,
       "elements": { "Fr": 1, "Cl": 1 },
       "category": "攻擊",
-      "description": "含有極端稀有且高度不穩定的元素鍅。 【單人】觸發一次高風險能量爆發，造成大範圍傷害。 【多人】短時間大幅提升自身進攻壓力。",
+      "description": "含有極端稀有且高度不穩定的元素鍅。 【單人】Lv.1 引發毀滅級連環爆破 (威力 5)。【多人】Lv.1 進入超臨界狂暴，球速與威力提升 150%，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
-        "params": { "power": 5, "durationSec": null }
+        "params": {
+          "power": 5,
+          "durationSec": null,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "berserk_boost",
-        "params": { "power": 2.5, "durationSec": 5 }
+        "params": {
+          "power": 2.5,
+          "durationSec": 5,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 439.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2281,16 +3885,36 @@
       "molecularWeight": 322.1,
       "elements": { "Ra": 1, "S": 1, "O": 4 },
       "category": "輔助",
-      "description": "放射性元素鐳的化合物，鐳會自發發光、具放射性。 【單人】持續提升球的能量與傷害。 【多人】進入能量核心狀態，提升移動與反應能力。",
+      "description": "放射性元素鐳的化合物，鐳會自發發光、具放射性。 【單人】Lv.1 進入高能狀態，球速與威力提升 150%，持續 8 秒。【多人】Lv.1 進入能量核心狀態，球速與反應提升 50%，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
         "action": "energy_overcharge",
-        "params": { "power": 2.5, "durationSec": 8 }
+        "params": {
+          "power": 2.5,
+          "durationSec": 8,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "self",
         "action": "energy_boost",
-        "params": { "power": 1.5, "durationSec": 7 }
+        "params": {
+          "power": 1.5,
+          "durationSec": 7,
+          "clearOnLevelComplete": true
+        }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 547.6,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2300,16 +3924,32 @@
       "molecularWeight": 333.5,
       "elements": { "Ac": 1, "Cl": 3 },
       "category": "攻擊",
-      "description": "錒系元素的起點，象徵強大的放射性能量。 【單人】釋放核能光束，貫穿直線上的磚塊。 【多人】使自己的球獲得短時間高能穿透。",
+      "description": "錒系元素的起點，象徵強大的放射性能量。 【單人】Lv.1 釋放高能雷射光束，持續熔毀直線磚塊。【多人】Lv.1 獲得強力貫穿屬性，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "laser_pierce",
-        "params": { "power": 4, "durationSec": null }
+        "params": {
+          "power": 4,
+          "durationSec": null,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "add_piercing",
-        "params": { "power": 4, "durationSec": 6 }
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 566.9,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2319,16 +3959,32 @@
       "molecularWeight": 308,
       "elements": { "Th": 1, "F": 4 },
       "category": "防禦",
-      "description": "重元素釷的穩定氟化物。 【單人】建立強力護盾，可抵擋多次掉球傷害。 【多人】短時間進入高強度防護狀態。",
+      "description": "重元素釷的穩定氟化物。 【單人】Lv.1 獲得 22.5% 護盾。【多人】Lv.1 進入絕對免疫狀態，抵擋所有攻擊，持續 8 秒。",
       "effectSingle": {
         "target": "self",
         "action": "add_shield",
-        "params": { "power": 3, "durationSec": null }
+        "params": {
+          "durationSec": null,
+          "clearOnLevelComplete": true,
+          "powerPercent": 22.5
+        }
       },
       "effectMulti": {
         "target": "self",
         "action": "temporary_immunity",
-        "params": { "power": 2, "durationSec": 8 }
+        "params": { "power": 2, "durationSec": 8, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 523.6,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "step3",
+          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+        }
       }
     },
     {
@@ -2338,16 +3994,28 @@
       "molecularWeight": 326,
       "elements": { "Pa": 1, "F": 5 },
       "category": "攻擊",
-      "description": "極為稀有的錒系元素鏷，高階且不穩定。 【單人】累積短時間能量後產生大範圍爆發。 【多人】蓄能後使下一次攻擊獲得強化。",
+      "description": "極為稀有的錒系元素鏷，高階且不穩定。 【單人】Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 5)，持續 3 秒。【多人】Lv.1 蓄能後使下一次攻擊獲得強化，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "charged_explosion",
-        "params": { "power": 5, "durationSec": 3 }
+        "params": { "power": 5, "durationSec": 3, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "charge_next_hit",
-        "params": { "power": 4, "durationSec": 5 }
+        "params": { "power": 4, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 554.2,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2357,16 +4025,28 @@
       "molecularWeight": 352,
       "elements": { "U": 1, "F": 6 },
       "category": "攻擊",
-      "description": "其特殊物理性質而與鈾同位素分離技術相關。 【單人】產生能量風暴，使全場磚塊受到持續傷害。 【多人】高速風暴干擾對手的球路與視線。",
+      "description": "其特殊物理性質而與鈾同位素分離技術相關。 【單人】Lv.1 引發能量風暴，全場受到持續傷害 (威力 4)，持續 7 秒。【多人】Lv.1 召喚電磁風暴強烈干擾對手，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_damage_over_time",
-        "params": { "power": 4, "durationSec": 7 }
+        "params": { "power": 4, "durationSec": 7, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent",
         "action": "storm_disruption",
-        "params": { "power": 3, "durationSec": 5 }
+        "params": { "power": 3, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 598.4,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2376,16 +4056,28 @@
       "molecularWeight": 269,
       "elements": { "Np": 1, "O": 2 },
       "category": "輔助",
-      "description": "人工放射性元素鎿的氧化物，神秘且不穩定。 【單人】使特殊磚塊短時間失去部分能力。 【多人】產生不穩定迷霧，干擾對手判斷。",
+      "description": "人工放射性元素鎿的氧化物，神秘且不穩定。 【單人】Lv.1 使特殊磚塊短時間失效，持續 6 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "disable_special_bricks",
-        "params": { "power": 2, "durationSec": 6 }
+        "params": { "power": 2, "durationSec": 6, "clearOnLevelComplete": true }
       },
       "effectMulti": {
         "target": "opponent_screen",
         "action": "visual_distortion",
-        "params": { "power": 2, "durationSec": 5 }
+        "params": { "power": 2, "durationSec": 5, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 457.3,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     },
     {
@@ -2395,17 +4087,63 @@
       "molecularWeight": 276,
       "elements": { "Pu": 1, "O": 2 },
       "category": "攻擊",
-      "description": "可儲存大量核能相關的高密度能量概念。 【單人】釋放超臨界能量，對大範圍磚塊造成毀滅性傷害。 【多人】球進入超臨界狀態，大幅提升速度與攻擊力。",
+      "description": "可儲存大量核能相關的高密度能量概念。 【單人】Lv.1 引發毀滅級連環爆破 (威力 6)。【多人】Lv.1 進入超臨界狂暴，球速與威力提升 200%，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
-        "params": { "power": 6, "durationSec": null }
+        "params": {
+          "power": 6,
+          "durationSec": null,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "self_ball",
         "action": "berserk_boost",
-        "params": { "power": 3, "durationSec": 6 }
+        "params": { "power": 3, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "legendary",
+        "upgradeCostBase": 469.2,
+        "upgradeCostGrowth": 1.15,
+        "scaling": {
+          "type": "linear_effect",
+          "formula": "effect strength scales by level within action-specific caps"
+        }
       }
     }
-  ]
+  ],
+  "systemRules": {
+    "version": "2.0",
+    "hp": { "startPercent": 100, "hasCap": false, "eliminationAtOrBelow": 0 },
+    "shield": {
+      "damagePriority": true,
+      "protects": ["skill_attack", "damage_hp", "global_poison_fog"],
+      "doesNotProtect": ["drop_ball"],
+      "carryOverCapPercent": 100,
+      "overflowToHpRatio": 2
+    },
+    "dropPenalty": {
+      "formula": "20 + level * 2",
+      "percent": true,
+      "shieldIgnored": true,
+      "examples": { "level1": 22, "level40": 100 }
+    },
+    "levelClear": { "baseHpRewardPercent": 15, "clearTimedBuffs": true },
+    "controlFloor": { "minMultiplier": 0.4 },
+    "levelCaps": {
+      "light": { "molecularWeight": "<50", "maxLevel": 15 },
+      "medium": { "molecularWeight": "50-150", "maxLevel": 10 },
+      "heavy": { "molecularWeight": ">150", "maxLevel": 5 }
+    },
+    "scaling": {
+      "damage": "diminishing_linear: basePower × (1 + factor × (level - 1)); light factor 0.18 (max Lv.15), medium factor 0.20 (max Lv.10, target max ≈98%), heavy factor 0.50 (max Lv.5, target max ≈150%)",
+      "shield": "step3: basePower × (1 + floor((level - 1) / 3))",
+      "control": "bounded; speed/width multipliers never below 0.4",
+      "heal": "diminishing_linear: basePower × (1 + factor × (level - 1)) specific for heals"
+    }
+  }
 }

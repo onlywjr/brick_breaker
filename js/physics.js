@@ -758,48 +758,26 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     }
 
     if (b.y > cv.height + b.r) {
-      // ★ 護盾碎裂特效
-      if (pl.shield > 0) {
-        pl.shield--;
-        b.y = cv.height - b.r - 5;
-        b.dy *= -1;
-        playSfx("bounce");
+      // ★ V2.0 動態掉球懲罰 (完全無視護盾)
+      const dropPenalty = 20 + level * 2;
+      pl.hp -= dropPenalty;
 
-        // 觸發綠色粒子爆發與螢幕微震動/閃綠光
-        burst(b.x, pl.y, "#86EFAC");
-        triggerVFX(5, "134, 239, 172", 0.3);
+      b.x = pl.x + pl.w / 2;
+      b.y = pl.y - 20;
+      b.dx = (Math.random() > 0.5 ? 1 : -1) * 4;
+      b.dy = -4;
+      comboCount = 0;
+      burst(cv.width / 2, cv.height - 20, "#666");
 
-        const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("🛡️ 護盾抵擋!", false, pId);
-        continue;
-      }
-      if (onlineMode || mode === 1) {
-        pl.lives--;
-        if (pl.lives <= 0) {
-          if (onlineMode) onlineFinishLocalElimination();
-          else endGame();
-          return;
-        }
-        b.x = pl.x + pl.w / 2;
-        b.y = pl.y - 20;
-        b.dx = (Math.random() > 0.5 ? 1 : -1) * 4;
-        b.dy = -4;
-        comboCount = 0;
-        burst(cv.width / 2, cv.height - 20, "#666");
-        // ★ 改為一般 HUD 播報
-        const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("失去一條命!", false, pId);
-      } else {
-        pl.score = Math.max(0, pl.score - 50);
-        b.x = pl.x + pl.w / 2;
-        b.y = pl.y - 20;
-        b.dx = (Math.random() > 0.5 ? 1 : -1) * 4;
-        b.dy = -4;
-        comboCount = 0;
-        burst(cv.width / 2, cv.height - 20, "#666");
-        // ★ 改為扣分廣播
-        const pId = pl === p1 ? 0 : 1;
-        triggerGameEvent("⚠️ 漏球扣 50 分！", false, pId);
+      const pId = pl === p1 ? 0 : 1;
+      triggerGameEvent(`⚠️ 漏球！❤️ -${dropPenalty}%`, true, pId);
+
+      if (pl.hp <= 0) {
+        pl.hp = 0;
+        triggerGameEvent(`💀 生命值耗盡！`, true, pId);
+        if (onlineMode) onlineFinishLocalElimination();
+        else endGame();
+        return;
       }
     }
   }
@@ -987,29 +965,48 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
   const params = effect.params || {};
   const action = effect.action;
 
-  let power = params.power || 1;
+  // ★ 致命 Bug 修復：優先讀取 powerPercent (用於 HP/Shield)，若無則降級讀取 power
+  let power =
+    params.powerPercent !== undefined ? params.powerPercent : params.power || 1;
   let duration = params.durationSec || 0;
 
   // ==========================================
   // Apply Scaling based on the EXACT action
   // ==========================================
+  const tier =
+    skill.progression ? skill.progression.molecularWeightTier : "medium";
+  const isHeal = ["heal_hp"].includes(action);
+
   if (
     [
       "damage_hp",
       "damage_all",
       "heal_hp",
-      "add_shield",
       "clear_rows",
       "massive_explosion",
       "charged_explosion",
       "global_damage_over_time",
       "increase_brick_damage",
       "global_corrosion",
-      "heavy_ball", // ★ 新增：重球倍率縮放
-      "delayed_explosion", // ★ 新增：延遲爆炸傷害縮放
+      "heavy_ball",
+      "delayed_explosion",
     ].includes(action)
   ) {
-    power = Math.round(power * levelMult);
+    let factor = 0;
+    if (isHeal) {
+      factor =
+        tier === "light" ? 0.15
+        : tier === "medium" ? 0.2
+        : 0.4;
+    } else {
+      factor =
+        tier === "light" ? 0.18
+        : tier === "medium" ? 0.2
+        : 0.5;
+    }
+    power = power * (1 + factor * (levelMult - 1));
+  } else if (["add_shield"].includes(action)) {
+    power = power * (1 + Math.floor((levelMult - 1) / 3));
   } else if (
     [
       "modify_speed",
@@ -1029,7 +1026,8 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     ["shrink_width", "slow_speed", "modify_speed"].includes(action)
     && power < 1
   ) {
-    power = Math.max(0.2, 1 - (1 - power) * levelMult);
+    // ★ 修正控場下限：嚴格限制最多只能將對手削弱至 40% (0.4)
+    power = Math.max(0.4, 1 - (1 - power) * levelMult);
   } else if (["create_ghost_ball"].includes(action)) {
     // Ghost balls count scales with level
     power = Math.round(power + (levelMult - 1));
@@ -1124,20 +1122,13 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "heal_hp":
-      const pIdHeal = pl === p1 ? 0 : 1;
-      if (isMulti) {
-        pl.shield = (pl.shield || 0) + power;
-        triggerGameEvent(`🛡️ 護盾 +${power}`, false, pIdHeal);
-      } else {
-        pl.lives += power;
-        triggerGameEvent(`❤️ 生命 +${power}`, false, pIdHeal);
-      }
+      pl.hp += power;
+      triggerGameEvent(`❤️ +${Math.round(power)}%`, false, pl === p1 ? 0 : 1);
       break;
 
     case "add_shield":
-      const pIdShield = pl === p1 ? 0 : 1;
       pl.shield = (pl.shield || 0) + power;
-      triggerGameEvent(`🛡️ 護盾 +${power}`, false, pIdShield);
+      triggerGameEvent(`🛡️ +${Math.round(power)}%`, false, pl === p1 ? 0 : 1);
       break;
 
     case "damage_all":
@@ -1203,8 +1194,9 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "highlight_targets":
     case "increase_brick_damage":
     case "magnetic_trajectory":
-      // ★ 修正 2：將依賴 buff 的獨立技能與清除機制解綁
-      triggerVFX(5, "168, 85, 247", 0.3); // 閃紫光代表狀態附加成功
+    case "trajectory_guide": // ★ 補齊：磁暴牽引
+    case "charge_next_hit": // ★ 補齊：裂變前兆
+      triggerVFX(5, "168, 85, 247", 0.3);
       break;
 
     // --- New Heavy Element Actions ---
@@ -1273,6 +1265,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "storm_disruption":
     case "visual_distortion":
     case "fog_blind":
+    case "flash_blind": // ★ 補齊：多人模式閃瞎技能分發
       const attackerId = pl === p1 ? 0 : 1;
       if (onlineMode && socket && socket.connected) {
         socket.emit("attackPlayer", {
@@ -1339,7 +1332,31 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
       "unstable_countdown",
     ].includes(type)
   ) {
-    targetPl.score = Math.max(0, targetPl.score - power * 5);
+    let dmg = power;
+
+    // ★ 優先扣除護盾
+    if (targetPl.shield && targetPl.shield > 0) {
+      let block = Math.min(targetPl.shield, dmg);
+      targetPl.shield -= block;
+      dmg -= block;
+    }
+
+    // 護盾破裂後扣除真實 HP
+    targetPl.hp -= dmg;
+
+    const blockMsg = power > dmg ? " (護盾抵擋部分)" : "";
+    triggerGameEvent(
+      `💥 護盾受損 -${Math.round(dmg)}%${blockMsg}`,
+      false,
+      targetPl === p1 ? 0 : 1,
+    );
+
+    if (targetPl.hp <= 0) {
+      targetPl.hp = 0;
+      triggerGameEvent(`💀 生命值耗盡！`, true, targetPl === p1 ? 0 : 1);
+      if (onlineMode) onlineFinishLocalElimination();
+      else endGame();
+    }
   } else if (type === "shrink_width") {
     if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);
     else targetPl.shrinkOffset = 0;
@@ -1383,6 +1400,7 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
       "fog_blind",
       "fake_ball_illusion",
       "storm_disruption",
+      "flash_blind", // ★ 補齊：實裝受擊遮蔽效果
     ].includes(type)
   ) {
     const blindEl = document.getElementById("online-blind");

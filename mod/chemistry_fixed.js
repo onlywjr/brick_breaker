@@ -1536,7 +1536,7 @@ function renderShopCards() {
             oldP = Math.round(p).toString();
             newP = Math.round(p + (displayLv - 1)).toString();
           } else if (act === "add_shield") {
-            // ★ V3 Shield 專屬跳躍成長
+            // ★ V3 Shield Scaling
             oldP = (Math.round(p * 10) / 10).toString();
             newP = (
               Math.round(p * (1 + Math.floor((displayLv - 1) / 3)) * 10) / 10
@@ -1544,7 +1544,7 @@ function renderShopCards() {
           } else if (
             ["damage_hp", "damage_all", "heal_hp", "clear_rows"].includes(act)
           ) {
-            // ★ V3 遞減衰減成長 (Diminishing Linear)
+            // ★ V3 Diminishing Linear Scaling
             const isHeal = act === "heal_hp";
             let factor = 0;
             if (isHeal)
@@ -1578,9 +1578,8 @@ function renderShopCards() {
             && p < 1
           ) {
             oldP = Math.round((1 - p) * 100).toString();
-            // ★ V3 控場下限改為 0.4
             newP = Math.round(
-              (1 - Math.max(0.4, 1 - (1 - p) * displayLv)) * 100,
+              (1 - Math.max(0.4, 1 - (1 - p) * displayLv)) * 100, // ★ V3 Control Floor 0.4
             ).toString();
           }
         }
