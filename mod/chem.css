@@ -48,6 +48,17 @@
   font-size: 24px;
 }
 
+.header-points-display {
+  display: flex;
+  align-items: baseline;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 2px solid #f6a6c1;
+  box-shadow: 0 2px 8px rgba(246, 166, 193, 0.3);
+  margin-left: 5px;
+}
+
 .chem-tabs {
   display: flex;
   gap: 8px;

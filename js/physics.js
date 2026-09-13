@@ -362,15 +362,15 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             onlineFinishLocalElimination();
             return;
           } else if (mode === 1) {
-            pl.lives--;
+            // ★ 方案 B：Boss 改為扣除 20% 真實裝甲 (護盾可抵擋)
+            applyLocalDebuff(pl, "damage_hp", 20, 0);
             floatTexts.push({
-              t: "被 BOSS 擊中! 失去一條命!",
-              life: 1,
-              x: cv.width / 2,
+              t: "BOSS 攻擊！-20% 裝甲",
+              life: 1.5,
+              x: pl.x + pl.w / 2,
               y: pl.y - 30,
               c: "#E0576B",
             });
-            if (pl.lives <= 0) endGame();
           } else {
             pl.score = Math.max(0, pl.score - 100);
             floatTexts.push({
@@ -694,20 +694,31 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         if (b.isPiercing) triggerVFX(3);
         burst(b.x, b.y);
         if (br.hp <= 0) {
-          // ★ 新增：將原子加入庫存，或收集數學符號
-          const targetPlayer = pl === p2 ? p2 : p1; // 確認是 1P 或 2P 打破的
+          const targetPlayer = pl === p2 ? p2 : p1;
 
-          if (br.symbol) {
+          // ★ 方案 B 陷阱機制：被一般球打碎時觸發 15% 範圍傷害 (護盾可抵擋)
+          if (br.symbol === "☠️") {
+            applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
+            triggerVFX(8, "255, 50, 50", 0.3);
+            floatTexts.push({
+              t: "陷阱觸發！-15% 裝甲",
+              life: 1.5,
+              x: br.x,
+              y: br.y,
+              c: "#E0576B",
+              big: true,
+            });
+          } else if (br.symbol) {
+            // 一般元素收集
             if (chemDLCEnabled) {
               addAtom(br.symbol, 1, targetPlayer === p1 ? 0 : 1);
               updateInventoryUI();
             } else {
-              // ★ 數學極限模式：將打破的符號收集到專屬題庫中
               targetPlayer.mathInventory.push(br.symbol);
             }
           }
 
-          if (!chemDLCEnabled) {
+          if (!chemDLCEnabled && br.symbol !== "☠️") {
             maybeDrop(br, null, drops); // 只有關閉 DLC 時才掉落一般膠囊
           }
           playSfx("brk");

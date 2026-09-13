@@ -347,14 +347,20 @@ export async function initChemistrySystem() {
       buyBtn.id = "mobile-buy-btn";
       buyBtn.className = "chem-return-btn";
       buyBtn.innerText = "🛒 購買元素";
-      buyBtn.onclick = () => overlay.classList.add("show-pt-mobile");
+      buyBtn.onclick = () => {
+        overlay.classList.add("show-pt-mobile");
+        if (window.layoutPointsDisplay) window.layoutPointsDisplay();
+      };
 
       // 2. 返回按鈕 (元素表專用：點擊顯示卡片區)
       const returnBtn = document.createElement("button");
       returnBtn.id = "mobile-return-btn";
       returnBtn.className = "chem-return-btn";
       returnBtn.innerText = "↩ 返回";
-      returnBtn.onclick = () => overlay.classList.remove("show-pt-mobile");
+      returnBtn.onclick = () => {
+        overlay.classList.remove("show-pt-mobile");
+        if (window.layoutPointsDisplay) window.layoutPointsDisplay();
+      };
 
       // 3. 關閉按鈕 (卡片頁專用：關閉整個商店)
       const closeBtn = document.createElement("button");
@@ -433,8 +439,68 @@ function initResponsiveScaler() {
     }
   }
 
-  // 綁定視窗大小改變事件
-  window.addEventListener("resize", applyScale);
+  // ★ 定義動態搬移點數容器的函式
+  window.layoutPointsDisplay = function () {
+    const overlay = document.getElementById("chem-ui-overlay");
+    const ptWrapper = document.getElementById("chem-points-wrapper");
+    const titleEl = document.querySelector(".shop-header h2"); // ★ 改抓取 h2 標題
+    const sellBtn = document.getElementById("conv-sell-btn");
+    if (!overlay || !ptWrapper || !titleEl) return;
+
+    const isMobileLayout =
+      window.innerWidth / window.innerHeight < 1.7
+      || window.innerWidth <= 1024
+      || window.innerHeight <= 600;
+    const isShowingPT = overlay.classList.contains("show-pt-mobile");
+
+    if (isMobileLayout && !isShowingPT && currentGameMode === 2) {
+      // 手機版卡片區：搬移到 h2 標題裡面
+      if (ptWrapper.parentNode !== titleEl) {
+        titleEl.appendChild(ptWrapper);
+
+        // 讓 h2 變成 flex 容器，確保裡面的字和點數對齊
+        titleEl.style.display = "flex";
+        titleEl.style.alignItems = "baseline";
+
+        ptWrapper.style.flexDirection = "row";
+        ptWrapper.style.alignItems = "baseline";
+        ptWrapper.style.gap = "8px";
+        ptWrapper.style.margin = "0 0 0 12px"; // 與標題文字保持一點距離
+        ptWrapper.querySelector("div:first-child").style.display = "none"; // 隱藏"剩餘點數"文字
+
+        const ptsNum = document.getElementById("chem-mp-points");
+        if (ptsNum) {
+          ptsNum.style.fontSize = "18px";
+          ptsNum.style.color = "#d96c8e";
+        }
+      }
+    } else {
+      // 電腦版 或 手機版購買元素區：放回轉換爐的中間
+      if (sellBtn && ptWrapper.parentNode !== sellBtn.parentNode) {
+        sellBtn.parentNode.insertBefore(ptWrapper, sellBtn);
+
+        // 復原 h2 的樣式
+        titleEl.style.display = "block";
+
+        ptWrapper.style.flexDirection = "column";
+        ptWrapper.style.alignItems = "center";
+        ptWrapper.style.margin = "0";
+        ptWrapper.querySelector("div:first-child").style.display = "block"; // 顯示文字
+
+        const ptsNum = document.getElementById("chem-mp-points");
+        if (ptsNum) {
+          ptsNum.style.fontSize = "32px";
+          ptsNum.style.color = "#666";
+        }
+      }
+    }
+  };
+
+  // 綁定視窗大小改變事件 (一併觸發搬移)
+  window.addEventListener("resize", () => {
+    applyScale();
+    if (window.layoutPointsDisplay) window.layoutPointsDisplay();
+  });
   // 初次開啟時計算一次
   applyScale();
 }
@@ -449,6 +515,8 @@ export function resetLevelStats() {
 }
 
 export function addAtom(element, amount = 1, pId = activePIdx) {
+  if (element === "☠️") return; // ★ 防止陷阱被當作元素加入背包
+
   const inv = chemStates[pId].inventory;
   if (!inv[element]) inv[element] = 0;
   inv[element] += amount;
@@ -1131,6 +1199,15 @@ window.executeConversion = function () {
 // 重構：動態渲染 3 個網格
 // ==========================================
 window.renderPeriodicTable = function () {
+  // ★ 確保每次重繪時，清除掉被移到標題旁邊的舊點數容器
+  const oldPoints = document.getElementById("chem-points-wrapper");
+  if (
+    oldPoints
+    && oldPoints.parentNode !== document.getElementById("conv-result-area")
+  ) {
+    oldPoints.remove();
+  }
+
   renderGrid(PT_GRID, "chem-pt-grid");
   renderGrid(LANTHANIDES, "chem-lanthanides-grid");
   renderGrid(ACTINIDES, "chem-actinides-grid");
@@ -1159,9 +1236,9 @@ window.renderPeriodicTable = function () {
         <div class="conv-col conv-col-3" id="conv-result-area" style="flex-direction: row; align-items: center; justify-content: space-evenly; padding: 10px 5px;">
           <button id="conv-buy-btn" class="conv-action-btn" disabled onclick="executePurchase()" style="width: 25%; margin: 0;">購買</button>
           
-          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <div style="color:#a39ead; font-size:13px; font-weight:900;">剩餘點數</div>
-            <div id="chem-mp-points" style="color:#666; font-size:32px; font-family:'Orbitron'; font-weight:900; margin-top:2px;">${Math.floor(multiPlayerPoints)}</div>
+          <div id="chem-points-wrapper" style="display:flex; flex-direction:column; align-items:center; justify-content:center; transition: all 0.2s;">
+            <div style="color:#a39ead; font-size:13px; font-weight:900; white-space:nowrap;">剩餘點數</div>
+            <div id="chem-mp-points" style="color:#666; font-size:32px; font-family:'Orbitron'; font-weight:900; margin-top:2px; transition: font-size 0.2s;">${Math.floor(multiPlayerPoints)}</div>
           </div>
           
           <button id="conv-sell-btn" class="conv-action-btn sell-btn" disabled onclick="executeSell()" style="width: 25%; margin: 0;">出售</button>
@@ -1187,6 +1264,7 @@ window.renderPeriodicTable = function () {
     }
     ptGrid.appendChild(dashboard);
   }
+  if (window.layoutPointsDisplay) window.layoutPointsDisplay(); // ★ 渲染完畢立即校正位置
 };
 
 function renderGrid(symbols, containerId) {
