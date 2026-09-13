@@ -1369,8 +1369,14 @@ function initTabs() {
   const tabsContainer = document.querySelector(".chem-tabs");
   if (!tabsContainer) return;
 
-  // 1. 從 JSON 抓出所有不重複的動態分類
-  const uniqueCategories = [...new Set(chemSkills.map((s) => s.category))];
+  // 1. 從 JSON 抓出所有不重複的動態分類 (依據當前遊戲模式)
+  const uniqueCategories = [
+    ...new Set(
+      chemSkills.map((s) => {
+        return currentGameMode === 1 ? s.categorySingle : s.categoryMulti;
+      }),
+    ),
+  ];
 
   // ★ 建立指定的分類排序順序
   const desiredOrder = ["攻擊", "防禦", "輔助", "控制", "特殊", "實驗"];
@@ -1444,7 +1450,11 @@ function renderShopCards() {
     if (currentCategory === "owned") return isUnlocked;
     if (currentCategory === "unlockable") return !isUnlocked && canAfford;
     if (currentCategory === "all") return true;
-    return skill.category === currentCategory;
+
+    // ★ 依據遊戲模式過濾正確的分類
+    const activeCategory =
+      currentGameMode === 1 ? skill.categorySingle : skill.categoryMulti;
+    return activeCategory === currentCategory;
   });
 
   // 如果正在選擇裝備，過濾掉未解鎖的技能
@@ -1503,28 +1513,31 @@ function renderShopCards() {
       zhName = parts[1].replace(")", "");
     }
 
-    // ★ 判斷技能分類並給予對應圖示
+    // ★ 判斷技能分類並給予對應圖示 (依據模式)
     let catIcon = "🧪";
-    if (skill.category === "攻擊") catIcon = "🔥";
-    if (skill.category === "防禦") catIcon = "🛡️";
-    if (skill.category === "輔助") catIcon = "❤️‍🔥";
-    if (skill.category === "控制") catIcon = "🪁";
-    if (skill.category === "特殊") catIcon = "🌟";
-    if (skill.category === "實驗") catIcon = "⚠️";
+    const activeCategory =
+      currentGameMode === 1 ? skill.categorySingle : skill.categoryMulti;
+    if (activeCategory === "攻擊") catIcon = "🔥";
+    if (activeCategory === "防禦") catIcon = "🛡️";
+    if (activeCategory === "輔助") catIcon = "❤️‍🔥";
+    if (activeCategory === "控制") catIcon = "🪁";
+    if (activeCategory === "特殊") catIcon = "🌟";
+    if (activeCategory === "實驗") catIcon = "⚠️";
 
     // ==========================================
-    // ★ 動態數值替換引擎 (Regex)
+    // ★ 動態數值替換引擎 (V2.0 拆分版)
     // ==========================================
-    let rawDesc = skill.description || "暫無說明";
+    let baseDesc = skill.description || "暫無說明";
+    let modeDesc =
+      currentGameMode === 1 ? skill.descriptionSingle : skill.descriptionMulti;
+    let modeEffect =
+      currentGameMode === 1 ? skill.effectSingle : skill.effectMulti;
 
-    // 若尚未解鎖，預設顯示 Lv.1 的數值
     const displayLv = isUnlocked ? Math.max(1, skillLevels[skill.id] || 1) : 1;
 
-    if (displayLv >= 1) {
-      // 輔助函式：計算特定 effect 在當前等級的「新舊數值」
+    if (displayLv >= 1 && modeDesc && modeEffect) {
       const getScaled = (effect) => {
         if (!effect || !effect.params) return {};
-        // ★ 修正：優先讀取 powerPercent
         let p =
           effect.params.powerPercent !== undefined ?
             effect.params.powerPercent
@@ -1533,7 +1546,7 @@ function renderShopCards() {
         let act = effect.action;
         let tier = skill.progression?.molecularWeightTier || "medium";
 
-        // 將 36 種技能映射為底層的 9 大 Action (與 physics.js 完全同步)
+        // 將 36 種技能映射為底層的 9 大 Action
         if (
           [
             "add_piercing",
@@ -1551,7 +1564,7 @@ function renderShopCards() {
             "berserk_boost",
             "energy_overcharge",
             "energy_boost",
-            "fast_ball_debuff", // ★ 新增：讓 UI 可以辨識並計算等級倍率
+            "fast_ball_debuff",
           ].includes(act)
         )
           act = "modify_speed";
@@ -1615,7 +1628,6 @@ function renderShopCards() {
             oldP = Math.round(p).toString();
             newP = Math.round(p + (displayLv - 1)).toString();
           } else if (act === "add_shield") {
-            // ★ V3 Shield 專屬跳躍成長
             oldP = (Math.round(p * 10) / 10).toString();
             newP = (
               Math.round(p * (1 + Math.floor((displayLv - 1) / 3)) * 10) / 10
@@ -1623,7 +1635,6 @@ function renderShopCards() {
           } else if (
             ["damage_hp", "damage_all", "heal_hp", "clear_rows"].includes(act)
           ) {
-            // ★ V3 遞減衰減成長 (Diminishing Linear)
             const isHeal = act === "heal_hp";
             let factor = 0;
             if (isHeal)
@@ -1636,7 +1647,6 @@ function renderShopCards() {
                 tier === "light" ? 0.18
                 : tier === "medium" ? 0.2
                 : 0.5;
-
             oldP = (Math.round(p * 10) / 10).toString();
             newP = (
               Math.round(p * (1 + factor * (displayLv - 1)) * 10) / 10
@@ -1657,7 +1667,6 @@ function renderShopCards() {
             && p < 1
           ) {
             oldP = Math.round((1 - p) * 100).toString();
-            // ★ V3 控場下限改為 0.4
             newP = Math.round(
               (1 - Math.max(0.4, 1 - (1 - p) * displayLv)) * 100,
             ).toString();
@@ -1668,66 +1677,32 @@ function renderShopCards() {
         return { oldP, newP, oldD, newD };
       };
 
-      // 替換【單人】模式字串
-      let sVals = getScaled(skill.effectSingle);
-      let sMatch = rawDesc.match(/【單人】([^【]*)/);
-      if (sMatch) {
-        let text = sMatch[1];
-        text = text.replace(/Lv\.\d+/, `Lv.${displayLv}`);
-        // 精準攔截數字：只有後面緊接「秒」或「%點層排倍」的數字才會被替換，極度安全！
-        if (sVals.oldD)
-          text = text.replace(
-            new RegExp("\\b" + sVals.oldD + "(?=\\s*秒)"),
-            sVals.newD,
-          );
-        if (sVals.oldP)
-          text = text.replace(
-            new RegExp("\\b" + sVals.oldP + "(?=\\s*[點顆層排倍%])"),
-            sVals.newP,
-          );
-        rawDesc = rawDesc.replace(sMatch[1], text);
-      }
-
-      // 替換【多人】模式字串
-      let mVals = getScaled(skill.effectMulti);
-      let mMatch = rawDesc.match(/【多人】([^【]*)/);
-      if (mMatch) {
-        let text = mMatch[1];
-        text = text.replace(/Lv\.\d+/, `Lv.${displayLv}`);
-        if (mVals.oldD)
-          text = text.replace(
-            new RegExp("\\b" + mVals.oldD + "(?=\\s*秒)"),
-            mVals.newD,
-          );
-        if (mVals.oldP)
-          text = text.replace(
-            new RegExp("\\b" + mVals.oldP + "(?=\\s*[點顆層排倍%])"),
-            mVals.newP,
-          );
-        rawDesc = rawDesc.replace(mMatch[1], text);
-      }
+      // ★ 執行替換：現在只要對單一的 modeDesc 替換即可
+      let vals = getScaled(modeEffect);
+      modeDesc = modeDesc.replace(/Lv\.\d+/, `Lv.${displayLv}`);
+      if (vals.oldD)
+        modeDesc = modeDesc.replace(
+          new RegExp("\\b" + vals.oldD + "(?=\\s*秒)"),
+          vals.newD,
+        );
+      if (vals.oldP)
+        modeDesc = modeDesc.replace(
+          new RegExp("\\b" + vals.oldP + "(?=\\s*[點顆層排倍%])"),
+          vals.newP,
+        );
     }
 
-    let formattedDesc = rawDesc
-      .replace(
-        / ?【單人】/g,
-        "<br><span style='color: #9dd9e8; font-weight: 900;'>【單人】</span>",
-      )
-      .replace(
-        / ?【多人】/g,
-        "<br><span style='color: #f6a6c1; font-weight: 900;'>【多人】</span>",
-      );
+    // 組合最終顯示的 HTML (基礎描述換行後加上模式效果)
+    const modeColor = currentGameMode === 1 ? "#9dd9e8" : "#f6a6c1";
+    let formattedDesc = `${baseDesc}<br><span style='color: ${modeColor};'>${modeDesc}</span>`;
 
-    if (formattedDesc.startsWith("<br>"))
-      formattedDesc = formattedDesc.substring(4);
-
-    // 計算式
-    let horizontalCalc = "";
-    if (skill.tooltipText) {
-      horizontalCalc = skill.tooltipText.replace(/,|\n/gi, "&nbsp;+&nbsp;");
-    } else {
-      horizontalCalc = `分子量 ${skill.molecularWeight} × 1 = ${skill.cost}`;
+    // ★ 補回遺失的 horizontalCalc 定義
+    let horizontalCalc = [];
+    for (const [sym, count] of Object.entries(skill.elements)) {
+      horizontalCalc.push(`${sym}(${ATOMIC_WEIGHT[sym] || 0})×${count}`);
     }
+    horizontalCalc =
+      horizontalCalc.join(" + ") + ` = ${skill.molecularWeight.toFixed(1)}`;
 
     formattedDesc += `<div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #8a7e9c; color: #c9b1e8; font-size: 11px;">⚖️ 分子量：${horizontalCalc}</div>`;
 

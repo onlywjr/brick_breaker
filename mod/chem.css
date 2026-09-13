@@ -301,20 +301,18 @@
 /* 卡片浮動說明 (Tooltip) */
 .chem-card-tooltip {
   visibility: hidden;
-  width: 140%;
-  left: -20% !important;
+  width: 120%;
+  left: -10% !important;
   box-sizing: border-box;
   background-color: #5d576b;
   color: #fff;
-  text-align: left;
+  text-align: center;
   border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 12px;
-  line-height: 1.6;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.5;
   position: absolute;
   z-index: 1000;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
