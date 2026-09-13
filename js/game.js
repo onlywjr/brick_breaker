@@ -228,7 +228,7 @@ function makePlayer(color, lightColor) {
     reversed: false,
     reversedTimer: 0,
     invincibleTimer: 0,
-    hp: 100, 
+    hp: 100,
     shield: 0,
     mathInventory: [],
   };
@@ -245,7 +245,7 @@ function generateBrickSymbol(gameMode, currentLevel) {
     const operators = ["+", "-"];
     if (currentLevel >= 4) operators.push("×", "÷", "(", ")");
     if (currentLevel >= 7) operators.push("[", "]");
-    if (currentLevel >= 10) operators.push("□", "=");
+    if (currentLevel >= 10) operators.push("未知數", "=");
 
     let numMax = 9;
     if (currentLevel >= 4) numMax = 50;
@@ -1356,10 +1356,15 @@ function buildMathProblem(inventory, currentLevel) {
     let x = getNum();
     let A = Math.floor(Math.random() * 5) + 2;
     let B = getNum();
-    let op = getOp(true);
+    // ★ 修正：常數項的運算子強制只使用 + 或 -，避免抽到乘號導致底層算成減法
+    let op = Math.random() > 0.5 ? "+" : "-";
     let C = op === "+" ? A * x + B : A * x - B;
 
-    qStr = `${A}x ${op} ${B} = ${C} <br><span style="font-size:20px; color:#D96C8E;">(求 x)</span>`;
+    // ★ 1. 產生一個完美融入數字粗細的純 CSS 方框
+    const boxHtml = `<span style="display:inline-block; width:0.5em; height:0.5em; border:0.12em solid currentColor; border-radius:0.1em; vertical-align:-0.05em; margin:0 4px;"></span>`;
+
+    // ★ 2. 將運算子染成亮黃色，並替換未知數為 CSS 方框
+    qStr = `${A}<span style="color:#FBBF24;">×</span>${boxHtml} <span style="color:#FBBF24;">${op}</span> ${B} = ${C} <br><span style="font-size:20px; color:#D96C8E;">求 ${boxHtml} 等於多少?</span>`;
     ans = x;
   } else if (currentLevel >= 7) {
     // Lv7-9: 中括號四則運算 [A + (B * C)] - D
