@@ -245,7 +245,7 @@ function generateBrickSymbol(gameMode, currentLevel) {
     const operators = ["+", "-"];
     if (currentLevel >= 4) operators.push("×", "÷", "(", ")");
     if (currentLevel >= 7) operators.push("[", "]");
-    if (currentLevel >= 10) operators.push("x", "=");
+    if (currentLevel >= 10) operators.push("□", "=");
 
     let numMax = 9;
     if (currentLevel >= 4) numMax = 50;
