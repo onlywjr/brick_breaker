@@ -1235,7 +1235,7 @@
 }
 
 /* ★ 當行動裝置且處於「直向 (Portrait)」時，顯示提示並強制隱藏商店 UI */
-@media (max-width: 1024px) and (orientation: portrait) {
+@media (max-width: 767px) and (orientation: portrait) {
   #chem-rotate-prompt {
     display: flex !important;
   }
