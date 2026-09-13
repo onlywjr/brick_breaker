@@ -771,11 +771,19 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           }
 
           if (comboCount >= 3) {
-            let bonus = Math.floor(baseScore * 0.2 * comboCount);
+            // ★ 修正：將計分用的有效連擊數上限卡在 25 (最高 5 倍獎勵)，避免無限通膨
+            let effectiveCombo = Math.min(25, comboCount);
+            let bonus = Math.floor(baseScore * 0.2 * effectiveCombo);
             pl.score += baseScore + bonus;
-            // ★ 改用 HUD 播報
+
+            // ★ 改用 HUD 播報 (依然顯示真實的連擊數讓玩家爽)
             const pId = pl === p1 ? 0 : 1;
-            triggerGameEvent(`COMBO x${comboCount}!`, false, pId);
+            // 當達到高連擊時，改變播報顏色增加回饋感
+            if (comboCount >= 25) {
+              triggerGameEvent(`🔥 COMBO x${comboCount}! 🔥`, false, pId);
+            } else {
+              triggerGameEvent(`COMBO x${comboCount}!`, false, pId);
+            }
           } else {
             pl.score += baseScore;
           }
