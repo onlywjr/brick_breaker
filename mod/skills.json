@@ -1542,15 +1542,15 @@
       "molecularWeight": 180,
       "elements": { "C": 6, "H": 12, "O": 6 },
       "category": "輔助",
-      "description": "生物體內最重要的能量來源。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 自身球速提升 50%，持續 6 秒。",
+      "description": "生物體內最重要的能量來源。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 對手球速強制提升 50%，持續 6 秒。",
       "effectSingle": {
         "target": "self",
         "action": "heal_hp",
         "params": { "powerPercent": 18 }
       },
       "effectMulti": {
-        "target": "self_ball",
-        "action": "speed_boost",
+        "target": "opponent_ball",
+        "action": "fast_ball_debuff",
         "params": {
           "power": 1.5,
           "durationSec": 6,
