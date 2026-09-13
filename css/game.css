@@ -402,12 +402,6 @@ body.single-layout .center-card > div:nth-child(2) {
   }
 }
 
-@media (orientation: landscape) and (min-height: 600px) and (hover: none) {
-  body.online-battle-mode #rotate-prompt {
-    display: flex;
-  }
-}
-
 /* ==========================================
    ★ 技能發動時的動態外框光暈特效 (修正版)
    ========================================== */
