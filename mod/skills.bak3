@@ -10,8 +10,7 @@
       "Light damage keeps 0.18 growth and max Lv.15.",
       "Medium damage growth reduced from 0.28 to 0.20 to keep Lv.10 near 98% HP.",
       "Heavy damage growth reduced from 0.55 to 0.50; 60% Lv.1 heavy skills are normalized to 50%, giving Lv.5 = 150%.",
-      "Healing and shield scaling are unchanged from the source baseline.",
-      "Categories recalibrated based on actual Single/Multi physics actions."
+      "Healing and shield scaling are unchanged from the source baseline."
     ]
   },
   "constants": {
@@ -28,7 +27,7 @@
       "formula": "HeH+(氦氫離子)",
       "molecularWeight": 5,
       "elements": { "He": 1, "H": 1 },
-      "category": "攻擊",
+      "category": "特殊",
       "description": "宇宙誕生後最早形成的分子。 【單人】Lv.1 獲得貫穿屬性，持續 3 秒。【多人】Lv.1 對對手造成 16.8% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
@@ -59,11 +58,11 @@
       "formula": "CH4(甲烷)",
       "molecularWeight": 16,
       "elements": { "C": 1, "H": 4 },
-      "category": "特殊",
-      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 擋板加寬 15%，持續 4 秒。【多人】Lv.1 釋放濃霧遮蔽對手，持續 2 秒。",
+      "category": "攻擊",
+      "description": "最簡單的有機化合物，天然氣的主要成分。 【單人】Lv.1 球速提升 14%，持續 4 秒。【多人】Lv.1 釋放濃霧遮蔽對手，持續 2 秒。",
       "effectSingle": {
-        "target": "self_paddle",
-        "action": "modify_width",
+        "target": "self_ball",
+        "action": "modify_speed",
         "params": {
           "power": 1.15,
           "durationSec": 4,
@@ -191,7 +190,7 @@
       "formula": "NaOH(氫氧化鈉)",
       "molecularWeight": 40,
       "elements": { "Na": 1, "O": 1, "H": 1 },
-      "category": "防禦",
+      "category": "輔助",
       "description": "強鹼性物質，能與酸劇烈中和。 【單人】Lv.1 瞬間消除底層 1 排磚塊。【多人】Lv.1 獲得 6.0% 護盾。",
       "effectSingle": {
         "target": "board_bricks",
@@ -253,7 +252,7 @@
       "formula": "CO2(二氧化碳)",
       "molecularWeight": 44,
       "elements": { "C": 1, "O": 2 },
-      "category": "控制",
+      "category": "防禦",
       "description": "燃燒與呼吸作用的產物，能產生溫室效應。 【單人】Lv.1 球速減緩 9%，持續 4 秒。【多人】Lv.1 對手擋板減速 5%，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -293,12 +292,16 @@
       "formula": "C2H6O(乙醇)",
       "molecularWeight": 46,
       "elements": { "C": 2, "H": 6, "O": 1 },
-      "category": "控制",
-      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 獲得 6.0% 護盾。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 5 秒。",
+      "category": "攻擊",
+      "description": "醇類的一種，可燃且具有微毒性。 【單人】Lv.1 球速提升 14%，持續 4 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 5 秒。",
       "effectSingle": {
-        "target": "self",
-        "action": "add_shield",
-        "params": { "powerPercent": 6.0 }
+        "target": "self_ball",
+        "action": "modify_speed",
+        "params": {
+          "power": 1.15,
+          "durationSec": 4,
+          "clearOnLevelComplete": true
+        }
       },
       "effectMulti": {
         "target": "opponent_ball",
@@ -312,10 +315,7 @@
         "elementRarity": "common",
         "upgradeCostBase": 46,
         "upgradeCostGrowth": 1.0,
-        "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
-        }
+        "scaling": { "type": "bounded_control", "minMultiplier": 0.4 }
       }
     },
     {
@@ -417,7 +417,7 @@
       "formula": "HArF(氟氫化氬)",
       "molecularWeight": 60,
       "elements": { "H": 1, "Ar": 1, "F": 1 },
-      "category": "控制",
+      "category": "特殊",
       "description": "極低溫下才能短暫存在的惰性氣體化合物。 【單人】Lv.1 獲得貫穿屬性，持續 5 秒。【多人】Lv.1 反轉對手操作方向，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -510,7 +510,7 @@
       "formula": "Li2CO3(碳酸鋰)",
       "molecularWeight": 74,
       "elements": { "Li": 2, "C": 1, "O": 3 },
-      "category": "控制",
+      "category": "輔助",
       "description": "常用於穩定神經與情緒的鋰鹽製劑。 【單人】Lv.1 自身擋板加寬 19%，持續 6 秒。【多人】Lv.1 對手擋板縮小 9%，持續 6 秒。",
       "effectSingle": {
         "target": "self_paddle",
@@ -672,7 +672,7 @@
       "formula": "MnO2(二氧化錳)",
       "molecularWeight": 87,
       "elements": { "Mn": 1, "O": 2 },
-      "category": "控制",
+      "category": "輔助",
       "description": "強效催化劑，能加速雙氧水分解。 【單人】Lv.1 積分獲取變為 3 倍，持續 6 秒。【多人】Lv.1 對手擋板減速 9%，持續 5 秒。",
       "effectSingle": {
         "target": "self",
@@ -864,7 +864,7 @@
       "formula": "GeO2(二氧化鍺)",
       "molecularWeight": 105,
       "elements": { "Ge": 1, "O": 2 },
-      "category": "控制",
+      "category": "輔助",
       "description": "具備高折射率，光纖通訊的核心材料。 【單人】Lv.1 自身擋板加寬 30%，持續 8 秒。【多人】Lv.1 對手擋板縮小 15%，持續 8 秒。",
       "effectSingle": {
         "target": "self_paddle",
@@ -902,7 +902,7 @@
       "formula": "PdH(氫化鈀)",
       "molecularWeight": 107,
       "elements": { "Pd": 1, "H": 1 },
-      "category": "輔助",
+      "category": "防禦",
       "description": "鈀金屬能像海綿般吸附大量氫氣。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 回復 11.2% HP。",
       "effectSingle": {
         "target": "self",
@@ -995,7 +995,7 @@
       "formula": "Ne·6H2O(氖籠形水合物)",
       "molecularWeight": 128,
       "elements": { "Ne": 1, "H": 12, "O": 6 },
-      "category": "控制",
+      "category": "特殊",
       "description": "惰性氣體被冰晶籠困住的特殊水合物。 【單人】Lv.1 獲得貫穿屬性，持續 7 秒。【多人】Lv.1 完全凍結對手擋板，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -1057,7 +1057,7 @@
       "formula": "RuO2(二氧化釕)",
       "molecularWeight": 133,
       "elements": { "Ru": 1, "O": 2 },
-      "category": "攻擊",
+      "category": "控制",
       "description": "導電性極佳的電極材料，能引發電流過載。 【單人】Lv.1 蓄能 4 秒後引發大範圍爆破 (威力 6)，持續 4 秒。【多人】Lv.1 完全凍結對手擋板，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -1088,7 +1088,7 @@
       "formula": "Sc2O3(氧化鈧)",
       "molecularWeight": 138,
       "elements": { "Sc": 2, "O": 3 },
-      "category": "控制",
+      "category": "防禦",
       "description": "提升合金強度的稀有航太材料。 【單人】Lv.1 獲得 13.4% 護盾。【多人】Lv.1 對手擋板縮小 15%，持續 8 秒。",
       "effectSingle": {
         "target": "self",
@@ -1156,7 +1156,7 @@
       "formula": "GaAs(砷化鎵)",
       "molecularWeight": 145,
       "elements": { "Ga": 1, "As": 1 },
-      "category": "特殊",
+      "category": "控制",
       "description": "應用於高速半導體與高亮度LED的光電材料。 【單人】Lv.1 獲得貫穿屬性，持續 7 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -1218,7 +1218,7 @@
       "formula": "NiSO4(硫酸鎳)",
       "molecularWeight": 155,
       "elements": { "Ni": 1, "S": 1, "O": 4 },
-      "category": "攻擊",
+      "category": "控制",
       "description": "電鍍工業常用的溶液，帶有獨特綠色。 【單人】Lv.1 散佈毒霧，全場方塊受到每秒 2 點腐蝕，持續 5 秒。【多人】Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -1280,7 +1280,7 @@
       "formula": "Fe2O3(氧化鐵)",
       "molecularWeight": 160,
       "elements": { "Fe": 2, "O": 3 },
-      "category": "控制",
+      "category": "防禦",
       "description": "常見的紅色鐵鏽，質地堅硬的氧化層。 【單人】Lv.1 自身擋板加寬 39%，持續 10 秒。【多人】Lv.1 對手擋板縮小 19%，持續 10 秒。",
       "effectSingle": {
         "target": "self_paddle",
@@ -1349,7 +1349,7 @@
       "formula": "MoS2(二硫化鉬)",
       "molecularWeight": 160,
       "elements": { "Mo": 1, "S": 2 },
-      "category": "控制",
+      "category": "輔助",
       "description": "極佳的固態潤滑劑，能大幅降低摩擦力。 【單人】Lv.1 獲得貫穿屬性，持續 9 秒。【多人】Lv.1 反轉對手操作方向，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -1380,7 +1380,7 @@
       "formula": "ZnSO4(硫酸鋅)",
       "molecularWeight": 161,
       "elements": { "Zn": 1, "S": 1, "O": 4 },
-      "category": "防禦",
+      "category": "輔助",
       "description": "具收斂與防腐作用的無機鹽類。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 獲得 12.0% 護盾。",
       "effectSingle": {
         "target": "self",
@@ -1445,7 +1445,7 @@
       "formula": "CsCl(氯化銫)",
       "molecularWeight": 168.5,
       "elements": { "Cs": 1, "Cl": 1 },
-      "category": "控制",
+      "category": "防禦",
       "description": "形成典型立方晶體結構的銫鹽。 【單人】Lv.1 球速減緩 40%，持續 7 秒。【多人】Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -1510,7 +1510,7 @@
       "formula": "CeO2(二氧化鈰)",
       "molecularWeight": 172,
       "elements": { "Ce": 1, "O": 2 },
-      "category": "攻擊",
+      "category": "特殊",
       "description": "優良的拋光與光學催化劑。 【單人】Lv.1 獲得貫穿屬性，持續 9 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
@@ -1541,7 +1541,7 @@
       "formula": "C6H12O6(葡萄糖)",
       "molecularWeight": 180,
       "elements": { "C": 6, "H": 12, "O": 6 },
-      "category": "輔助",
+      "category": "攻擊",
       "description": "生物體內最重要的能量來源。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 自身球速提升 50%，持續 6 秒。",
       "effectSingle": {
         "target": "self",
@@ -1576,7 +1576,7 @@
       "formula": "V2O5(五氧化二釩)",
       "molecularWeight": 182,
       "elements": { "V": 2, "O": 5 },
-      "category": "攻擊",
+      "category": "輔助",
       "description": "硫酸工業中不可或缺的接觸法催化劑。 【單人】Lv.1 化身重球，撞擊引發範圍爆破 (威力 3)，持續 7 秒。【多人】Lv.1 對對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
@@ -1607,7 +1607,7 @@
       "formula": "NaTcO4(高鎝酸鈉)",
       "molecularWeight": 185,
       "elements": { "Na": 1, "Tc": 1, "O": 4 },
-      "category": "控制",
+      "category": "特殊",
       "description": "醫學核子造影中最常用的放射性追蹤劑。 【單人】Lv.1 積分獲取變為 5 倍，持續 10 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 6 秒。",
       "effectSingle": {
         "target": "self",
@@ -1677,7 +1677,7 @@
       "formula": "CdSe(硒化鎘)",
       "molecularWeight": 191,
       "elements": { "Cd": 1, "Se": 1 },
-      "category": "控制",
+      "category": "特殊",
       "description": "應用於尖端顯示器技術的發光量子點。 【單人】Lv.1 積分獲取變為 5 倍，持續 10 秒。【多人】Lv.1 反轉對手操作方向，持續 6 秒。",
       "effectSingle": {
         "target": "self",
@@ -1805,7 +1805,7 @@
       "formula": "RhCl3(三氯化銠)",
       "molecularWeight": 209.5,
       "elements": { "Rh": 1, "Cl": 3 },
-      "category": "控制",
+      "category": "攻擊",
       "description": "貴金屬催化劑，能大幅加速化學反應。 【單人】Lv.1 球速提升 75%，持續 8 秒。【多人】Lv.1 對手擋板減速 25%，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -1843,7 +1843,7 @@
       "formula": "HfO2(二氧化鉿)",
       "molecularWeight": 210,
       "elements": { "Hf": 1, "O": 2 },
-      "category": "防禦",
+      "category": "特殊",
       "description": "半導體製程中關鍵的高介電絕緣材料。 【單人】Lv.1 獲得 20.2% 護盾。【多人】Lv.1 獲得 20.2% 護盾。",
       "effectSingle": {
         "target": "self",
@@ -1874,7 +1874,7 @@
       "formula": "Rb2CO3(碳酸銣)",
       "molecularWeight": 230,
       "elements": { "Rb": 2, "C": 1, "O": 3 },
-      "category": "防禦",
+      "category": "輔助",
       "description": "常見於特種玻璃與高能材料的銣鹽。 【單人】Lv.1 回復 18% HP。【多人】Lv.1 獲得 18.0% 護盾。",
       "effectSingle": {
         "target": "self",
@@ -2006,7 +2006,7 @@
       "formula": "AgI(碘化銀)",
       "molecularWeight": 235,
       "elements": { "Ag": 1, "I": 1 },
-      "category": "控制",
+      "category": "防禦",
       "description": "人工降雨時用作冰晶凝結核的核心試劑。 【單人】Lv.1 球速減緩 50%，持續 8 秒。【多人】Lv.1 對手擋板減速 25%，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2046,7 +2046,7 @@
       "formula": "CdTe(碲化鎘)",
       "molecularWeight": 240,
       "elements": { "Cd": 1, "Te": 1 },
-      "category": "防禦",
+      "category": "輔助",
       "description": "太陽能電池薄膜的高效光電材料。 【單人】Lv.1 獲得 20.2% 護盾。【多人】Lv.1 獲得 20.2% 護盾。",
       "effectSingle": {
         "target": "self",
@@ -2139,7 +2139,7 @@
       "formula": "FlH(氫化鈇)",
       "molecularWeight": 290,
       "elements": { "Fl": 1, "H": 1 },
-      "category": "輔助",
+      "category": "防禦",
       "description": "存在於理論預測中的超重元素氫化物。 【單人】Lv.1 回復 18.8% HP。【多人】Lv.1 回復 18.8% HP。",
       "effectSingle": {
         "target": "self",
@@ -2267,7 +2267,7 @@
       "formula": "RgF(氟化錀)",
       "molecularWeight": 301,
       "elements": { "Rg": 1, "F": 1 },
-      "category": "控制",
+      "category": "攻擊",
       "description": "理論上存在的第111號元素氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2329,7 +2329,7 @@
       "formula": "AuCl3(三氯化金)",
       "molecularWeight": 303.5,
       "elements": { "Au": 1, "Cl": 3 },
-      "category": "控制",
+      "category": "輔助",
       "description": "溶於水呈現黃色，為提煉純金的前驅物。 【單人】Lv.1 積分獲取變為 7 倍，持續 14 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self",
@@ -2364,7 +2364,7 @@
       "formula": "BkF3(氟化鉳)",
       "molecularWeight": 304,
       "elements": { "Bk": 1, "F": 3 },
-      "category": "控制",
+      "category": "攻擊",
       "description": "具強烈放射性的人造阿克系元素氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2395,7 +2395,7 @@
       "formula": "NhF(氟化鉨)",
       "molecularWeight": 305,
       "elements": { "Nh": 1, "F": 1 },
-      "category": "控制",
+      "category": "攻擊",
       "description": "極端條件下短暫生成的高能放射性物質。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2519,7 +2519,7 @@
       "formula": "SgO3(三氧化𨭎)",
       "molecularWeight": 314,
       "elements": { "Sg": 1, "O": 3 },
-      "category": "控制",
+      "category": "特殊",
       "description": "理論推測具備極高能量狀態的反常物質。 【單人】Lv.1 召喚 6 顆幽靈球在場上肆虐，持續 8 秒。【多人】Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2553,7 +2553,7 @@
       "formula": "MdF3(氟化鍆)",
       "molecularWeight": 315,
       "elements": { "Md": 1, "F": 3 },
-      "category": "控制",
+      "category": "攻擊",
       "description": "透過粒子加速器合成的極微量高能氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 反轉對手操作方向，持續 8 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2584,7 +2584,7 @@
       "formula": "DbF3(氟化𨧀)",
       "molecularWeight": 325,
       "elements": { "Db": 1, "F": 3 },
-      "category": "特殊",
+      "category": "攻擊",
       "description": "產生強烈電磁擾動的過渡金屬氟化物。 【單人】Lv.1 獲得貫穿屬性，持續 13 秒。【多人】Lv.1 遮蔽對手視線，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -2997,7 +2997,7 @@
       "formula": "Yb2O3(氧化鐿)",
       "molecularWeight": 394,
       "elements": { "Yb": 2, "O": 3 },
-      "category": "控制",
+      "category": "防禦",
       "description": "用於製造超高精度原子鐘的稀土材料。 【單人】Lv.1 球速減緩 60%，持續 9 秒。【多人】Lv.1 完全凍結對手擋板，持續 7 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3282,11 +3282,11 @@
       "formula": "YBa2Cu3O7(釔鋇銅氧化物)",
       "molecularWeight": 667,
       "elements": { "Y": 1, "Ba": 2, "Cu": 3, "O": 7 },
-      "category": "控制",
-      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。 【單人】Lv.1 改變球的反彈角度，更容易攻擊死角，持續 11 秒。【多人】Lv.1 完全凍結對手擋板，持續 9 秒。",
+      "category": "攻擊",
+      "description": "著名的釔鋇銅氧高溫超導體，電阻趨近於零。 【單人】Lv.1 球速提升 120%，持續 11 秒。【多人】Lv.1 完全凍結對手擋板，持續 9 秒。",
       "effectSingle": {
         "target": "self_ball",
-        "action": "trajectory_guide",
+        "action": "modify_speed",
         "params": {
           "power": 2.2,
           "durationSec": 11,
@@ -3384,7 +3384,7 @@
       "formula": "PrCl3(氯化鐠)",
       "molecularWeight": 247.4,
       "elements": { "Pr": 1, "Cl": 3 },
-      "category": "特殊",
+      "category": "攻擊",
       "description": "可用於特殊光學與材料研究。 【單人】Lv.1 擊中磚塊時產生震波 (威力 2)，持續 5 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -3481,7 +3481,7 @@
       "formula": "EuS(硫化銪)",
       "molecularWeight": 184.1,
       "elements": { "Eu": 1, "S": 1 },
-      "category": "特殊",
+      "category": "輔助",
       "description": "特殊磁性與光學性質，呈現明顯的光學反應。 【單人】Lv.1 標記高價值磚塊並提供導引，持續 8 秒。【多人】Lv.1 強烈閃瞎對手視線，持續 2 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3512,7 +3512,7 @@
       "formula": "GdN(氮化釓)",
       "molecularWeight": 171.3,
       "elements": { "Gd": 1, "N": 1 },
-      "category": "控制",
+      "category": "輔助",
       "description": "可用於研究磁性與電子性質。 【單人】Lv.1 magnetic_trajectory 1.5，持續 6 秒。【多人】Lv.1 使對手球軌跡嚴重混亂，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3582,7 +3582,7 @@
       "formula": "DyF3(氟化鏑)",
       "molecularWeight": 219.5,
       "elements": { "Dy": 1, "F": 3 },
-      "category": "控制",
+      "category": "輔助",
       "description": "含強磁性特徵的稀土元素鏑。 【單人】Lv.1 改變球的反彈角度，更容易攻擊死角，持續 6 秒。【多人】Lv.1 以強烈磁力牽引對手球軌跡，持續 4 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3613,7 +3613,7 @@
       "formula": "HoF3(氟化鈥)",
       "molecularWeight": 221.9,
       "elements": { "Ho": 1, "F": 3 },
-      "category": "特殊",
+      "category": "攻擊",
       "description": "鈥具有特殊的磁性與光譜特徵。 【單人】Lv.1 召喚 2 顆幽靈球在場上肆虐，持續 6 秒。【多人】Lv.1 製造假球幻影干擾對手判斷，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3644,20 +3644,20 @@
       "formula": "TmF3(氟化銩)",
       "molecularWeight": 225.9,
       "elements": { "Tm": 1, "F": 3 },
-      "category": "控制",
-      "description": "可用於特殊光學與材料研究。 【單人】Lv.1 球速減緩 40%，且更容易攻擊死角，持續 6 秒。【多人】Lv.1 對手球速強制提升 80%，持續 5 秒。",
+      "category": "攻擊",
+      "description": "可用於特殊光學與材料研究。 【單人】Lv.1 球速提升 60% 並增加反彈不可預測性，持續 6 秒。【多人】Lv.1 自身球速提升 80%，持續 5 秒。",
       "effectSingle": {
         "target": "self_ball",
-        "action": "modify_speed",
+        "action": "speed_and_randomize",
         "params": {
-          "power": 0.6,
+          "power": 1.6,
           "durationSec": 6,
           "clearOnLevelComplete": true
         }
       },
       "effectMulti": {
-        "target": "opponent_ball",
-        "action": "fast_ball_debuff",
+        "target": "self_ball",
+        "action": "speed_boost",
         "params": {
           "power": 1.8,
           "durationSec": 5,
@@ -3683,7 +3683,7 @@
       "formula": "LuCl3(氯化鑥)",
       "molecularWeight": 281.5,
       "elements": { "Lu": 1, "Cl": 3 },
-      "category": "輔助",
+      "category": "攻擊",
       "description": "鑥具有高密度與穩定的材料特性。 【單人】Lv.1 大幅提升球對磚塊的傷害 (威力 3)，持續 7 秒。【多人】Lv.1 獲得強力穿透與 120% 加速，持續 6 秒。",
       "effectSingle": {
         "target": "self_ball",
@@ -3814,7 +3814,7 @@
       "formula": "RnF2(二氟化氡)",
       "molecularWeight": 260,
       "elements": { "Rn": 1, "F": 2 },
-      "category": "特殊",
+      "category": "攻擊",
       "description": "屬於極罕見且具有高度不穩定性的氡化合物。 【單人】Lv.1 使特殊磚塊失去防護效果，持續 6 秒。【多人】Lv.1 釋放濃霧遮蔽對手，持續 5 秒。",
       "effectSingle": {
         "target": "board_environment",
@@ -4055,7 +4055,7 @@
       "formula": "NpO2(二氧化鎿)",
       "molecularWeight": 269,
       "elements": { "Np": 1, "O": 2 },
-      "category": "特殊",
+      "category": "輔助",
       "description": "人工放射性元素鎿的氧化物，神秘且不穩定。 【單人】Lv.1 使特殊磚塊短時間失效，持續 6 秒。【多人】Lv.1 嚴重扭曲對手畫面視線，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -4115,5 +4115,35 @@
         }
       }
     }
-  ]
+  ],
+  "systemRules": {
+    "version": "2.0",
+    "hp": { "startPercent": 100, "hasCap": false, "eliminationAtOrBelow": 0 },
+    "shield": {
+      "damagePriority": true,
+      "protects": ["skill_attack", "damage_hp", "global_poison_fog"],
+      "doesNotProtect": ["drop_ball"],
+      "carryOverCapPercent": 100,
+      "overflowToHpRatio": 2
+    },
+    "dropPenalty": {
+      "formula": "20 + level * 2",
+      "percent": true,
+      "shieldIgnored": true,
+      "examples": { "level1": 22, "level40": 100 }
+    },
+    "levelClear": { "baseHpRewardPercent": 15, "clearTimedBuffs": true },
+    "controlFloor": { "minMultiplier": 0.4 },
+    "levelCaps": {
+      "light": { "molecularWeight": "<50", "maxLevel": 15 },
+      "medium": { "molecularWeight": "50-150", "maxLevel": 10 },
+      "heavy": { "molecularWeight": ">150", "maxLevel": 5 }
+    },
+    "scaling": {
+      "damage": "diminishing_linear: basePower × (1 + factor × (level - 1)); light factor 0.18 (max Lv.15), medium factor 0.20 (max Lv.10, target max ≈98%), heavy factor 0.50 (max Lv.5, target max ≈150%)",
+      "shield": "step3: basePower × (1 + floor((level - 1) / 3))",
+      "control": "bounded; speed/width multipliers never below 0.4",
+      "heal": "diminishing_linear: basePower × (1 + factor × (level - 1)) specific for heals"
+    }
+  }
 }

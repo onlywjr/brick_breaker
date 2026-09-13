@@ -365,7 +365,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             // ★ 方案 B：Boss 改為扣除 20% 真實裝甲 (護盾可抵擋)
             applyLocalDebuff(pl, "damage_hp", 20, 0);
             floatTexts.push({
-              t: "BOSS 攻擊！-20% 裝甲",
+              t: "BOSS 攻擊！-20% HP",
               life: 1.5,
               x: pl.x + pl.w / 2,
               y: pl.y - 30,
@@ -701,7 +701,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
             triggerVFX(8, "255, 50, 50", 0.3);
             floatTexts.push({
-              t: "陷阱觸發！-15% 裝甲",
+              t: "陷阱觸發！-15% HP",
               life: 1.5,
               x: br.x,
               y: br.y,
@@ -785,7 +785,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
       if (pl.hp <= 0) {
         pl.hp = 0;
-        triggerGameEvent(`💀 生命值耗盡！`, true, pId);
+        triggerGameEvent(`💀 HP耗盡！`, true, pId);
         if (onlineMode) onlineFinishLocalElimination();
         else endGame();
         return;
@@ -1277,6 +1277,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "visual_distortion":
     case "fog_blind":
     case "flash_blind": // ★ 補齊：多人模式閃瞎技能分發
+    case "fast_ball_debuff":
       const attackerId = pl === p1 ? 0 : 1;
       if (onlineMode && socket && socket.connected) {
         socket.emit("attackPlayer", {
@@ -1402,6 +1403,29 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
     targetPl.reversedTimer = duration;
   } else if (type === "chaos_trajectory") {
     targetPl.chaosTimer = duration;
+  } else if (type === "fast_ball_debuff") {
+    // ★ 實裝：強制加快對手的球速
+    if (targetPl.ball) {
+      if (targetPl.timers.speed) clearTimeout(targetPl.timers.speed);
+      else targetPl.speedBuffRatio = 1;
+
+      // 先還原舊速度，再套用對手丟過來的加速詛咒
+      targetPl.ball.dx /= targetPl.speedBuffRatio;
+      targetPl.ball.dy /= targetPl.speedBuffRatio;
+
+      targetPl.speedBuffRatio = power;
+      targetPl.ball.dx *= targetPl.speedBuffRatio;
+      targetPl.ball.dy *= targetPl.speedBuffRatio;
+
+      targetPl.timers.speed = setTimeout(() => {
+        if (targetPl.ball) {
+          targetPl.ball.dx /= targetPl.speedBuffRatio;
+          targetPl.ball.dy /= targetPl.speedBuffRatio;
+        }
+        targetPl.speedBuffRatio = 1;
+        targetPl.timers.speed = null;
+      }, duration * 1000);
+    }
   } else if (type === "magnetic_pull") {
     targetPl.magneticDebuffTimer = duration;
   } else if (

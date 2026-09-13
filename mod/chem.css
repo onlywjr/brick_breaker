@@ -140,7 +140,7 @@
   grid-template-columns: repeat(5, 1fr); /* 電腦版固定一排 5 張 */
   grid-template-rows: repeat(2, 1fr);
   gap: 12px;
-  min-height: 232px;
+  min-height: 258px;
   align-content: start; /* 讓卡片靠上對齊，不要被拉扯 */
 }
 

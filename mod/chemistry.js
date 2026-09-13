@@ -1551,6 +1551,7 @@ function renderShopCards() {
             "berserk_boost",
             "energy_overcharge",
             "energy_boost",
+            "fast_ball_debuff", // ★ 新增：讓 UI 可以辨識並計算等級倍率
           ].includes(act)
         )
           act = "modify_speed";

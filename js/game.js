@@ -228,8 +228,8 @@ function makePlayer(color, lightColor) {
     reversed: false,
     reversedTimer: 0,
     invincibleTimer: 0,
-    hp: 100, // ★ V2.0：開局 100% 真實裝甲
-    shield: 0, // ★ V2.0：開局 0% 護盾
+    hp: 100, 
+    shield: 0,
     mathInventory: [],
   };
 }
@@ -975,7 +975,7 @@ export function endGame() {
     else
       msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   } else {
-    msg = `<div class="victory-screen"><div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div><div class="vs-score">剩餘生命: ${Math.max(0, p1.lives)}</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+    msg = `<div class="victory-screen"><div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div><div class="vs-score">剩餘HP: ${Math.max(0, Math.round(p1.hp))}%</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   }
   document.getElementById("title").innerHTML = msg;
   document.getElementById("menu-btns").style.display = "none";
@@ -1192,10 +1192,10 @@ function startMathQuiz(pl, onComplete) {
       if (isAnswered) return;
       if (opt === ans) {
         playSfx("music");
-        pl.lives++;
+        pl.hp += 25; // ★ 修正：改為回復 25% 真實裝甲
         pl.score += 500;
         burst(400, 300, "#FBBF24");
-        finishQuiz("答對了！ ❤️ +1", "#D96C8E"); // 答對傳遞粉色訊息
+        finishQuiz("答對了！ ❤️ +25%", "#D96C8E"); // ★ 修正文字
       } else {
         finishQuiz("答錯了！", "#8A7E9C"); // 答錯傳遞紫灰訊息
       }
