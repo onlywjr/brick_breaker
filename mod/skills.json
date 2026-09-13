@@ -1367,7 +1367,7 @@
       "categoryMulti": "攻擊",
       "description": "呈現深紫色的強效氧化劑與消毒劑。",
       "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 6 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 40% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
@@ -1376,7 +1376,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 40 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1442,7 +1442,7 @@
       "categoryMulti": "攻擊",
       "description": "呈現澄澈藍色的電解質溶液，具毒性。",
       "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 7 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 40% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
@@ -1451,7 +1451,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 40 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1618,7 +1618,7 @@
       "categoryMulti": "攻擊",
       "description": "俗稱硝酸銀，遇光易分解且具強烈腐蝕性。",
       "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 2)，持續 8 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 48% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
@@ -1627,7 +1627,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 48 }
       },
       "progression": {
         "initialLevel": 1,
@@ -1724,7 +1724,7 @@
       "categoryMulti": "攻擊",
       "description": "硫酸工業中不可或缺的接觸法催化劑。",
       "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 3)，持續 7 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 52% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
@@ -2652,7 +2652,7 @@
       "categoryMulti": "攻擊",
       "description": "壽命僅在毫秒之間的第115號元素氧化物。",
       "descriptionSingle": "Lv.1 引發毀滅級連環爆破 (威力 6)。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 70% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
@@ -2661,7 +2661,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 70 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2720,7 +2720,7 @@
       "categoryMulti": "攻擊",
       "description": "放射性極強，存在時間以微秒計的超重氧化物。",
       "descriptionSingle": "Lv.1 引發毀滅級連環爆破 (威力 7)。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 75% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "massive_explosion",
@@ -2729,7 +2729,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 75 }
       },
       "progression": {
         "initialLevel": 1,
@@ -2927,7 +2927,7 @@
       "categoryMulti": "攻擊",
       "description": "黑灰色的針狀晶體，早期煙火與火柴原料。",
       "descriptionSingle": "Lv.1 蓄能 3 秒後引發大範圍爆破 (威力 10)，持續 3 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 60% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "delayed_explosion",
@@ -2940,7 +2940,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 60 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3141,7 +3141,7 @@
       "categoryMulti": "攻擊",
       "description": "錒系元素最後一個成員的高能放射鹽。",
       "descriptionSingle": "Lv.1 撞擊引發範圍爆破 (威力 5)，持續 8 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 80% HP 傷害。",
       "effectSingle": {
         "target": "self_ball",
         "action": "heavy_ball",
@@ -3150,7 +3150,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 80 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3175,7 +3175,7 @@
       "categoryMulti": "攻擊",
       "description": "具強烈輻射，迅速衰變的超重金屬氯化物。",
       "descriptionSingle": "Lv.1 全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 85% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
@@ -3184,7 +3184,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 85 }
       },
       "progression": {
         "initialLevel": 1,
@@ -3309,7 +3309,7 @@
       "name": "隱形迴廊",
       "formula": "In2O3·SnO2(氧化銦錫)",
       "molecularWeight": 429,
-      "elements": { "In": 2, "Sn": 1, "O": 4 },
+      "elements": { "In": 2, "Sn": 1, "O": 5 },
       "categorySingle": "特殊",
       "categoryMulti": "特殊",
       "description": "觸控螢幕中不可或缺的透明導電薄膜。",
@@ -3419,7 +3419,7 @@
       "categoryMulti": "攻擊",
       "description": "無色無味，歷史上曾為滅鼠藥的劇毒物質。",
       "descriptionSingle": "Lv.1 全場方塊受到每秒 5 點腐蝕，持續 8 秒。",
-      "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
+      "descriptionMulti": "Lv.1 讓對手造成 65% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
         "action": "global_corrosion",
@@ -3428,7 +3428,7 @@
       "effectMulti": {
         "target": "opponent",
         "action": "damage_hp",
-        "params": { "powerPercent": 50 }
+        "params": { "powerPercent": 65 }
       },
       "progression": {
         "initialLevel": 1,
@@ -4452,6 +4452,74 @@
         "scaling": {
           "type": "linear_effect",
           "formula": "effect strength scales by level within action-specific caps"
+        }
+      }
+    },
+    {
+      "id": "phosphoric_acid",
+      "name": "骨血共鳴",
+      "formula": "H3PO4(磷酸)",
+      "molecularWeight": 98,
+      "elements": { "H": 3, "P": 1, "O": 4 },
+      "categorySingle": "輔助",
+      "categoryMulti": "防禦",
+      "description": "生物體內 DNA、骨骼與 ATP 能量的核心成分。",
+      "descriptionSingle": "Lv.1 回復 12% HP。",
+      "descriptionMulti": "Lv.1 獲得 12.0% 護盾。",
+      "effectSingle": {
+        "target": "self",
+        "action": "heal_hp",
+        "params": { "powerPercent": 12 }
+      },
+      "effectMulti": {
+        "target": "self",
+        "action": "add_shield",
+        "params": { "powerPercent": 12.0 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 10,
+        "molecularWeightTier": "medium",
+        "elementRarity": "common",
+        "upgradeCostBase": 98.0,
+        "upgradeCostGrowth": 1.0,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.20 × (level - 1))"
+        }
+      }
+    },
+    {
+      "id": "cisplatin",
+      "name": "鉑金毒牙",
+      "formula": "PtCl2H6N2(順鉑)",
+      "molecularWeight": 300,
+      "elements": { "Pt": 1, "Cl": 2, "H": 6, "N": 2 },
+      "categorySingle": "攻擊",
+      "categoryMulti": "攻擊",
+      "description": "廣泛使用的抗癌藥物，能干擾細胞分裂。",
+      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 6 秒。",
+      "descriptionMulti": "Lv.1 對對手造成 55% HP 傷害。",
+      "effectSingle": {
+        "target": "board_bricks",
+        "action": "global_corrosion",
+        "params": { "power": 4, "durationSec": 6, "clearOnLevelComplete": true }
+      },
+      "effectMulti": {
+        "target": "opponent",
+        "action": "damage_hp",
+        "params": { "powerPercent": 55 }
+      },
+      "progression": {
+        "initialLevel": 1,
+        "maxLevel": 5,
+        "molecularWeightTier": "heavy",
+        "elementRarity": "rare",
+        "upgradeCostBase": 510.0,
+        "upgradeCostGrowth": 1.08,
+        "scaling": {
+          "type": "diminishing_linear",
+          "formula": "basePowerPercent × (1 + 0.50 × (level - 1))"
         }
       }
     },

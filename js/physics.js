@@ -651,6 +651,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                     "increase_brick_damage",
                     "energy_overcharge",
                     "power_speed_boost",
+                    "charge_next_hit",
                   ].includes(buff.action)
                 )
                   hitDmg = buff.power;

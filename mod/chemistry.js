@@ -1687,7 +1687,11 @@ function renderShopCards() {
         );
       if (vals.oldP)
         modeDesc = modeDesc.replace(
-          new RegExp("\\b" + vals.oldP + "(?=\\s*[點顆層排倍%])"),
+          new RegExp(
+            "\\b"
+              + vals.oldP.toString().replace(".", "\\.")
+              + "(?=\\s*[點顆層排倍%)]|$)",
+          ),
           vals.newP,
         );
     }
