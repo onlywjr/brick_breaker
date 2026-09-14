@@ -795,7 +795,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           const targetPlayer = pl === p2 ? p2 : p1;
 
           // ★ 方案 B 陷阱機制：觸發 15% 傷害，並引發範圍爆破
-          if (br.symbol === "☠️") {
+          if (br.symbol === "💣️") {
             applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
             triggerVFX(10, "255, 50, 50", 0.4); // 加大玩家受傷特效
             floatTexts.push({
@@ -826,7 +826,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                     triggerVFX(3, "255, 100, 50", 0.2); // 方塊炸毀的小特效
 
                     // 如果炸毀的方塊也有符號，正常收集 (防止連環炸把元素炸不見)
-                    if (b.symbol && b.symbol !== "☠️") {
+                    if (b.symbol && b.symbol !== "💣️") {
                       if (chemDLCEnabled && typeof addAtom === "function") {
                         addAtom(b.symbol, 1, targetPlayer === p1 ? 0 : 1);
                       } else if (targetPlayer.mathInventory) {
@@ -847,7 +847,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             }
           }
 
-          if (!chemDLCEnabled && br.symbol !== "☠️") {
+          if (!chemDLCEnabled && br.symbol !== "💣️") {
             maybeDrop(br, null, drops); // 只有關閉 DLC 時才掉落一般膠囊
           }
           playSfx("brk");

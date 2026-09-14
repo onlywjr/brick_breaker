@@ -515,7 +515,7 @@ export function resetLevelStats() {
 }
 
 export function addAtom(element, amount = 1, pId = activePIdx) {
-  if (element === "☠️") return; // ★ 防止陷阱被當作元素加入背包
+  if (element === "💣️") return; // ★ 防止陷阱被當作元素加入背包
 
   const inv = chemStates[pId].inventory;
   if (!inv[element]) inv[element] = 0;

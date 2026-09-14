@@ -237,7 +237,7 @@ function makePlayer(color, lightColor) {
 function generateBrickSymbol(gameMode, currentLevel) {
   // ★ 方案 B：單人模式從第 5 關起，有 8% 機率生成高危險陷阱磚塊
   if (gameMode === 1 && currentLevel >= 5 && Math.random() < 0.08) {
-    return "☠️";
+    return "💣️";
   }
 
   // ★ 新增：未開啟化學 DLC 時，改為生成數學符號
