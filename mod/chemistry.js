@@ -3,6 +3,7 @@
 // ==========================================
 export let chemSkills = [];
 export let chemConstants = {};
+export let USAGE_WEIGHT_BONUS = {};
 
 // 原本的全域變數保留，但將作為「當前視角」的參照
 export let chemInventory = {};
@@ -388,6 +389,23 @@ export async function initChemistrySystem() {
 
     // ★ 啟動等比自適應縮放引擎
     initResponsiveScaler();
+
+    // ==========================================
+    // ★ 新增：動態計算轉換爐的元素需求權重
+    // ==========================================
+    const elementFreq = {};
+    chemSkills.forEach((skill) => {
+      Object.keys(skill.elements).forEach((sym) => {
+        elementFreq[sym] = (elementFreq[sym] || 0) + 1;
+      });
+    });
+
+    // 將週期表上所有元素賦予權重 (包含從未出現過的預設為 1.0)
+    Object.keys(ELEMENT_DATA).forEach((sym) => {
+      const freq = elementFreq[sym] || 0;
+      // 出場 1~2 次為 1.0 倍，其餘每多出場 1 次增加 0.08 倍權重
+      USAGE_WEIGHT_BONUS[sym] = 1.0 + Math.max(0, freq - 2) * 0.08;
+    });
 
     console.log("✅ 化學技能系統與 UI 載入完成", chemSkills);
   } catch (error) {
@@ -1980,11 +1998,10 @@ function runConversion(inputSymbol, inputQuantity) {
       output: {},
       reason: "instability",
       failProb: failProb,
-      inputWeight: totalInputWeight, // ★ 回傳投入總量，供 UI 判斷是否給安慰獎
+      inputWeight: totalInputWeight,
     };
   }
 
-  // (沒失敗才繼續執行原本的轉換邏輯)
   const validElements = new Set();
   chemSkills.forEach((skill) =>
     Object.keys(skill.elements).forEach((sym) => validElements.add(sym)),
@@ -1995,11 +2012,31 @@ function runConversion(inputSymbol, inputQuantity) {
   const baseline = totalInputWeight * CONVERSION_BASELINE_RATIO;
   let result = {};
 
-  function closenessWeights(pool, decayConstant) {
+  // ==========================================
+  // ★ 1. 替換 closenessWeights，加入保底開關與大獎判定
+  // ==========================================
+  function closenessWeights(
+    pool,
+    decayConstant,
+    applyFlatBonus = false,
+    isJackpot = false,
+  ) {
     let totalWeight = 0;
     const weights = pool.map((sym) => {
-      const diff = Math.abs(inputWeight - (ATOMIC_WEIGHT[sym] || 0));
-      const w = Math.exp(-decayConstant * diff);
+      const diff =
+        isJackpot ?
+          (ATOMIC_WEIGHT[sym] || 0) - baseline
+        : Math.abs(inputWeight - (ATOMIC_WEIGHT[sym] || 0));
+
+      let w = Math.exp(-decayConstant * diff);
+      const bonus = USAGE_WEIGHT_BONUS[sym] || 1.0;
+
+      if (applyFlatBonus) {
+        w = w * bonus + (bonus - 1) * 0.15; // 民生保障槽 (無視質量，強塞權重)
+      } else {
+        w = w * bonus; // 等價交換槽 (嚴格遵守質量衰減)
+      }
+
       totalWeight += w;
       return { sym, w };
     });
@@ -2025,14 +2062,13 @@ function runConversion(inputSymbol, inputQuantity) {
     if (jackpotCandidates.length === 0) {
       isJackpot = false;
     } else {
-      let totalWeight = 0;
-      const weights = jackpotCandidates.map((sym) => {
-        const w = Math.exp(
-          -JACKPOT_DECAY_CONSTANT * ((ATOMIC_WEIGHT[sym] || 0) - baseline),
-        );
-        totalWeight += w;
-        return { sym, w };
-      });
+      // ★ 2. 中大獎套用「等價交換槽」權重，不觸發強塞保底
+      const { weights, totalWeight } = closenessWeights(
+        jackpotCandidates,
+        JACKPOT_DECAY_CONSTANT,
+        false,
+        true,
+      );
       const picked = weightedPick(weights, totalWeight);
       result[picked] = 1;
     }
@@ -2065,33 +2101,158 @@ function runConversion(inputSymbol, inputQuantity) {
         + Math.floor(Math.random() * (dynamicMaxTypes - dynamicMinTypes + 1));
       let selectedTypes = [];
 
+      // ==========================================
+      // ★ 3. 槽位職責分離：扣除 2 個嚴格質量槽後，剩下的全為民生保障槽
+      // ==========================================
+      const basicSlotsCount = Math.max(1, k - 2);
+
       for (let i = 0; i < k; i++) {
         if (pool.length === 0) break;
+
+        // 判斷當前抽籤是否為保障名額
+        const isBasicSlot = i < basicSlotsCount;
         const { weights, totalWeight } = closenessWeights(
           pool,
           SAFE_DECAY_CONSTANT,
+          isBasicSlot,
+          false,
         );
+
         const picked = weightedPick(weights, totalWeight);
         selectedTypes.push(picked);
         pool.splice(pool.indexOf(picked), 1);
       }
 
       let remaining = baseline;
+
+      // ==========================================
+      // ★ 第一階段：確保被抽中的元素「至少有 1 個」保底
+      // ==========================================
+      let activeTypes = [];
       for (let i = 0; i < selectedTypes.length; i++) {
         const sym = selectedTypes[i];
         const symW = ATOMIC_WEIGHT[sym] || 0;
-        const typesLeft = selectedTypes.length - i;
-        const share = remaining / typesLeft;
-        if (symW === 0) continue;
 
-        const qty = Math.min(Math.floor(share / symW), MAX_QUANTITY_PER_TYPE);
-        const actualValue = qty * symW;
-
-        if (qty > 0) {
-          tempResult[sym] = qty;
-          currentFill += actualValue;
+        // 只要剩下的質量還夠買 1 個，就強制保底給 1 個
+        if (symW > 0 && remaining >= symW) {
+          tempResult[sym] = 1;
+          remaining -= symW;
+          currentFill += symW;
+          activeTypes.push(sym);
         }
-        remaining -= actualValue;
+      }
+
+      // ==========================================
+      // ★ 第二階段：將剩下的質量「隨機」分配給這些保底元素
+      // ==========================================
+      // 先打亂陣列，避免排在後面的元素總是拿最多
+      activeTypes.sort(() => Math.random() - 0.5);
+
+      for (let i = 0; i < activeTypes.length; i++) {
+        const sym = activeTypes[i];
+        const symW = ATOMIC_WEIGHT[sym];
+
+        // 前面的元素隨機分 30%~70% 的剩餘質量，最後一個元素全拿
+        const budgetRatio =
+          i === activeTypes.length - 1 ? 1.0 : 0.3 + Math.random() * 0.4;
+        const budget = remaining * budgetRatio;
+
+        const extraQty = Math.floor(budget / symW);
+        if (extraQty > 0) {
+          const maxLimit =
+            typeof MAX_QUANTITY_PER_TYPE !== "undefined" ?
+              MAX_QUANTITY_PER_TYPE
+            : 99;
+          const finalQty = Math.min(tempResult[sym] + extraQty, maxLimit);
+          const addedQty = finalQty - tempResult[sym];
+
+          tempResult[sym] = finalQty;
+          remaining -= addedQty * symW;
+          currentFill += addedQty * symW;
+        }
+      }
+
+      // ==========================================
+      // ★ 第三階段：極致榨乾！動態權重餘數找零機制
+      // ==========================================
+      // 1. 動態抓取全域權重最高的前 5 名元素作為「找零池」
+      const topChangeElements = Object.keys(USAGE_WEIGHT_BONUS)
+        .sort((a, b) => USAGE_WEIGHT_BONUS[b] - USAGE_WEIGHT_BONUS[a])
+        .slice(0, 5);
+
+      // 2. 只要剩下的質量還買得起找零池中最輕的元素，就繼續找零
+      let minChangeWeight = Math.min(
+        ...topChangeElements.map((sym) => ATOMIC_WEIGHT[sym] || Infinity),
+      );
+      let changeFailsafe = 1000; // 防止無窮迴圈的保險栓
+
+      while (remaining >= minChangeWeight && changeFailsafe-- > 0) {
+        // 篩選出「目前剩餘預算還買得起」的候選名單
+        const validCandidates = topChangeElements.filter(
+          (sym) => (ATOMIC_WEIGHT[sym] || 0) <= remaining,
+        );
+        if (validCandidates.length === 0) break;
+
+        // 依照 USAGE_WEIGHT_BONUS 動態計算機率輪盤
+        let totalW = 0;
+        const weights = validCandidates.map((sym) => {
+          const w = USAGE_WEIGHT_BONUS[sym];
+          totalW += w;
+          return { sym, w };
+        });
+
+        // 擲骰子決定這次找零給誰
+        let roll = Math.random() * totalW;
+        let current = 0;
+        let picked = validCandidates[validCandidates.length - 1].sym;
+        for (const item of weights) {
+          current += item.w;
+          if (roll <= current) {
+            picked = item.sym;
+            break;
+          }
+        }
+
+        const pickedW = ATOMIC_WEIGHT[picked] || 0;
+        const currentQty = tempResult[picked] || 0;
+        const currentTypesCount = Object.keys(tempResult).length;
+        const maxLimit =
+          typeof MAX_QUANTITY_PER_TYPE !== "undefined" ?
+            MAX_QUANTITY_PER_TYPE
+          : 99;
+
+        // ★ 核心防線：如果抽到的找零元素是新的，且槽位已經達到 6 個的上限，就拒絕加入！
+        if (currentQty === 0 && currentTypesCount >= 6) {
+          topChangeElements.splice(topChangeElements.indexOf(picked), 1);
+          minChangeWeight =
+            topChangeElements.length > 0 ?
+              Math.min(
+                ...topChangeElements.map(
+                  (sym) => ATOMIC_WEIGHT[sym] || Infinity,
+                ),
+              )
+            : Infinity;
+          continue;
+        }
+
+        // 如果這個元素已經達到數量上限，把它從找零池剔除，避免卡死
+        if (currentQty >= maxLimit) {
+          topChangeElements.splice(topChangeElements.indexOf(picked), 1);
+          minChangeWeight =
+            topChangeElements.length > 0 ?
+              Math.min(
+                ...topChangeElements.map(
+                  (sym) => ATOMIC_WEIGHT[sym] || Infinity,
+                ),
+              )
+            : Infinity;
+          continue;
+        }
+
+        // 成功找零 1 個！扣除預算，繼續下一輪迴圈
+        tempResult[picked] = currentQty + 1;
+        remaining -= pickedW;
+        currentFill += pickedW;
       }
 
       if (currentFill >= baseline * MIN_FILL_RATIO) {
@@ -2107,9 +2268,12 @@ function runConversion(inputSymbol, inputQuantity) {
           && (ATOMIC_WEIGHT[sym] || 0) <= baseline,
       );
       if (fallbackCandidates.length > 0) {
+        // ★ 4. 逼不得已的 Fallback 強制套用「民生保障槽」權重
         const { weights, totalWeight } = closenessWeights(
           fallbackCandidates,
           SAFE_DECAY_CONSTANT,
+          true,
+          false,
         );
         const fallbackElement = weightedPick(weights, totalWeight);
         const w = ATOMIC_WEIGHT[fallbackElement] || 1;
@@ -2124,7 +2288,7 @@ function runConversion(inputSymbol, inputQuantity) {
   return {
     success: hasOutput,
     output: result,
-    reason: hasOutput ? "success" : "too_small", // 區分因為量太小湊不出來的失敗
+    reason: hasOutput ? "success" : "too_small",
   };
 }
 
