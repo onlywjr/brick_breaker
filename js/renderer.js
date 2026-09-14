@@ -1600,21 +1600,109 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
             const color =
               categoryColors[skill.category] || categoryColors["實驗"];
 
-            // 計算 CD 比例 (0 到 1)
+            // ==========================================
+            // ★ 計算 CD 比例 (完美對齊 V3.2 引擎)
+            // ==========================================
             let cdRatio = 0;
-            if (skillCooldowns[sId]) {
-              const levelMult = chemStates[pId]?.levels?.[sId] || 1;
-              const effect =
-                mode === 2 || onlineMode ?
-                  skill.effectMulti
-                : skill.effectSingle;
-              const baseDuration = effect?.params?.durationSec || 0;
-              const actualDuration =
-                baseDuration > 0 ? baseDuration + (levelMult - 1) * 1 : 0;
-              const totalCdMs = Math.max(5000, (actualDuration + 2) * 1000);
+            const cdKey = `${pId}_${sId}`; // ★ 使用 1P/2P 複合 Key
 
-              const elapsed = now - skillCooldowns[sId];
-              if (elapsed < totalCdMs) cdRatio = 1 - elapsed / totalCdMs;
+            if (skillCooldowns[cdKey]) {
+              // 1. 重建 V3.2 動態查表與計算邏輯
+              // 由於 ELEMENT_TIER 在這份檔案中未匯入，我們用簡單的寫法重建判斷
+              const getElementGW = (sym) => {
+                const gwMap = {
+                  "O": 11.0,
+                  "C": 11.0,
+                  "N": 11.0,
+                  "H": 11.0,
+                  "Fe": 12.0,
+                  "Cu": 11.8,
+                  "Ti": 10.8,
+                  "Mn": 10.8,
+                  "Cr": 10.8,
+                  "Co": 10.7,
+                  "Ni": 10.7,
+                  "Si": 11.2,
+                  "S": 10.8,
+                  "P": 11.1,
+                  "Cl": 10.7,
+                  "F": 11.3,
+                  "Na": 10.0,
+                  "Mg": 9.7,
+                  "Ca": 10.0,
+                  "K": 9.9,
+                  "Al": 10.0,
+                  "Zn": 10.7,
+                  "Ag": 11.4,
+                  "Pt": 12.0,
+                  "Au": 12.4,
+                  "Th": 11.5,
+                  "U": 12.6,
+                  "Pu": 12.8,
+                };
+                if (gwMap[sym]) return gwMap[sym];
+
+                const atomicNum =
+                  window.ATOMIC_NUMBER ? window.ATOMIC_NUMBER[sym] : 0;
+                if (atomicNum >= 104) return 14.0; // superHeavy
+                if (atomicNum >= 89 && atomicNum <= 103) return 13.5; // superRare/radioactive
+                if (
+                  [
+                    "Rb",
+                    "Sr",
+                    "Y",
+                    "Zr",
+                    "Nb",
+                    "Mo",
+                    "Ru",
+                    "Rh",
+                    "Pd",
+                    "Cd",
+                    "In",
+                    "Sn",
+                    "Sb",
+                    "Te",
+                    "I",
+                    "Xe",
+                  ].includes(sym)
+                )
+                  return 12.0;
+                if (["Sc", "V", "Ga", "Ge"].includes(sym)) return 11.5;
+                return 10.0;
+              };
+
+              let maxElementGW = 0;
+              let totalAtoms = 0;
+              for (const [sym, count] of Object.entries(skill.elements || {})) {
+                const gw = getElementGW(sym);
+                if (gw > maxElementGW) maxElementGW = gw;
+                totalAtoms += count;
+              }
+
+              const baseSkillGW =
+                maxElementGW + Math.log2(Math.max(1, totalAtoms)) * 0.5;
+
+              let compoundValue = 1.0;
+              const tier = skill.progression?.molecularWeightTier || "medium";
+              if (tier === "heavy") compoundValue = 1.25;
+              else if (tier === "medium") compoundValue = 1.1;
+              else if (tier === "light") compoundValue = 0.9;
+
+              const rarityBonus = 1 + Math.max(0, (maxElementGW - 10.5) * 0.08);
+              const finalSkillValue = baseSkillGW * compoundValue * rarityBonus;
+
+              let calculatedCD = 38 - finalSkillValue * 1.2;
+              calculatedCD = Math.max(6, Math.min(25, calculatedCD));
+
+              const levelMult = chemStates[pId]?.levels?.[sId] || 1;
+              calculatedCD += (levelMult - 1) * 1.0;
+
+              const totalCdMs = calculatedCD * 1000;
+              const elapsed = now - skillCooldowns[cdKey];
+
+              if (elapsed < totalCdMs) {
+                cdRatio = 1 - elapsed / totalCdMs;
+              }
             }
 
             const isCoolingDown = cdRatio > 0;
