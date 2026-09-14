@@ -239,6 +239,50 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.restore();
   }
 
+  // ==========================================
+  // ★ 新增：全域毒霧背景 - 腐蝕毛毛細雨 (紫綠交錯)
+  // ==========================================
+  if (hasToxic) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter"; // 讓雨絲有微發光的螢光感
+
+    // 將雨滴數量稍微增加到 120 滴，但變得極細小，營造綿密的細雨感
+    for (let i = 0; i < 120; i++) {
+      const p1 = Math.abs(Math.sin(i * 12.9898));
+      const p2 = Math.abs(Math.sin(i * 78.233));
+      const p3 = Math.abs(Math.sin(i * 45.123));
+
+      const x = p1 * cv.width;
+
+      // 【調整】大幅降低墜落速度與雨絲長度
+      const speed = 0.2 + p2 * 0.3;
+      const length = 8 + p3 * 15; // 長度縮短至 8~23 像素
+
+      const y = ((now * speed + p3 * 3000) % (cv.height + length)) - length;
+
+      const colorRGB = i % 2 === 0 ? "168, 85, 247" : "134, 239, 172";
+
+      // 【調整】輕微的微風傾斜，細雨比較會隨風飄
+      const windOffset = 2 + p2 * 4;
+
+      // 【調整】降低透明度，最高只到 0.5，讓細雨看起來更柔和且半透明
+      const grad = ctx.createLinearGradient(x, y, x - windOffset, y + length);
+      grad.addColorStop(0, `rgba(${colorRGB}, 0)`);
+      grad.addColorStop(0.5, `rgba(${colorRGB}, 0.2)`);
+      grad.addColorStop(1, `rgba(${colorRGB}, 0.5)`);
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - windOffset, y + length);
+      ctx.strokeStyle = grad;
+      // 【調整】極細的線條寬度 (0.5 ~ 1.5 像素)
+      ctx.lineWidth = 0.5 + p2 * 1.0;
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   // 3. 瞬間大招視覺：巨型核爆震波
   if (
     vfx
@@ -1469,7 +1513,78 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   }
 
   for (const p of particles) {
-    ctx.globalAlpha = p.life;
+    // ==========================================
+    // ★ 新增：由上而下沖刷的強鹼海浪
+    // ==========================================
+    if (p.type === "alkali_wave") {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter"; // 海浪自帶高亮發光
+
+      const waveHeight = 180; // 海浪的厚度
+
+      // 漸層：上方透明，下方是實心的高亮浪頭
+      const grad = ctx.createLinearGradient(0, p.y, 0, p.y + waveHeight);
+      grad.addColorStop(0, `rgba(${p.color}, 0)`);
+      grad.addColorStop(0.6, `rgba(${p.color}, 0.5)`);
+      grad.addColorStop(1, `rgba(255, 255, 255, 0.8)`);
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, p.y, cv.width, waveHeight);
+
+      // 在浪頭繪製動態翻滾的泡沫
+      ctx.fillStyle = `rgba(255, 255, 255, 0.95)`;
+      const nowTime = performance.now();
+      for (let w = 0; w < cv.width; w += 25) {
+        // 利用三角函數製造波浪高低起伏
+        const waveOffset = Math.sin((w + nowTime * 0.8) * 0.02) * 15;
+        ctx.beginPath();
+        ctx.arc(
+          w + 12.5,
+          p.y + waveHeight + waveOffset,
+          6 + Math.random() * 10,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+
+      ctx.restore();
+      continue;
+    }
+    // ==========================================
+    // ★ 新增：強鹼高溫泡沫特效
+    // ==========================================
+    if (p.type === "foam") {
+      const progress = Math.max(0, p.life / p.maxLife);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      ctx.beginPath();
+      const stretchY = 1 + p.vy * 0.2;
+      const currentRadius = Math.max(0.1, p.radius * progress);
+      ctx.ellipse(
+        p.x,
+        p.y,
+        currentRadius,
+        currentRadius * stretchY,
+        0,
+        0,
+        Math.PI * 2,
+      );
+
+      ctx.fillStyle = `rgba(${p.color}, ${progress * 0.8})`;
+      ctx.fill();
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${progress})`;
+      ctx.stroke();
+
+      ctx.restore();
+      continue;
+    }
+
+    // 原本的普通粒子畫法
+    ctx.globalAlpha = Math.max(0, p.life);
     ctx.fillStyle = p.c;
     const sz = p.size || 3;
     ctx.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz);

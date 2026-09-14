@@ -1338,6 +1338,21 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
           );
         }
       });
+
+      // ==========================================
+      // ★ 新增：由上而下的強鹼海浪 (作為一個巨型粒子)
+      // ==========================================
+      gameState.particles.push({
+        x: 0,
+        y: -150, // 從畫面最上方外側開始
+        vx: 0,
+        vy: 22, // 浪潮下墜的速度 (極快)
+        life: 2.0, // 存活夠久以確保能刷過整個畫面
+        type: "alkali_wave",
+        color: "186, 230, 253",
+        c: "186, 230, 253",
+      });
+
       break;
 
     case "massive_explosion":
@@ -1364,8 +1379,44 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
         if (targetYs.includes(b.y) && b.hp > 0) {
           b.hp = 0;
           b.killedBySkill = true;
-          burst(b.x + b.w / 2, b.y + b.h / 2, "#F6A6C1");
+          // ==========================================
+          // ★ 修正：NaOH 強鹼高溫泡沫特效
+          // ==========================================
+          const foamCount = 15 + Math.floor(Math.random() * 5);
+          for (let j = 0; j < foamCount; j++) {
+            const rawColor =
+              Math.random() > 0.4 ? "186, 230, 253" : "255, 255, 255";
+            gameState.particles.push({
+              x: b.x + Math.random() * b.w,
+              y: b.y + Math.random() * b.h,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: 1.5 + Math.random() * 3.5,
+              radius: 4 + Math.random() * 6,
+              size: 5,
+              life: 1.0,
+              maxLife: 1.0 + Math.random() * 0.8,
+              type: "foam",
+              // ★ 必須提供系統預期的 rgba 字串，才能繞過舊引擎的防呆
+              c: `rgba(${rawColor}, 1)`,
+              color: rawColor, // 保留純數字供新 renderer 串接透明度
+            });
+          }
         }
+      });
+
+      // ==========================================
+      // ★ 修正：由上而下的強鹼海浪
+      // ==========================================
+
+      gameState.particles.push({
+        x: 0,
+        y: -150,
+        vx: 0,
+        vy: 7, // ★ 把 22 改成 7，讓它變成厚重緩慢沖刷的海浪
+        life: 3.0, // ★ 速度變慢了，稍微延長壽命確保它能完整刷到底部
+        type: "alkali_wave",
+        color: "186, 230, 253",
+        c: "rgba(186, 230, 253, 1)",
       });
       break;
 
