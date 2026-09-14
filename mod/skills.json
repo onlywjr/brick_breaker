@@ -100,7 +100,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "具有強烈刺鼻氣味的鹼性氣體。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 4 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 1 點腐蝕，持續 4 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 5%，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -524,7 +524,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "具強烈腐蝕性與氧化性的三大強酸之一。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 7 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 1 點腐蝕，持續 7 秒。",
       "descriptionMulti": "Lv.1 反轉對手操作方向，持續 4 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -806,7 +806,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "工業之母，具強烈脫水性與腐蝕性的強酸。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 1 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 1 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 9%，持續 6 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -1332,7 +1332,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "電鍍工業常用的溶液，帶有獨特綠色。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 5 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 2 點腐蝕，持續 5 秒。",
       "descriptionMulti": "Lv.1 完全凍結對手擋板，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -1366,7 +1366,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "呈現深紫色的強效氧化劑與消毒劑。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 2 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 40% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -1441,7 +1441,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "呈現澄澈藍色的電解質溶液，具毒性。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 7 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 2 點腐蝕，持續 7 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 40% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -2158,7 +2158,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "鮮紅色的劇毒礦物，俗稱辰砂。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 3 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -2269,7 +2269,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "揮發性極強且毒性猛烈的金屬氧化物。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 2 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 2 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 50% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -2964,7 +2964,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "呈現粉紅色的超鈾元素放射性鹽類。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 3 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 30%，持續 14 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -3174,7 +3174,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "具強烈輻射，迅速衰變的超重金屬氯化物。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 4 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 85% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -3381,7 +3381,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "控制",
       "description": "罕見的黃色揮發性氧化物，具強烈腐蝕性。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 4 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 4 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 對手擋板縮小 35%，持續 16 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -3418,7 +3418,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "無色無味，歷史上曾為滅鼠藥的劇毒物質。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 5 點腐蝕，持續 8 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 5 點腐蝕，持續 8 秒。",
       "descriptionMulti": "Lv.1 讓對手造成 65% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",
@@ -4100,7 +4100,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "含高度放射性的元素釙。",
-      "descriptionSingle": "Lv.1 全場方塊受到每秒 3 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 全部磚每秒 3 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 對手受到放射性干擾，持續扣除 2% HP，持續 5 秒。",
       "effectSingle": {
         "target": "board_bricks",
@@ -4498,7 +4498,7 @@
       "categorySingle": "攻擊",
       "categoryMulti": "攻擊",
       "description": "廣泛使用的抗癌藥物，能干擾細胞分裂。",
-      "descriptionSingle": "Lv.1 散佈毒霧，全場方塊受到每秒 4 點腐蝕，持續 6 秒。",
+      "descriptionSingle": "Lv.1 散佈毒霧，全部磚每秒 4 點腐蝕，持續 6 秒。",
       "descriptionMulti": "Lv.1 對對手造成 55% HP 傷害。",
       "effectSingle": {
         "target": "board_bricks",

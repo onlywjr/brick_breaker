@@ -813,16 +813,19 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             const explosionRadius = 90;
 
             bricks.forEach((b) => {
-              if (b.status === 1 && b !== br) {
+              // ★ 修正：改用 b.hp > 0 來判斷磚塊是否還活著
+              if (b.hp > 0 && b !== br) {
                 const bcx = b.x + b.w / 2;
                 const bcy = b.y + b.h / 2;
                 if (Math.hypot(bcx - trapCx, bcy - trapCy) < explosionRadius) {
                   b.hp -= 3; // 給予 3 點爆炸破壞力
+                  burst(bcx, bcy, "#E0576B"); // ★ 補上被波及磚塊的受擊小特效
 
                   // 若方塊被炸毀，一樣給予分數與判定
                   if (b.hp <= 0) {
-                    b.status = 0;
-                    targetPlayer.score += 10;
+                    b.killedBySkill = true; // ★ 改用這套系統的標準擊殺標記
+                    targetPlayer.score +=
+                      10 * (targetPlayer.scoreMultiplier || 1);
                     triggerVFX(3, "255, 100, 50", 0.2); // 方塊炸毀的小特效
 
                     // 如果炸毀的方塊也有符號，正常收集 (防止連環炸把元素炸不見)
