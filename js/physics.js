@@ -29,6 +29,103 @@ import {
 } from "./game.js";
 import { socket } from "./socket.js";
 
+// ==========================================
+// ★ 元素動態權重與分類表 (Game Weight)
+// GW = 遊戲中的「技能價值」與「發動成本」
+// 權重越高，冷卻越快 (代表收集不易或價值極高)
+// ==========================================
+export const ELEMENT_GW_MAP = {
+  // 核心與高化學價值
+  "O": 11.0,
+  "C": 11.0,
+  "N": 11.0,
+  "H": 11.0,
+  "Fe": 12.0,
+  "Cu": 11.8,
+  "Ti": 10.8,
+  "Mn": 10.8,
+  "Cr": 10.8,
+  "Co": 10.7,
+  "Ni": 10.7,
+  "Si": 11.2,
+  "S": 10.8,
+  "P": 11.1,
+  "Cl": 10.7,
+  "F": 11.3,
+  "Na": 10.0,
+  "Mg": 9.7,
+  "Ca": 10.0,
+  "K": 9.9,
+  "Al": 10.0,
+  "Zn": 10.7,
+  // 稀有但極具價值
+  "Ag": 11.4,
+  "Pt": 12.0,
+  "Au": 12.4,
+  "Th": 11.5,
+  "U": 12.6,
+  "Pu": 12.8,
+};
+
+// 元素群分類 (用於未在上方名單時的預設防呆分級)
+export const ELEMENT_TIER = {
+  core: ["H", "C", "N", "O"],
+  major: [
+    "F",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "K",
+    "Ca",
+    "Fe",
+    "Cu",
+    "Zn",
+  ],
+  transition: ["Sc", "Ti", "V", "Cr", "Mn", "Co", "Ni", "Ga", "Ge"],
+  rare: [
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+  ],
+  radioactive: ["Th", "U", "Pa", "Np", "Pu"],
+  superRare: ["Ac", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"],
+  superHeavy: [
+    "Rf",
+    "Db",
+    "Sg",
+    "Bh",
+    "Hs",
+    "Mt",
+    "Ds",
+    "Rg",
+    "Cn",
+    "Nh",
+    "Fl",
+    "Mc",
+    "Lv",
+    "Ts",
+    "Og",
+  ],
+};
+
 export function lightenColor(color, factor) {
   const num = parseInt(color.slice(1), 16);
   const r = (num >> 16) & 255;
@@ -973,11 +1070,52 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
     const isMulti = mode === 2 || onlineMode;
     const effect = isMulti ? skill.effectMulti : skill.effectSingle;
 
-    // ★ 修正：冷卻時間必須把「等級加成的延長秒數」一併算進去，避免覆蓋
-    const baseDuration = effect?.params?.durationSec || 0;
-    const actualDuration =
-      baseDuration > 0 ? baseDuration + (levelMult - 1) * 1 : 0;
-    const cdMs = Math.max(5000, (actualDuration + 2) * 1000);
+    // ==========================================
+    // ★ V3.2 動態權重冷卻引擎 (最高權重驅動 + 結構/稀有度補償)
+    // ==========================================
+    const getElementGW = (sym) => {
+      if (ELEMENT_GW_MAP[sym]) return ELEMENT_GW_MAP[sym];
+      if (ELEMENT_TIER.superHeavy.includes(sym)) return 14.0;
+      if (ELEMENT_TIER.superRare.includes(sym)) return 13.5;
+      if (ELEMENT_TIER.radioactive.includes(sym)) return 13.0;
+      if (ELEMENT_TIER.rare.includes(sym)) return 12.0;
+      if (ELEMENT_TIER.transition.includes(sym)) return 11.5;
+      if (ELEMENT_TIER.major.includes(sym)) return 10.5;
+      return 10.0;
+    };
+
+    let maxElementGW = 0;
+    let totalAtoms = 0;
+    for (const [sym, count] of Object.entries(skill.elements)) {
+      const gw = getElementGW(sym);
+      if (gw > maxElementGW) maxElementGW = gw;
+      totalAtoms += count;
+    }
+
+    // 1. 基礎權重：以配方中最稀有的元素為主體，輔以原子總數的對數微調
+    const baseSkillGW = maxElementGW + Math.log2(totalAtoms) * 0.5;
+
+    // 2. 結構價值：利用技能設定的分子量等級區分同元素異構物
+    let compoundValue = 1.0;
+    const tier = skill.progression?.molecularWeightTier || "medium";
+    if (tier === "heavy") compoundValue = 1.25;
+    else if (tier === "medium") compoundValue = 1.1;
+    else if (tier === "light") compoundValue = 0.9;
+
+    // 3. 稀有度紅利：配方中含有高階元素時，給予額外冷卻縮減乘數
+    const rarityBonus = 1 + Math.max(0, (maxElementGW - 10.5) * 0.08);
+
+    // 4. 最終價值結算
+    const finalSkillValue = baseSkillGW * compoundValue * rarityBonus;
+
+    // 5. 轉換為冷卻時間 (上限 25 秒，下限 6 秒)
+    let calculatedCD = 38 - finalSkillValue * 1.2;
+    calculatedCD = Math.max(6, Math.min(25, calculatedCD));
+
+    // 6. 等級懲罰：技能等級越高威力越強，CD 每級增加 1 秒
+    calculatedCD += (levelMult - 1) * 1.0;
+
+    const cdMs = calculatedCD * 1000;
 
     // ★ 修正 3：加入 pId 作為複合 Key，避免 1P/2P 技能互相干擾
     const cdKey = `${pId}_${skillId}`;

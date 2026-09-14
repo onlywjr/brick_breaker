@@ -1872,16 +1872,32 @@ function renderEquippedSlots() {
 
     slot.onclick = () => {
       if (slotId) {
+        // 點擊已有裝備的槽位：卸除技能
         unequipSkill(slotId);
         isEquippingMode = false;
         activeEquipSlotIndex = null;
       } else {
+        // 點擊空槽位
         if (isActiveSlot) {
+          // 再次點擊取消裝備模式
           isEquippingMode = false;
           activeEquipSlotIndex = null;
         } else {
+          // ★ 進入裝備模式，並自動切換到「已擁有」分頁
           isEquippingMode = true;
           activeEquipSlotIndex = i;
+
+          currentCategory = "owned";
+          currentShopPage = 0; // 確保從第一頁開始顯示
+
+          // ★ 同步更新畫面上方頁籤按鈕的視覺狀態 (反白狀態)
+          document.querySelectorAll(".chem-tab").forEach((t) => {
+            if (t.dataset.category === "owned") {
+              t.classList.add("active");
+            } else {
+              t.classList.remove("active");
+            }
+          });
         }
       }
       renderEquippedSlots();
