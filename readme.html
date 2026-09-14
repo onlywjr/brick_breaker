@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brick Rush 99 - 玩法說明</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Orbitron:wght@700;900&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --primary-pink: #d96c8e;
+        --primary-blue: #5fa8d3;
+        --bg-dark: #2a2631;
+        --text-main: #5d576b;
+        --text-light: #8a7e9c;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Noto Sans TC", sans-serif;
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        color: var(--text-main);
+        line-height: 1.6;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 850px;
+        margin: 40px 20px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(93, 87, 107, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          rgba(217, 108, 142, 0.1),
+          rgba(95, 168, 211, 0.1)
+        );
+        padding: 40px 30px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 3rem;
+        margin: 0;
+        background: -webkit-linear-gradient(
+          45deg,
+          var(--primary-pink),
+          var(--primary-blue)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 2px;
+      }
+
+      .header p {
+        font-weight: 700;
+        color: var(--text-light);
+        margin-top: 10px;
+        font-size: 1.1rem;
+      }
+
+      .content {
+        padding: 40px 50px;
+      }
+
+      .section {
+        margin-bottom: 50px;
+        animation: fadeIn 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .section:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .section:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .section:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .section:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 25px;
+        color: var(--bg-dark);
+        border-bottom: 2px dashed rgba(93, 87, 107, 0.2);
+        padding-bottom: 10px;
+      }
+
+      .number-badge {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        background: var(--bg-dark);
+        color: white;
+        border-radius: 50%;
+        font-size: 1.1rem;
+      }
+
+      .section:nth-child(1) .number-badge {
+        background: var(--text-main);
+      }
+      .section:nth-child(2) .number-badge {
+        background: #e67e22;
+      }
+      .section:nth-child(3) .number-badge {
+        background: var(--primary-pink);
+      }
+      .section:nth-child(4) .number-badge {
+        background: var(--primary-blue);
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(93, 87, 107, 0.1);
+      }
+
+      .card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--text-light);
+        font-size: 0.95rem;
+      }
+
+      .card ul {
+        margin: 10px 0 0 0;
+        padding-left: 20px;
+        color: var(--text-light);
+        font-size: 0.95rem;
+      }
+
+      .card li {
+        margin-bottom: 5px;
+      }
+
+      .tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+      }
+
+      .tag {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #f0f0f0;
+        color: var(--text-main);
+      }
+
+      .tag.pink {
+        background: rgba(217, 108, 142, 0.15);
+        color: var(--primary-pink);
+      }
+      .tag.blue {
+        background: rgba(95, 168, 211, 0.15);
+        color: var(--primary-blue);
+      }
+      .tag.dark {
+        background: rgba(93, 87, 107, 0.15);
+        color: var(--bg-dark);
+      }
+
+      .btn-return {
+        display: block;
+        width: 200px;
+        margin: 50px auto 0;
+        padding: 14px 24px;
+        text-align: center;
+        background: var(--bg-dark);
+        color: white;
+        text-decoration: none;
+        font-weight: 900;
+        border-radius: 30px;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        font-size: 1.1rem;
+      }
+
+      .btn-return:hover {
+        background: var(--text-main);
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 600px) {
+        .content {
+          padding: 30px 20px;
+        }
+        .header h1 {
+          font-size: 2.2rem;
+        }
+        .card-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>BRICK RUSH 99</h1>
+        <p>完整遊戲指南與系統解析</p>
+      </div>
+
+      <div class="content">
+        <!-- 1. 基本操作說明 -->
+        <div class="section">
+          <div class="section-title">
+            <span class="number-badge">1</span> 基本操作與連線對戰
+          </div>
+          <div class="card-grid">
+            <div class="card">
+              <h3>🕹️ 鍵盤與觸控操作</h3>
+              <ul>
+                <li>
+                  <b>單人模式：</b>使用 <code>←</code>
+                  <code>→</code> 方向鍵移動擋板。
+                </li>
+                <li>
+                  <b>單機雙人：</b>1P 使用 <code>A</code> <code>D</code> 鍵；2P
+                  使用 <code>←</code> <code>→</code> 方向鍵。
+                </li>
+                <li><b>觸控設備：</b>畫面左右兩側會自動顯示虛擬按鈕。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>🌐 線上連線建房</h3>
+              <p>點擊主畫面的「連線對戰」，你可以：</p>
+              <ul>
+                <li>
+                  <b>建立房間：</b>輸入自訂名稱後點擊建立，系統會產生一組專屬的
+                  <b>6 碼房間代碼</b>。
+                </li>
+                <li><b>加入房間：</b>朋友輸入該代碼後即可加入你的大廳。</li>
+                <li><b>連線機制：</b>支援最多 99 人同時遊玩的大亂鬥淘汰賽！</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 基本模式的數學加分 -->
+        <div class="section">
+          <div class="section-title">
+            <span class="number-badge">2</span> 基本模式
+          </div>
+          <div class="card">
+            <h3>每關結束後會有 10 秒極限搶答，每 10 關會出現Boss。</h3>
+            <p>
+              在遊戲進行中，擊破帶有符號的磚塊可收集數字 (0-9) 與運算符號
+              (+-×÷)。
+            </p>
+            <ul style="margin-top: 10px">
+              <li>
+                <b>單人結算：</b
+                >關卡結束時，系統會利用你收集到的符號生成一道數學題，你有 10
+                秒鐘可以作答。答對將獲得 <b>+25% HP 回復</b>與
+                <b>+500 積分</b>！
+              </li>
+              <li>
+                <b>雙人搶答：</b
+                >在單機雙人模式中，若倒數時間結束，將觸發雙方搶答環節。<b
+                  >1P 使用 1-4 鍵，2P 使用 7-0 鍵</b
+                >，率先答對者可獲得巨額獎勵。
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3. 化學 DLC 介紹 -->
+        <div class="section">
+          <div class="section-title">
+            <span class="number-badge">3</span> 化學 DLC 模式
+          </div>
+          <p style="color: var(--text-light); margin-bottom: 20px">
+            開啟此模式後，磚塊將化為週期表上的化學元素。
+          </p>
+          <div class="card-grid">
+            <div class="card">
+              <h3>🧪 元素收集與稀有度</h3>
+              <p>擊破帶有英文字母的方塊即可將化學元素收入背包。</p>
+              <ul>
+                <li>四大基礎元素 (H, C, N, O) 掉落率最高。</li>
+                <li>
+                  重金屬與放射性元素需存活到<b>高層數關卡</b>才會逐漸解禁。
+                </li>
+                <li>
+                  在商店中將心儀技能加入<b>願望清單 (★)</b
+                  >，可強制提高特定稀有元素的掉落機率。
+                </li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>⚔️ 技能定位</h3>
+              <p>超過 100 種真實存在的化學分子，將賦予你強大的能力：</p>
+              <div class="tag-container">
+                <span class="tag blue">防禦 (H2O)：回復HP與護盾</span>
+                <span class="tag pink">攻擊 (NH3)：全場毒霧腐蝕</span>
+                <span class="tag dark">控制 (CO2)：敵方擋板減速</span>
+              </div>
+              <p style="margin-top: 10px">
+                高等級的放射性分子 (如 PuO2) 甚至能引發毀滅性的全場核爆。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 商店說明 -->
+        <div class="section">
+          <div class="section-title">
+            <span class="number-badge">4</span> 商店與裝備系統
+          </div>
+          <div class="card-grid">
+            <div class="card">
+              <h3>🎒 技能解鎖與裝備</h3>
+              <ul>
+                <li>
+                  <b>解鎖：</b
+                  >點擊未解鎖的卡片，消耗對應的元素或點數來獲取該技能。
+                </li>
+                <li>
+                  <b>升級：</b
+                  >對已解鎖的技能再次點擊，可消耗加倍的資源提升等級，大幅增強威力並延長持續時間。
+                </li>
+                <li>
+                  <b>裝備：</b>點擊畫面上方的
+                  <code>+</code>
+                  號空槽位，接著點選已解鎖的技能即可裝備。(單人支援 5 槽，多人為
+                  3 槽)
+                </li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>♻️ 單人：轉換爐機制</h3>
+              <p>在單人模式中，元素是唯一的貨幣。</p>
+              <ul>
+                <li>
+                  如果你急需某種稀有元素，可以在左側的「轉換爐」投入多餘的元素。
+                </li>
+                <li>
+                  系統會依據投入的<b>總原子量</b>，隨機等價轉換出其他元素。
+                </li>
+                <li>注意：質量過低可能會導致轉換失敗，材料直接蒸發！</li>
+                <li>關卡之間的配方商店是提升戰力的唯一途徑</li>
+              </ul>
+            </div>
+            <div class="card" style="grid-column: 1 / -1">
+              <h3>💰 多人連線：點數經濟</h3>
+              <p>
+                為了確保競技的公平性與流暢度，多人連線模式<b>關閉了複雜的轉換爐</b>，改採「競技點數
+                (PT)」制。
+              </p>
+              <ul>
+                <li>你在對戰中打碎方塊獲得的分數，將等比轉換為商店點數。</li>
+                <li>你可以使用點數直接<b>購買缺失的元素</b>。</li>
+                <li>
+                  也可以將背包中用不到的元素<b>出售變現</b>，換取點數來解鎖更強大的殺傷技能。
+                </li>
+                <li>雙人/多人只有在開局前能進商店購買技能。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

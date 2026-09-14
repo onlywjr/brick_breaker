@@ -34,14 +34,14 @@
       style="
         display: none; /* 預設隱藏，進遊戲才顯示 */
         position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 8px 18px;
+        top: 10px;
+        right: 10px;
+        padding: 8px 9px;
         background: rgba(255, 255, 255, 0.9);
         border: 2px solid #e79aaa;
-        border-radius: 20px;
+        border-radius: 50%;
         font-family: &quot;Noto Sans TC&quot;, sans-serif;
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 900;
         color: #d96c8e;
         cursor: pointer;
@@ -59,7 +59,7 @@
         this.style.color = '#d96c8e';
         this.style.transform = 'scale(1)';
       ">
-      離開
+      ❌️
     </button>
     <!-- ▲▲▲ 新增結束 ▲▲▲ -->
 
@@ -365,10 +365,30 @@
 
         <div id="bottom-status-bar">
           <div id="cheat-info">
-            操作 | 單人: 左右鍵 · 雙人 1P: A/D · 2P: 左右鍵
+            操作：【單人】左右鍵 |【雙人】1P-A、D · 2P-左右鍵
           </div>
-          <div id="status-right-group">
+          <div
+            id="status-right-group"
+            style="display: flex; align-items: center; gap: 15px">
             <div id="room-status"></div>
+            <!-- ★ 新增：說明文件按鈕 -->
+            <button
+              onclick="window.openReadme()"
+              style="
+                background: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                border-radius: 15px;
+                padding: 4px 10px;
+                color: #5fa8d3;
+                font-weight: 900;
+                font-family: &quot;Noto Sans TC&quot;;
+                cursor: pointer;
+                transition: all 0.2s;
+              "
+              onmouseover="this.style.background = 'rgba(255,255,255,0.8)'"
+              onmouseout="this.style.background = 'none'">
+              📖 完整說明
+            </button>
             <div id="lobby-countdown">10s...</div>
           </div>
         </div>
@@ -615,6 +635,93 @@
       </div>
       <div id="online-attack-status"></div>
     </div>
+
+    <!-- ★ 新增：完整說明自訂彈窗 -->
+    <div
+      id="readme-overlay"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 9999999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        opacity: 0;
+        transition: opacity 0.3s;
+      ">
+      <div
+        style="
+          background: transparent;
+          width: 90%;
+          max-width: 900px;
+          height: 85%;
+          position: relative;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+          transform: translateY(20px);
+          transition: transform 0.3s;
+        ">
+        <!-- 關閉按鈕 -->
+        <button
+          onclick="window.closeReadme()"
+          style="
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            color: #d96c8e;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+          "
+          onmouseover="this.style.transform = 'scale(1.1)'"
+          onmouseout="this.style.transform = 'scale(1)'">
+          ✖
+        </button>
+        <!-- 嵌入的說明頁面 -->
+        <iframe
+          src="Readme.html"
+          style="
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+          "></iframe>
+      </div>
+    </div>
+
+    <script>
+      // ★ 說明彈窗控制腳本
+      window.openReadme = function () {
+        const overlay = document.getElementById("readme-overlay");
+        overlay.style.display = "flex";
+        // 觸發重繪以播放 CSS 動畫
+        requestAnimationFrame(() => {
+          overlay.style.opacity = "1";
+          overlay.children[0].style.transform = "translateY(0)";
+        });
+      };
+
+      window.closeReadme = function () {
+        const overlay = document.getElementById("readme-overlay");
+        overlay.style.opacity = "0";
+        overlay.children[0].style.transform = "translateY(20px)";
+        // 等待動畫結束後隱藏
+        setTimeout(() => {
+          overlay.style.display = "none";
+        }, 300);
+      };
+    </script>
 
     <!-- 引入模組化主程式 -->
     <script type="module">
