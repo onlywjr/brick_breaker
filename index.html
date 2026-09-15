@@ -72,7 +72,7 @@
           letter-spacing: 2px;
           animation: pulseText 1s infinite alternate;
         ">
-        🚀 載入中... 
+        🚀 載入中...
       </div>
     </div>
     <!-- ▼▼▼ 新增：全域離開按鈕 (放在 body 第一層，絕對不會被困住) ▼▼▼ -->
@@ -509,11 +509,6 @@
         <div id="bottom-status-bar">
           <div id="cheat-info">
             操作：【單人】左右鍵 |【雙人】1P-A、D · 2P-左右鍵
-          </div>
-          <div
-            id="status-right-group"
-            style="display: flex; align-items: center; gap: 15px">
-            <div id="room-status"></div>
             <!-- ★ 新增：說明文件按鈕 -->
             <button
               onclick="window.openReadme()"
@@ -532,6 +527,12 @@
               onmouseout="this.style.background = 'none'">
               📖 完整說明
             </button>
+          </div>
+
+          <div
+            id="status-right-group"
+            style="display: flex; align-items: center; gap: 15px">
+            <div id="room-status"></div>
             <div id="lobby-countdown">10s...</div>
           </div>
         </div>
