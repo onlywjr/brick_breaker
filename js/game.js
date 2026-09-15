@@ -12,6 +12,8 @@ let lastP2W = -1;
 let lastP1Energy = -1;
 let lastP2Energy = -1;
 
+import { uploadScore, getTopScores } from "./firebase.js";
+
 import { loadAudio, loadedAudio, playSfx } from "./audio.js";
 
 import { onlineRenderPlayers } from "./lobby.js";
@@ -975,7 +977,27 @@ export function endGame() {
     else
       msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   } else {
-    msg = `<div class="victory-screen"><div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div><div class="vs-score" style="margin-bottom: 8px;">你的等級: Level ${level}</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+    // 單人模式 (包含線上單機) 的結算介面，加入排行榜元素
+    msg = `
+      <div class="victory-screen">
+        <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
+        <div class="vs-score" style="margin-bottom: 8px;">你的等級: Level ${level}</div>
+        
+        <!-- 上傳分數區塊 -->
+        <div style="margin-top: 15px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+          <input type="text" id="player-name" placeholder="輸入你的大名" maxlength="12" style="padding:8px 12px; border-radius:8px; border:2px solid #C9B1E8; outline:none; text-align:center; font-weight:900; color:#5D576B; font-size:14px; width:200px; box-sizing:border-box;">
+          
+          <div style="display:flex; gap:10px;">
+            <button id="submit-score-btn" class="menu-item-macaron macaron-yellow" onclick="window.submitScore()" style="font-size:14px; padding:8px 16px;">上傳分數</button>
+            <button class="menu-item-macaron macaron-blue" onclick="window.showLeaderboard()" style="font-size:14px; padding:8px 16px;">查看排行榜</button>
+          </div>
+        </div>
+        
+        <!-- 排行榜顯示區 -->
+        <div id="leaderboard-container" style="width:100%; max-width:280px; margin:0 auto;"></div>
+        
+        <button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button>
+      </div>`;
   }
   document.getElementById("title").innerHTML = msg;
   document.getElementById("menu-btns").style.display = "none";
@@ -2038,3 +2060,71 @@ if (socket) {
     return originalEmit.apply(this, [eventName, ...args]);
   };
 }
+
+// ==========================================
+// ★ 新增：排行榜系統 (上傳與讀取)
+// ==========================================
+window.submitScore = async () => {
+  const nameInput = document.getElementById("player-name");
+  // 如果沒輸入名字，預設叫 神秘玩家
+  const name =
+    nameInput && nameInput.value.trim() !== "" ?
+      nameInput.value.trim()
+    : "神秘玩家";
+  const btn = document.getElementById("submit-score-btn");
+
+  if (btn) {
+    btn.innerText = "上傳中...";
+    btn.disabled = true; // 防止玩家狂點連發
+  }
+
+  // 呼叫 firebase.js 的功能，並傳入當前 p1 分數與關卡
+  const success = await uploadScore(name, p1.score, level);
+
+  if (success) {
+    if (btn) btn.innerText = "上傳成功！";
+    window.showLeaderboard(); // 上傳成功後，自動顯示最新排行榜
+  } else {
+    if (btn) {
+      btn.innerText = "上傳失敗，請重試";
+      btn.disabled = false;
+    }
+  }
+};
+
+window.showLeaderboard = async () => {
+  const container = document.getElementById("leaderboard-container");
+  if (!container) return;
+
+  container.innerHTML =
+    "<div style='color:#DDA15E; font-size:14px; margin-top:10px;'>正在讀取最新數據...</div>";
+
+  const scores = await getTopScores(); // 去資料庫抓前10名
+
+  if (scores.length === 0) {
+    container.innerHTML =
+      "<div style='color:#8A7E9C; font-size:14px; margin-top:10px;'>目前還沒有排名，搶下第一吧！</div>";
+    return;
+  }
+
+  // 組裝排行榜 UI
+  let html =
+    "<div style='background:rgba(255,255,255,0.85); border:2px solid rgba(217, 108, 142, 0.4); padding:10px 15px; border-radius:12px; margin-top:15px; max-height:220px; overflow-y:auto; box-shadow:0 4px 6px rgba(0,0,0,0.05); text-align:left;'>";
+  html +=
+    "<h3 style='color:#DDA15E; margin:0 0 10px 0; text-align:center; font-size:16px; font-weight:900;'>🏆 殿堂排行榜 🏆</h3>";
+
+  scores.forEach((s, index) => {
+    const medal =
+      index === 0 ? "🥇"
+      : index === 1 ? "🥈"
+      : index === 2 ? "🥉"
+      : `<span style="display:inline-block; width:20px; text-align:center;">${index + 1}</span>`;
+    html += `<div style="display:flex; justify-content:space-between; color:#5D576B; margin-bottom:6px; font-size:14px; font-weight:900; border-bottom:1px dashed #ccc; padding-bottom:4px;">
+               <span>${medal} ${s.playerName} <span style="font-size:12px; opacity:0.7;">(Lv.${s.level})</span></span>
+               <span style="color:#D96C8E;">${s.score} PT</span>
+             </div>`;
+  });
+  html += "</div>";
+
+  container.innerHTML = html;
+};

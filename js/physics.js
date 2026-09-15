@@ -1316,6 +1316,28 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "heal_hp":
       pl.hp += power;
       triggerGameEvent(`❤️ +${Math.round(power)}%`, false, pl === p1 ? 0 : 1);
+
+      // ==========================================
+      // ★ 修改：從畫面最底部刷一整排的愛心往上
+      // ==========================================
+      // 根據畫面寬度來決定愛心數量，確保不管螢幕多寬都能塞滿一整排
+      const heartCount = Math.floor(cv.width / 25);
+      for (let j = 0; j < heartCount; j++) {
+        gameState.particles.push({
+          // X軸：均勻分佈在整個畫面寬度，並加上一點點隨機偏移避免太死板
+          x: (cv.width / heartCount) * j + (Math.random() - 0.5) * 15,
+          // Y軸：從畫面最底部（甚至超出版面一點點）開始往上衝
+          y: cv.height + 20 + Math.random() * 60,
+          vx: (Math.random() - 0.5) * 1.0,
+          // 給予極快的負Y軸速度，營造「刷上去」的海浪感
+          vy: -3 - Math.random(),
+          size: 20 + Math.random() * 30, // 愛心稍微放大 (20px ~ 50px)
+          life: 2.5 + Math.random() * 0.5, // 延長存活時間，確保能飛過整個畫面
+          maxLife: 3,
+          type: "heal_heart",
+          c: "rgba(255, 105, 180, 1)",
+        });
+      }
       break;
 
     case "add_shield":
@@ -1423,6 +1445,37 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "multiply_score":
       if (pl.timers.score) clearTimeout(pl.timers.score);
       pl.scoreMultiplier = power;
+
+      // ==========================================
+      // ★ 新增：發動時天降金幣與鈔票 (精準掉向擋板)
+      // ==========================================
+      const moneyCount = 20 + Math.floor(Math.random() * 15);
+      for (let j = 0; j < moneyCount; j++) {
+        const startX = Math.random() * cv.width; // 隨機出現在畫面頂端各處
+        const startY = -30 - Math.random() * 150;
+
+        // 隨機瞄準擋板的某個 X 座標位置
+        const targetX = pl.x + Math.random() * pl.w;
+
+        // 計算到達擋板所需的大致幀數 (讓它們掉落速度不一，有快有慢)
+        const travelFrames = 40 + Math.random() * 40;
+
+        gameState.particles.push({
+          x: startX,
+          y: startY,
+          // 設定向量：確保它不管從哪邊生出來，都會往擋板飛去
+          vx: (targetX - startX) / travelFrames,
+          vy: (pl.y - startY) / travelFrames,
+          size: 20 + Math.random() * 15, // 大小不一
+          life: travelFrames * 0.03 + 0.5, // 確保壽命剛好能碰到擋板並穿透一點點
+          maxLife: 3,
+          type: "money",
+          emoji: Math.random() > 0.4 ? "💵" : "🪙", // 60% 機率是鈔票，40% 是金幣
+          rot: Math.random() * Math.PI * 2, // 初始旋轉角度
+          rotSpeed: (Math.random() - 0.5) * 0.2, // 旋轉速度
+          c: "rgba(255, 215, 0, 1)",
+        });
+      }
 
       pl.timers.score = setTimeout(() => {
         pl.scoreMultiplier = 1;

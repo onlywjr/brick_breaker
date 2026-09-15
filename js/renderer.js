@@ -1514,6 +1514,61 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
   for (const p of particles) {
     // ==========================================
+    // ★ 新增：金錢掉落特效 (帶旋轉物理)
+    // ==========================================
+    if (p.type === "money") {
+      ctx.save();
+      // 接近壽命終點時漸漸變透明
+      const progress = Math.max(0, p.life);
+      ctx.globalAlpha = Math.min(1, progress * 2);
+
+      // 更新旋轉角度 (雖然 renderer 不該改物理，但單純的視覺旋轉放這裡效能最好)
+      p.rot = (p.rot || 0) + (p.rotSpeed || 0.1);
+
+      // 移動到粒子的中心點並旋轉畫布
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+
+      ctx.font = `${p.size}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // 給金錢一點土豪金的光暈
+      ctx.shadowColor = "#FBBF24";
+      ctx.shadowBlur = 12;
+
+      ctx.fillText(p.emoji, 0, 0);
+      ctx.restore();
+      continue;
+    }
+
+    // ==========================================
+    // ★ 新增：回復 HP 的愛心飄浮特效
+    // ==========================================
+    if (p.type === "heal_heart") {
+      const progress = Math.max(0, p.life / p.maxLife);
+      ctx.save();
+
+      // 隨著時間慢慢變透明 (加上 0.8 的係數讓它不會太刺眼)
+      ctx.globalAlpha = progress * 0.8;
+
+      // 套用一點粉紅色的柔和光暈
+      ctx.shadowColor = "#f472b6";
+      ctx.shadowBlur = 10;
+
+      ctx.font = `${p.size}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // 利用三角函數 (sin) 根據粒子的生命週期製造出「左右搖曳」的氣球飄浮感
+      const swayOffset = Math.sin(p.life * 4) * 8 * (1 - progress);
+
+      ctx.fillText("❤️", p.x + swayOffset, p.y);
+      ctx.restore();
+      continue;
+    }
+
+    // ==========================================
     // ★ 新增：由上而下沖刷的強鹼海浪
     // ==========================================
     if (p.type === "alkali_wave") {
