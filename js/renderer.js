@@ -1583,15 +1583,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       continue;
     }
 
-    // ==========================================
-    // ★ 新增：回復 HP 的愛心飄浮特效
-    // ==========================================
     if (p.type === "heal_heart") {
       ctx.save();
-      // 隨著生命週期變淡
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      // 隨著生命週期變淡 (確保有預設值避免報錯)
+      ctx.globalAlpha = Math.max(0, p.life / (p.maxLife || 3));
 
-      // ★ 核心優化：直接把剛剛畫好的「愛心印章」貼上來！效能極高！
+      // 把離線畫好的「愛心印章」貼上來
       ctx.drawImage(
         cachedHeartCanvas,
         p.x - p.size / 2,
@@ -1599,8 +1596,13 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         p.size,
         p.size,
       );
-
       ctx.restore();
+
+      // ==========================================
+      // ★ 關鍵修復：畫完愛心後立刻中斷！
+      // 防止底層的 ctx.fillRect 又拿粉紅色方塊把它蓋住
+      // ==========================================
+      continue;
     }
 
     // ==========================================
