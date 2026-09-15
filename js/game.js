@@ -1003,6 +1003,10 @@ export function endGame() {
     document.getElementById("global-leave-btn").style.display = "none";
 }
 
+// ★ 新增：遊戲結束時，強制隱藏主畫面的排行榜
+const mainBoard = document.getElementById("main-leaderboard");
+if (mainBoard) mainBoard.style.display = "none";
+
 export function showOnlineMatchOver(result) {
   if (!onlineMode || onlineMatchFinished) return;
   onlineMatchFinished = true;
@@ -1041,6 +1045,9 @@ export function showOnlineMatchOver(result) {
   document.getElementById("online-opponents-left").style.display = "none";
   document.getElementById("online-opponents-right").style.display = "none";
   document.getElementById("online-opponents-bottom").style.display = "none";
+  // ★ 在它下方加入這兩行：
+  const mainBoard = document.getElementById("main-leaderboard");
+  if (mainBoard) mainBoard.style.display = "none";
 }
 
 export function onlineFinishLocalElimination() {
@@ -2029,9 +2036,12 @@ window.backToMainMenu = function (...args) {
   wipeGameUIState();
   if (originalBackToMain) originalBackToMain(...args);
 
-  // ★ 退回主畫面時，根據當下選單的 DLC 開關狀態，自動刷新一次排行榜！
+  // ★ 新增：退回主畫面時，把排行榜重新顯示出來
+  const mainBoard = document.getElementById("main-leaderboard");
+  if (mainBoard) mainBoard.style.display = "flex";
+
+  // ★ 退回主畫面時，自動刷新一次排行榜！
   if (typeof window.toggleLeaderboard === "function") {
-    // 延遲一點點確保 HTML 已經切換完成
     setTimeout(() => {
       const dlcCheckbox = document.getElementById("enable-dlc");
       const isDLC = dlcCheckbox ? dlcCheckbox.checked : true;
@@ -2040,12 +2050,18 @@ window.backToMainMenu = function (...args) {
   }
 };
 
-// 讓剛載入網頁時也自動讀取一次 (放在檔案最底下)
+// ==========================================
+// ★ 修正：讓剛載入網頁時自動讀取 (加長延遲確保 Firebase 載入完成)
+// ==========================================
 setTimeout(() => {
-  if (document.getElementById("main-leaderboard")) {
+  if (
+    document.getElementById("main-leaderboard")
+    && typeof window.toggleLeaderboard === "function"
+  ) {
+    // 預設讀取 DLC 榜單
     window.toggleLeaderboard(true);
   }
-}, 500);
+}, 800);
 
 const originalReturnToLobby = window.returnToLobby;
 window.returnToLobby = function (...args) {
