@@ -567,7 +567,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
 
-    // ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
+// ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
     b.x += b.dx * dt;
     b.y += b.dy * dt;
 
@@ -576,9 +576,18 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       b.x = Math.max(b.r, Math.min(b.x, cv.width - b.r));
       playSfx("bounce");
     }
+    
+    // ==========================================
+    // ★ 關鍵修復：天花板碰撞防卡死機制
+    // ==========================================
     if (b.y < b.r) {
-      b.dy *= -1;
-      playSfx("bounce");
+      // 只有當球真的往上飛 (dy < 0) 時才反轉，避免已經在往下掉卻又被反轉回去
+      if (b.dy < 0) { 
+        b.dy *= -1;
+        playSfx("bounce");
+      }
+      // 強制把球拉回天花板邊界，徹底解決卡死問題
+      b.y = b.r; 
     }
 
     for (const targetPl of activePlayers) {
