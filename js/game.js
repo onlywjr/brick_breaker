@@ -2131,3 +2131,52 @@ window.toggleLeaderboard = (isDLC) => {
   }
   window.showLeaderboard();
 };
+
+window.showLeaderboard = async () => {
+  // ★ 強制指定抓取主畫面的 id (index.html 裡面的 main-leaderboard-list)
+  const container = document.getElementById("main-leaderboard-list");
+
+  if (!container) {
+    console.warn(
+      "⚠️ 找不到排行榜容器 (main-leaderboard-list)，請確認是否在主畫面。",
+    );
+    return;
+  }
+
+  container.innerHTML =
+    "<div style='color:#DDA15E; font-size:14px; margin-top:30px; text-align:center;'>正在讀取最新數據...</div>";
+
+  try {
+    // 去 Firebase 抓取前 100 名資料
+    const scores = await getTopScores(window.currentLeaderboardTab);
+
+    if (scores.length === 0) {
+      container.innerHTML =
+        "<div style='color:#8A7E9C; font-size:14px; margin-top:30px; text-align:center;'>目前還沒有排名，搶下第一吧！</div>";
+      return;
+    }
+
+    let html = "";
+    scores.forEach((s, index) => {
+      const medal =
+        index === 0 ? "🥇"
+        : index === 1 ? "🥈"
+        : index === 2 ? "🥉"
+        : `<span style="display:inline-block; width:22px; text-align:center; font-size:13px;">${index + 1}</span>`;
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; color:#5D576B; margin-bottom:8px; font-size:14px; font-weight:900; border-bottom:1px dashed rgba(0,0,0,0.15); padding-bottom:6px;">
+                 <span style="display:flex; align-items:center; gap:6px;">
+                   ${medal} 
+                   <span style="max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.playerName}</span> 
+                   <span style="font-size:11px; opacity:0.6; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px;">Lv.${s.level}</span>
+                 </span>
+                 <span style="color:#D96C8E; font-size:16px;">${s.score} <span style="font-size:10px;">PT</span></span>
+               </div>`;
+    });
+
+    container.innerHTML = html;
+  } catch (error) {
+    console.error("讀取排行榜發生錯誤:", error);
+    container.innerHTML =
+      "<div style='color:#E0576B; font-size:14px; margin-top:30px; text-align:center;'>連線失敗，請檢查網路或資料庫設定。</div>";
+  }
+};
