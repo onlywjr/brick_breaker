@@ -2114,10 +2114,10 @@ window.showLeaderboard = async () => {
       html += `<div style="display:flex; justify-content:space-between; align-items:center; color:#5D576B; margin-bottom:8px; font-size:14px; font-weight:900; border-bottom:1px dashed rgba(0,0,0,0.15); padding-bottom:6px;">
                  <span style="display:flex; align-items:center; gap:6px;">
                    ${medal} 
-                   <span style="max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.playerName}</span> 
+                   <span style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.playerName}</span> 
                    <span style="font-size:11px; opacity:0.6; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px;">Lv.${s.level}</span>
                  </span>
-                 <span style="color:#D96C8E; font-size:16px;">${s.score} <span style="font-size:10px;">PT</span></span>
+                 <span style="color:#D96C8E; font-size:14px;">${s.score} <span style="font-size:10px;">PT</span></span>
                </div>`;
     });
 
