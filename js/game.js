@@ -68,11 +68,60 @@ export let chemDLCEnabled = true; // ★ 新增 DLC 全域開關
 
 window.openChemistryShop = openChemistryShop;
 
+// ==========================================
+// ★ 新增：開局 3 秒倒數引擎
+// ==========================================
+export function startCountdownSequence(cv) {
+  clearInterval(countdownInterval);
+  isGameCountdown = true;
+  let count = 3;
+
+  // 產生初次數字 (利用原生的浮動文字系統)
+  floatTexts.push({
+    t: "3",
+    life: 1.2,
+    x: cv.width / 2,
+    y: cv.height / 2,
+    c: "#E0576B",
+    big: true,
+  });
+
+  countdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      floatTexts.push({
+        t: count.toString(),
+        life: 1.2,
+        x: cv.width / 2,
+        y: cv.height / 2,
+        c: "#E0576B",
+        big: true,
+      });
+    } else {
+      clearInterval(countdownInterval);
+      floatTexts.push({
+        t: "START!",
+        life: 1.5,
+        x: cv.width / 2,
+        y: cv.height / 2,
+        c: "#2EB886",
+        big: true,
+      });
+      isGameCountdown = false; // ★ 解除物理凍結
+      levelStartTime = performance.now();
+
+      // 倒數完畢才開始播音樂 (若是第一關或連線模式)
+      if (level === 1 || onlineMode) {
+        playSfx("music");
+      }
+    }
+  }, 1000);
+}
+
 window.proceedToNextLevel = () => {
-  clearInterval(nextLevelTimer); // ★ 清除計時器
+  clearInterval(nextLevelTimer);
   document.getElementById("level-clear-overlay").style.display = "none";
 
-  // ★ 離開商店，恢復顯示全域離開按鈕
   const leaveBtn = document.getElementById("global-leave-btn");
   if (leaveBtn) leaveBtn.style.display = "block";
 
@@ -80,12 +129,14 @@ window.proceedToNextLevel = () => {
   buildLevel(level, document.getElementById("game"));
   resetRound(document.getElementById("game"));
   running = true;
-  // ★ 修復卡死：重新喚醒遊戲迴圈引擎
   loop.last = performance.now();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame((ts) =>
     loop(ts, document.getElementById("game")),
   );
+
+  // ★ 換關也加入倒數
+  startCountdownSequence(document.getElementById("game"));
 };
 
 window.enterShopFromLevelClear = () => {
@@ -117,6 +168,8 @@ export let mode = 1;
 export let level = 1;
 export let running = false;
 export let isLevelClearing = false; // ★ 新增：過關緩衝狀態
+export let isGameCountdown = false; // ★ 新增：開局倒數狀態 (凍結物理引擎)
+export let countdownInterval = null; // ★ 新增：倒數計時器
 export let levelStartTime = 0; // ★ 新增：關卡開始時間紀錄
 export let animId = null;
 export let showVirtual = false;
@@ -757,7 +810,8 @@ function executeStartGame(selectedMode, cv) {
   updateVirtualButtonsVisibility(showVirtual, running, mode);
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame((ts) => loop(ts, cv));
-  playSfx("music");
+  // ★ 啟動倒數 (音樂移至倒數後自動播放)
+  startCountdownSequence(cv);
 }
 
 // ==========================================
@@ -955,12 +1009,14 @@ export function startOnlineGame(state, cv) {
   updateVirtualButtonsVisibility(showVirtual, running, mode);
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame((ts) => loop(ts, cv));
-  playSfx("music");
+
   for (const p of state?.players || [])
     onlinePlayers[p.id] = {
       ...p,
       alive: p.id === myPlayerId ? true : p.alive !== false,
     };
+  // ★ 啟動倒數 (原本的 playSfx 已移至倒數後)
+  startCountdownSequence(cv);
   triggerGameEvent("⚔️ 大亂鬥開始！", true);
 }
 
@@ -1864,7 +1920,13 @@ export function loop(ts, cv) {
   loop.last = ts;
   if (!running) return;
   try {
-    updateGameState(dt, cv);
+    // ==========================================
+    // ★ 在倒數期間凍結物理引擎 (磚塊與球體不准動)
+    // 但因為 drawGameEntities 照常運作，所以背景動畫與數字會繼續跑！
+    // ==========================================
+    if (!isGameCountdown) {
+      updateGameState(dt, cv);
+    }
     const ctx = cv.getContext("2d");
 
     ctx.save(); // ★ 1. 儲存原始畫布座標
@@ -2018,6 +2080,8 @@ window.addEventListener("keydown", (e) => {
 // ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據與特效
 // ==========================================
 function wipeGameUIState() {
+  clearInterval(countdownInterval); // ★ 確保提早離開遊戲時停止倒數
+  isGameCountdown = false;
   if (chemDLCEnabled && typeof resetChemistryState === "function") {
     resetChemistryState();
     resetSkillCooldowns();
