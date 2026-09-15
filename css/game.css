@@ -28,6 +28,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 10px 30px rgba(230, 215, 225, 0.5);
   flex-shrink: 0;
+
+  /* ★ 解決閃爍：預設先隱藏，等待正確縮放後才顯示，並賦予平滑縮放動畫 */
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
 }
 
 canvas {

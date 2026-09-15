@@ -178,6 +178,15 @@ export function resizeGame() {
 
   wrap.style.transform = `scale(${scale})`;
   wrap.style.transformOrigin = "center center";
+  
+  // ==========================================
+  // ★ 確保縮放計算完畢後才淡入顯示，徹底消除初始閃爍
+  // ==========================================
+  if (wrap.style.opacity !== "1") {
+    requestAnimationFrame(() => {
+      wrap.style.opacity = "1";
+    });
+  }
 }
 
 export function formatTime(seconds) {

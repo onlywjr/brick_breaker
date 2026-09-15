@@ -689,6 +689,8 @@ function executeStartGame(selectedMode, cv) {
   if (selectedMode === 1) document.body.classList.add("single-layout");
   else document.body.classList.remove("single-layout");
 
+  resizeGame(); // ★ 加上這行：切換模式後立刻計算正確比例
+
   onlineEliminated = false;
   document.getElementById("online-opponents-left").style.display = "none";
   document.getElementById("online-opponents-right").style.display = "none";
@@ -909,6 +911,8 @@ export function startOnlineGame(state, cv) {
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
   document.getElementById("global-leave-btn").style.display = "none";
+
+  resizeGame(); // ★ 加上這行：切換模式後立刻計算正確比例
 
   // ★ 正確補上：在連線模式中啟動並顯示中央 HUD
   if (typeof setupEventHUDs === "function") setupEventHUDs();
@@ -2169,6 +2173,8 @@ window.backToMainMenu = function () {
       window.toggleLeaderboard(isDLC);
     }, 100);
   }
+
+  resizeGame(); // ★ 加上這行
 };
 
 window.returnToLobby = function () {
@@ -2190,6 +2196,8 @@ window.returnToLobby = function () {
   // 3. ★ 退回大廳時，也確保排行榜顯示
   const mainBoard = document.getElementById("main-leaderboard");
   if (mainBoard) mainBoard.style.display = "none";
+
+  resizeGame(); // ★ 加上這行
 };
 
 if (socket) {
