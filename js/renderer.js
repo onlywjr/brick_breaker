@@ -1276,7 +1276,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       textColor = "#A78BFA";
     } else if (pl.shield > 0) {
       statusEmoji = "🛡️";
-      statusText = `x${pl.shield}`;
+      statusText = `${Math.round(pl.shield)}%`;
       textColor = "#86EFAC"; // 護盾綠
     } else if (pl.speedBuffRatio && pl.speedBuffRatio < 1) {
       statusEmoji = "🐢";

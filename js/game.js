@@ -1664,10 +1664,6 @@ export function updateGameState(dt, cv) {
       : "#d96c8e";
     let statusHtml = `<span style="font-size: 16px; margin-left: 15px; color: ${hpColor}">💗</span><span style="font-size: 16px; font-weight: 900; color: ${hpColor}; margin-right: 15px;"> ${Math.round(p1.hp)}%</span>`;
 
-    // 若有護盾則額外顯示護盾值
-    if (p1.shield > 0) {
-      statusHtml += `<span style="font-size: 16px; color: #5FA8D3">🛡️</span><span style="font-size: 16px; font-weight: 900; color: #5FA8D3;"> ${Math.round(p1.shield)}%</span>`;
-    }
     livesEl.innerHTML = statusHtml;
   }
 
