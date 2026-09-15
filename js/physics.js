@@ -221,7 +221,7 @@ export function applyDrop(
         t: "⭐ STAR POWER +300! 全場清除",
         life: 2,
         x: cvWidth / 2,
-        y: cvHeight / 2,
+        y: cvHeight / 2 + 30,
         c: "#DDA15E",
         big: true,
       });
