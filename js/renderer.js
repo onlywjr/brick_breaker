@@ -1684,8 +1684,19 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   ctx.globalAlpha = 1;
 
   ctx.textAlign = "center";
-  for (const f of floatTexts) {
+  // ★ 修正：改用倒序迴圈 (從尾巴開始跑)，這樣才能在陣列中安全地刪除元素
+  for (let i = floatTexts.length - 1; i >= 0; i--) {
+    const f = floatTexts[i];
     f.life -= 0.02;
+
+    // ==========================================
+    // ★ iOS 終極修復：壽命耗盡就徹底刪除！
+    // 防止 WebKit 引擎因無限放大而產生殘影 Bug，同時釋放記憶體
+    // ==========================================
+    if (f.life <= 0) {
+      floatTexts.splice(i, 1);
+      continue; // 刪除後直接跳過渲染
+    }
 
     ctx.save();
     // 確保透明度安全範圍 (0 ~ 1)
