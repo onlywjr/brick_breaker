@@ -889,6 +889,9 @@
           setupSocketListeners({
             showLobby: (code) => {
               document.getElementById("menu-btns").style.display = "none";
+              // ★ 新增：進入連線大廳時，強制隱藏排行榜
+              const mainBoard = document.getElementById("main-leaderboard");
+              if (mainBoard) mainBoard.style.display = "none";
               document.getElementById("lobby-screen").style.display = "flex";
               document.getElementById("lobby-code").innerText = code;
               setChemistryMode(2);

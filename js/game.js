@@ -2172,7 +2172,7 @@ window.returnToLobby = function () {
 
   // 3. ★ 退回大廳時，也確保排行榜顯示
   const mainBoard = document.getElementById("main-leaderboard");
-  if (mainBoard) mainBoard.style.display = "flex";
+  if (mainBoard) mainBoard.style.display = "none";
 };
 
 if (socket) {
