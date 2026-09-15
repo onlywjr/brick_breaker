@@ -961,7 +961,7 @@ export function endGame() {
   cancelAnimationFrame(animId);
   updateVirtualButtonsVisibility(showVirtual, running, mode);
 
-  // ★ 強制解除殘留的光暈外框，防止帶入大廳
+  // 強制解除殘留的光暈外框，防止帶入大廳
   const wrapEl = document.getElementById("wrap");
   if (wrapEl) {
     wrapEl.classList.remove("skill-active-glow");
@@ -983,13 +983,11 @@ export function endGame() {
         <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
         <div class="vs-score" style="margin-bottom: 25px;">你的等級: Level ${level}</div>
         
-        <!-- ★ 修正：加入 flex-shrink: 0 防止按鈕被擠扁，加入 min-width: 0 防止 input 撐破 -->
         <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 44px; border-radius: 22px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
           <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
           <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳成績</button>
         </div>
         
-        <!-- 返回首頁按鈕 -->
         <button class="menu-item-macaron macaron-pink" style="width: 100%; max-width: 250px; box-sizing: border-box;" onclick="window.backToMainMenu()">返回首頁</button>
       </div>`;
   }
@@ -1001,11 +999,13 @@ export function endGame() {
   document.getElementById("status").style.display = "none";
   if (document.getElementById("global-leave-btn"))
     document.getElementById("global-leave-btn").style.display = "none";
-}
 
-// ★ 新增：遊戲結束時，強制隱藏主畫面的排行榜
-const mainBoard = document.getElementById("main-leaderboard");
-if (mainBoard) mainBoard.style.display = "none";
+  // ==========================================
+  // ★ 正確的隱藏時機：遊戲真正結束時才把主畫面排行榜藏起來
+  // ==========================================
+  const mainBoard = document.getElementById("main-leaderboard");
+  if (mainBoard) mainBoard.style.display = "none";
+}
 
 export function showOnlineMatchOver(result) {
   if (!onlineMode || onlineMatchFinished) return;
@@ -2074,24 +2074,41 @@ window.returnToLobby = function (...args) {
 };
 
 // ==========================================
-// ★ 終極攔截器：偵測玩家建立或加入大廳的瞬間，強制洗白
+// ★ 攔截 UI 導航：離開遊戲退回大廳/首頁時，強制提早洗白化學數據與特效
 // ==========================================
-if (socket) {
-  const originalEmit = socket.emit;
-  socket.emit = function (eventName, ...args) {
-    // 只要系統一發送「建房」或「加房」等相關網路請求，瞬間將化學背包清零！
-    if (
-      ["createRoom", "joinRoom", "hostRoom", "join", "host"].includes(eventName)
-    ) {
-      if (chemDLCEnabled && typeof resetChemistryState === "function") {
-        resetChemistryState();
-        resetSkillCooldowns();
-      }
-    }
-    return originalEmit.apply(this, [eventName, ...args]);
-  };
+function wipeGameUIState() {
+  if (chemDLCEnabled && typeof resetChemistryState === "function") {
+    resetChemistryState();
+    resetSkillCooldowns();
+  }
+
+  const wrapEl = document.getElementById("wrap");
+  if (wrapEl) {
+    wrapEl.classList.remove("skill-active-glow");
+    wrapEl.style.removeProperty("--glow-color");
+  }
+
+  if (p1) p1.activeBuffs = {};
+  if (p2) p2.activeBuffs = {};
+  ghostBalls.length = 0;
+
+  const topHud = document.getElementById("top-hud-buff-display");
+  if (topHud) {
+    topHud.style.display = "none";
+    topHud.innerHTML = "";
+  }
+  const centerText = document.getElementById("center-event-text");
+  if (centerText) {
+    centerText.style.opacity = "0";
+    centerText.innerText = "";
+  }
+  const statusEl = document.getElementById("status");
+  if (statusEl) statusEl.style.display = "none";
 }
 
+// ==========================================
+// ★ 排行榜系統核心邏輯
+// ==========================================
 window.currentLeaderboardTab = true; // 預設顯示 DLC 榜單
 
 window.submitScore = async () => {
@@ -2113,8 +2130,8 @@ window.submitScore = async () => {
   if (success) {
     if (btn) {
       btn.innerText = "已上傳";
-      btn.style.background = "#86EFAC"; // 按鈕變綠
-      if (wrapper) wrapper.style.borderColor = "#86EFAC"; // 外框一起變綠
+      btn.style.background = "#86EFAC";
+      if (wrapper) wrapper.style.borderColor = "#86EFAC";
     }
   } else {
     if (btn) {
@@ -2129,7 +2146,6 @@ window.toggleLeaderboard = (isDLC) => {
   const tabDLC = document.getElementById("tab-dlc");
   const tabBasic = document.getElementById("tab-basic");
 
-  // Apple 風格的切換邏輯：啟用的變成彩色實體按鈕，未啟用的變成透明底灰色字
   if (tabDLC && tabBasic) {
     if (isDLC) {
       tabDLC.style.background = "#D96C8E";
@@ -2153,21 +2169,13 @@ window.toggleLeaderboard = (isDLC) => {
 };
 
 window.showLeaderboard = async () => {
-  // ★ 強制指定抓取主畫面的 id (index.html 裡面的 main-leaderboard-list)
   const container = document.getElementById("main-leaderboard-list");
-
-  if (!container) {
-    console.warn(
-      "⚠️ 找不到排行榜容器 (main-leaderboard-list)，請確認是否在主畫面。",
-    );
-    return;
-  }
+  if (!container) return;
 
   container.innerHTML =
     "<div style='color:#DDA15E; font-size:14px; margin-top:30px; text-align:center;'>正在讀取最新數據...</div>";
 
   try {
-    // 去 Firebase 抓取前 100 名資料
     const scores = await getTopScores(window.currentLeaderboardTab);
 
     if (scores.length === 0) {
@@ -2200,3 +2208,58 @@ window.showLeaderboard = async () => {
       "<div style='color:#E0576B; font-size:14px; margin-top:30px; text-align:center;'>連線失敗，請檢查網路或資料庫設定。</div>";
   }
 };
+
+const originalBackToMain = window.backToMainMenu;
+window.backToMainMenu = function (...args) {
+  wipeGameUIState();
+  if (originalBackToMain) originalBackToMain(...args);
+
+  // ★ 恢復主畫面的排行榜
+  const mainBoard = document.getElementById("main-leaderboard");
+  if (mainBoard) mainBoard.style.display = "flex";
+
+  if (typeof window.toggleLeaderboard === "function") {
+    setTimeout(() => {
+      const dlcCheckbox = document.getElementById("enable-dlc");
+      const isDLC = dlcCheckbox ? dlcCheckbox.checked : true;
+      window.toggleLeaderboard(isDLC);
+    }, 100);
+  }
+};
+
+const originalReturnToLobby = window.returnToLobby;
+window.returnToLobby = function (...args) {
+  wipeGameUIState();
+  if (originalReturnToLobby) originalReturnToLobby(...args);
+
+  // ★ 恢復主畫面的排行榜
+  const mainBoard = document.getElementById("main-leaderboard");
+  if (mainBoard) mainBoard.style.display = "flex";
+};
+
+if (socket) {
+  const originalEmit = socket.emit;
+  socket.emit = function (eventName, ...args) {
+    if (
+      ["createRoom", "joinRoom", "hostRoom", "join", "host"].includes(eventName)
+    ) {
+      if (chemDLCEnabled && typeof resetChemistryState === "function") {
+        resetChemistryState();
+        resetSkillCooldowns();
+      }
+    }
+    return originalEmit.apply(this, [eventName, ...args]);
+  };
+}
+
+// ==========================================
+// ★ 初始化載入排行榜 (確保 Firebase 載入後觸發)
+// ==========================================
+setTimeout(() => {
+  if (
+    document.getElementById("main-leaderboard-list")
+    && typeof window.toggleLeaderboard === "function"
+  ) {
+    window.toggleLeaderboard(true); // 預設載入化學 DLC 的榜單
+  }
+}, 800);
