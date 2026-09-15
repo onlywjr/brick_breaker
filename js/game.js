@@ -1626,7 +1626,7 @@ export function updateGameState(dt, cv) {
 
     floatTexts.push({
       t: "✨ 全場爆破!! ✨",
-      life: 1.5,
+      life: 1,
       x: cv.width / 2,
       y: cv.height / 2 - 30,
       c: "#F6D98B",

@@ -219,7 +219,7 @@ export function applyDrop(
       burst(cvWidth / 2, cvHeight / 2, "#DDA15E");
       floatTexts.push({
         t: "⭐ STAR POWER +300! 全場清除",
-        life: 2,
+        life: 1,
         x: cvWidth / 2,
         y: cvHeight / 2 + 30,
         c: "#DDA15E",
