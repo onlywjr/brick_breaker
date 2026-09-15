@@ -986,7 +986,7 @@ export function endGame() {
         <!-- ★ 修正：加入 flex-shrink: 0 防止按鈕被擠扁，加入 min-width: 0 防止 input 撐破 -->
         <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 44px; border-radius: 22px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
           <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
-          <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳</button>
+          <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳成績</button>
         </div>
         
         <!-- 返回首頁按鈕 -->
