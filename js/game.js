@@ -2129,15 +2129,22 @@ window.showLeaderboard = async () => {
   }
 };
 
-const originalBackToMain = window.backToMainMenu;
-window.backToMainMenu = function (...args) {
-  wipeGameUIState();
-  if (originalBackToMain) originalBackToMain(...args);
+// ==========================================
+// ★ 核心導航功能 (完全接管 index.html 的控制權)
+// ==========================================
+window.backToMainMenu = function () {
+  wipeGameUIState(); // 清除遊戲殘留的特效與毒霧
 
-  // ★ 恢復主畫面的排行榜
+  // 1. 恢復 HTML 基本選單與狀態列
+  document.getElementById("title").innerHTML = "BRICK RUSH 99";
+  document.getElementById("menu-btns").style.display = "flex";
+  document.getElementById("bottom-status-bar").style.display = "flex";
+
+  // 2. ★ 絕對顯示：把主畫面的排行榜叫出來
   const mainBoard = document.getElementById("main-leaderboard");
   if (mainBoard) mainBoard.style.display = "flex";
 
+  // 3. 刷新最新榜單數據
   if (typeof window.toggleLeaderboard === "function") {
     setTimeout(() => {
       const dlcCheckbox = document.getElementById("enable-dlc");
@@ -2147,12 +2154,23 @@ window.backToMainMenu = function (...args) {
   }
 };
 
-const originalReturnToLobby = window.returnToLobby;
-window.returnToLobby = function (...args) {
-  wipeGameUIState();
-  if (originalReturnToLobby) originalReturnToLobby(...args);
+window.returnToLobby = function () {
+  wipeGameUIState(); // 清除遊戲殘留的特效與毒霧
 
-  // ★ 恢復主畫面的排行榜
+  // 1. 恢復大廳畫面相關的 HTML
+  document.getElementById("online-attack-status").style.display = "none";
+  document.getElementById("title").innerHTML = "BRICK RUSH 99";
+  document.getElementById("lobby-screen").style.display = "flex";
+  document.getElementById("room-status").style.display = "block";
+  document.getElementById("bottom-status-bar").style.display = "flex";
+
+  // 2. 重置連線狀態
+  resetMatchState();
+  if (socket && socket.connected) {
+    socket.emit("restartOnlineGame");
+  }
+
+  // 3. ★ 退回大廳時，也確保排行榜顯示
   const mainBoard = document.getElementById("main-leaderboard");
   if (mainBoard) mainBoard.style.display = "flex";
 };
