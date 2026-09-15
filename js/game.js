@@ -1000,11 +1000,9 @@ export function endGame() {
         <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
         <div class="vs-score" style="margin-bottom: 25px;">你的等級: Level ${level}</div>
         
-        <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 64px; border-radius: 20px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
-          <input type="text" id="player-name" placeholder="輸入你的名字" maxlength="12" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
-          <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳成績</button>
-        </div>
+        ${uploadHtml}
         
+        <!-- 返回首頁按鈕 -->
         <button class="menu-item-macaron macaron-pink" style="width: 100%; max-width: 250px; box-sizing: border-box;" onclick="window.backToMainMenu()">返回首頁</button>
       </div>`;
   }
