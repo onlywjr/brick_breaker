@@ -88,6 +88,58 @@ export function resizeGame() {
   const h = window.innerHeight;
   const isPortrait = h > w;
   const isOnline = document.body.classList.contains("online-battle-mode");
+
+  const mainPrompt = document.getElementById("rotate-prompt");
+  const chemOverlay = document.getElementById("chem-ui-overlay");
+  const isShopOpen =
+    chemOverlay
+    && chemOverlay.style.display !== "none"
+    && chemOverlay.style.display !== "";
+
+  // ==========================================
+  // ★ 精準設備偵測
+  // ==========================================
+  // 偵測是否為觸控設備
+  const isTouchDevice = window.matchMedia(
+    "(hover: none) and (pointer: coarse)",
+  ).matches;
+  // 精準偵測 iPad (包含新版 iPadOS 會偽裝成 MacIntel 的情況)
+  const isIPad =
+    /iPad/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (mainPrompt) {
+    if (isShopOpen) {
+      // 狀態 1：商店開啟中。強制隱藏主遊戲的提示，把方向控制權完全交給商店
+      mainPrompt.style.setProperty("display", "none", "important");
+    } else if (isTouchDevice) {
+      // 狀態 2：觸控行動裝置
+      if (isIPad && isOnline) {
+        // 【專屬 iPad + 連線模式】：強制要求直向
+        if (!isPortrait) {
+          mainPrompt.innerHTML =
+            "📱<br />請將 iPad 轉為直向<br />以顯示完整對戰畫面";
+          mainPrompt.style.setProperty("display", "flex", "important");
+        } else {
+          mainPrompt.style.setProperty("display", "none", "important");
+        }
+      } else {
+        // 【所有一般手機】或【iPad 單機模式】：一律強制要求橫向
+        if (isPortrait) {
+          mainPrompt.innerHTML =
+            "🔄<br />請將設備轉為橫向<br />以顯示完整遊戲畫面";
+          mainPrompt.style.setProperty("display", "flex", "important");
+        } else {
+          mainPrompt.style.setProperty("display", "none", "important");
+        }
+      }
+    } else {
+      // 電腦版無須提示
+      mainPrompt.style.setProperty("display", "none", "important");
+    }
+  }
+
+  // 畫面縮放邏輯
   const baseW = !isPortrait && isOnline ? 1200 : 840;
   const baseH = isPortrait && isOnline ? 1150 : 660;
   let scale = Math.min(w / baseW, h / baseH);
