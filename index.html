@@ -174,7 +174,7 @@
             justify-content: center;
             align-items: stretch;
             gap: 20px;
-            width: 90%;
+            width: 80%;
             max-width: 750px;
             margin: 0 auto;
           ">
@@ -317,28 +317,30 @@
               🏆 神人排行榜 🏆
             </h3>
 
-            <!-- 模式切換按鈕 -->
+            <!-- ★ Apple 風格的模式切換按鈕 -->
             <div
               style="
                 display: flex;
-                justify-content: center;
-                gap: 10px;
-                margin-bottom: 10px;
+                background: rgba(0, 0, 0, 0.05);
+                border-radius: 10px;
+                padding: 4px;
+                margin-bottom: 12px;
+                gap: 4px;
               ">
               <button
                 id="tab-basic"
                 onclick="window.toggleLeaderboard(false)"
                 style="
                   flex: 1;
-                  padding: 6px;
+                  padding: 8px 0;
                   font-weight: 900;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   border: none;
-                  background: #9dd9e8;
-                  color: #fff;
+                  background: transparent;
+                  color: #8a7e9c;
                   cursor: pointer;
-                  opacity: 0.5;
-                  transition: 0.2s;
+                  transition: 0.3s;
+                  font-size: 14px;
                 ">
                 基本/數學
               </button>
@@ -347,15 +349,16 @@
                 onclick="window.toggleLeaderboard(true)"
                 style="
                   flex: 1;
-                  padding: 6px;
+                  padding: 8px 0;
                   font-weight: 900;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   border: none;
                   background: #d96c8e;
                   color: #fff;
                   cursor: pointer;
-                  opacity: 1;
-                  transition: 0.2s;
+                  transition: 0.3s;
+                  font-size: 14px;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 ">
                 化學 DLC
               </button>

@@ -977,19 +977,20 @@ export function endGame() {
     else
       msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   } else {
-    // 單人模式 (包含線上單機) 的結算介面，加入排行榜元素
+    // 結算畫面：合成單一區塊的輸入框與上傳按鈕，徹底移除排行榜
     msg = `
-      <div class="victory-screen">
+      <div class="victory-screen" style="display: flex; flex-direction: column; align-items: center;">
         <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
-        <div class="vs-score" style="margin-bottom: 20px;">你的等級: Level ${level}</div>
+        <div class="vs-score" style="margin-bottom: 25px;">你的等級: Level ${level}</div>
         
-        <!-- 左右並排的輸入區 -->
-        <div style="display:flex; justify-content:center; align-items:stretch; gap:8px; margin-bottom:20px;">
-          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="padding:10px; border-radius:8px; border:2px solid #C9B1E8; outline:none; text-align:center; font-weight:900; color:#5D576B; font-size:16px; width:160px; box-sizing:border-box;">
-          <button id="submit-score-btn" class="menu-item-macaron macaron-yellow" onclick="window.submitScore()" style="font-size:16px; padding:0 20px; margin:0; width:auto; height:auto;">上傳</button>
+        <!-- ★ 合併的輸入與上傳區塊 (與下方按鈕同寬 250px) -->
+        <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 44px; border-radius: 22px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
+          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
+          <button id="submit-score-btn" onclick="window.submitScore()" style="background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳</button>
         </div>
         
-        <button class="menu-item-macaron macaron-pink" onclick="window.backToMainMenu()">返回首頁</button>
+        <!-- 返回首頁按鈕 (設定一樣的最大寬度) -->
+        <button class="menu-item-macaron macaron-pink" style="width: 100%; max-width: 250px; box-sizing: border-box;" onclick="window.backToMainMenu()">返回首頁</button>
       </div>`;
   }
   document.getElementById("title").innerHTML = msg;
@@ -2080,23 +2081,24 @@ window.submitScore = async () => {
       nameInput.value.trim()
     : "神秘玩家";
   const btn = document.getElementById("submit-score-btn");
+  const wrapper = document.getElementById("upload-wrapper");
 
   if (btn) {
-    btn.innerText = "上傳中...";
+    btn.innerText = "上傳中";
     btn.disabled = true;
   }
 
-  // ★ 傳入 chemDLCEnabled 決定存到哪一張表
   const success = await uploadScore(name, p1.score, level, chemDLCEnabled);
 
   if (success) {
     if (btn) {
-      btn.innerText = "上傳成功！";
-      btn.style.background = "#86EFAC"; // 成功變成綠色
+      btn.innerText = "已上傳";
+      btn.style.background = "#86EFAC"; // 按鈕變綠
+      if (wrapper) wrapper.style.borderColor = "#86EFAC"; // 外框一起變綠
     }
   } else {
     if (btn) {
-      btn.innerText = "失敗，請重試";
+      btn.innerText = "重試";
       btn.disabled = false;
     }
   }
@@ -2104,48 +2106,28 @@ window.submitScore = async () => {
 
 window.toggleLeaderboard = (isDLC) => {
   window.currentLeaderboardTab = isDLC;
-  // 更新按鈕透明度樣式
   const tabDLC = document.getElementById("tab-dlc");
   const tabBasic = document.getElementById("tab-basic");
-  if (tabDLC) tabDLC.style.opacity = isDLC ? "1" : "0.4";
-  if (tabBasic) tabBasic.style.opacity = !isDLC ? "1" : "0.4";
 
-  window.showLeaderboard();
-};
+  // Apple 風格的切換邏輯：啟用的變成彩色實體按鈕，未啟用的變成透明底灰色字
+  if (tabDLC && tabBasic) {
+    if (isDLC) {
+      tabDLC.style.background = "#D96C8E";
+      tabDLC.style.color = "#FFF";
+      tabDLC.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
 
-window.showLeaderboard = async () => {
-  const container = document.getElementById("main-leaderboard-list");
-  if (!container) return;
+      tabBasic.style.background = "transparent";
+      tabBasic.style.color = "#8A7E9C";
+      tabBasic.style.boxShadow = "none";
+    } else {
+      tabBasic.style.background = "#9DD9E8";
+      tabBasic.style.color = "#FFF";
+      tabBasic.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
 
-  container.innerHTML =
-    "<div style='color:#DDA15E; font-size:14px; margin-top:30px; text-align:center;'>正在讀取最新數據...</div>";
-
-  // ★ 根據當前標籤去抓取對應的資料庫
-  const scores = await getTopScores(window.currentLeaderboardTab);
-
-  if (scores.length === 0) {
-    container.innerHTML =
-      "<div style='color:#8A7E9C; font-size:14px; margin-top:30px; text-align:center;'>目前還沒有排名，搶下第一吧！</div>";
-    return;
+      tabDLC.style.background = "transparent";
+      tabDLC.style.color = "#8A7E9C";
+      tabDLC.style.boxShadow = "none";
+    }
   }
-
-  let html = "";
-  scores.forEach((s, index) => {
-    const medal =
-      index === 0 ? "🥇"
-      : index === 1 ? "🥈"
-      : index === 2 ? "🥉"
-      : `<span style="display:inline-block; width:22px; text-align:center; font-size:13px;">${index + 1}</span>`;
-    // 渲染單行資料，支援卷軸縮放
-    html += `<div style="display:flex; justify-content:space-between; align-items:center; color:#5D576B; margin-bottom:8px; font-size:14px; font-weight:900; border-bottom:1px dashed rgba(0,0,0,0.15); padding-bottom:6px;">
-               <span style="display:flex; align-items:center; gap:6px;">
-                 ${medal} 
-                 <span style="max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.playerName}</span> 
-                 <span style="font-size:11px; opacity:0.6; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px;">Lv.${s.level}</span>
-               </span>
-               <span style="color:#D96C8E; font-size:16px;">${s.score} <span style="font-size:10px;">PT</span></span>
-             </div>`;
-  });
-
-  container.innerHTML = html;
+  window.showLeaderboard();
 };
