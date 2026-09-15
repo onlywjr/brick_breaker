@@ -69,48 +69,38 @@ export let chemDLCEnabled = true; // ★ 新增 DLC 全域開關
 window.openChemistryShop = openChemistryShop;
 
 // ==========================================
-// ★ 新增：開局 3 秒倒數引擎
+// ★ 新增：開局 5 秒倒數引擎 (大字體版)
 // ==========================================
 export function startCountdownSequence(cv) {
   clearInterval(countdownInterval);
   isGameCountdown = true;
-  let count = 3;
+  let count = 5; // ★ 改為 5 秒
 
-  // 產生初次數字 (利用原生的浮動文字系統)
-  floatTexts.push({
-    t: "3",
-    life: 1.2,
-    x: cv.width / 2,
-    y: cv.height / 2,
-    c: "#E0576B",
-    big: true,
-  });
+  // 建立專屬的倒數發射器
+  const pushCount = (text, color) => {
+    floatTexts.push({
+      t: text,
+      life: 1.0,
+      maxLife: 1.0,
+      x: cv.width / 2,
+      y: cv.height / 2,
+      c: color,
+      isCountdown: true, // ★ 專屬標籤，通知渲染引擎使用放大特效
+    });
+  };
+
+  pushCount("5", "#E0576B");
 
   countdownInterval = setInterval(() => {
     count--;
     if (count > 0) {
-      floatTexts.push({
-        t: count.toString(),
-        life: 1.2,
-        x: cv.width / 2,
-        y: cv.height / 2,
-        c: "#E0576B",
-        big: true,
-      });
+      pushCount(count.toString(), count <= 3 ? "#FBBF24" : "#E0576B"); // 倒數後 3 秒變亮黃色
     } else {
       clearInterval(countdownInterval);
-      floatTexts.push({
-        t: "START!",
-        life: 1.5,
-        x: cv.width / 2,
-        y: cv.height / 2,
-        c: "#2EB886",
-        big: true,
-      });
-      isGameCountdown = false; // ★ 解除物理凍結
+      pushCount("START!", "#2EB886"); // 開始變為螢光綠
+      isGameCountdown = false;
       levelStartTime = performance.now();
 
-      // 倒數完畢才開始播音樂 (若是第一關或連線模式)
       if (level === 1 || onlineMode) {
         playSfx("music");
       }

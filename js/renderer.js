@@ -1686,14 +1686,45 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   ctx.textAlign = "center";
   for (const f of floatTexts) {
     f.life -= 0.02;
-    f.y -= 1;
-    ctx.globalAlpha = f.life;
-    ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-    ctx.shadowBlur = 4;
-    ctx.fillStyle = f.c || "#D96C8E";
-    ctx.font = f.big ? "bold 24px sans-serif" : "bold 18px sans-serif";
-    ctx.fillText(f.t, f.x, f.y);
-    ctx.shadowBlur = 0;
+
+    ctx.save();
+    // 確保透明度安全範圍 (0 ~ 1)
+    ctx.globalAlpha = Math.min(1, Math.max(0, f.life));
+
+    if (f.isCountdown) {
+      // ==========================================
+      // ★ 倒數專屬特效：原地放大並淡出
+      // ==========================================
+      const progress = 1 - f.life / f.maxLife; // 取得 0 -> 1 的動畫進度
+      const scale = 1 + progress * 1.5; // 從 1 倍放大到 2.5 倍
+
+      ctx.translate(f.x, f.y);
+      ctx.scale(scale, scale);
+      ctx.textBaseline = "middle"; // 確保縮放時完美以正中央為準
+
+      ctx.shadowColor = f.c || "#E0576B";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = f.c || "#D96C8E";
+      ctx.strokeStyle = "#FFFFFF"; // 加上白色粗外框增加氣勢
+      ctx.lineWidth = 3;
+
+      // 使用 100px 超巨大粗體字
+      ctx.font = "900 100px 'Orbitron', 'Noto Sans TC', sans-serif";
+      ctx.fillText(f.t, 0, 0);
+      ctx.strokeText(f.t, 0, 0);
+    } else {
+      // ==========================================
+      // ★ 一般傷害/加分文字：保持原樣向上飄動
+      // ==========================================
+      f.y -= 1;
+      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = f.c || "#D96C8E";
+      ctx.font = f.big ? "bold 24px sans-serif" : "bold 18px sans-serif";
+      ctx.fillText(f.t, f.x, f.y);
+    }
+
+    ctx.restore();
   }
   ctx.globalAlpha = 1;
 
