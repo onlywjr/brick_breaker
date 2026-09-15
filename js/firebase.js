@@ -17,16 +17,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ==========================================
-// 1. 上傳分數到資料庫 (uploadScore)
+// 1. 上傳分數到資料庫 (依據模式分開儲存)
 // ==========================================
-export async function uploadScore(playerName, score, gameLevel) {
+export async function uploadScore(playerName, score, gameLevel, isDLC) {
   try {
-    // 寫入資料到名為 "leaderboard" 的集合
-    await addDoc(collection(db, "leaderboard"), {
-      playerName: playerName || "神秘玩家", // 防呆：沒填名字就給預設值
+    // 依據是否開啟 DLC，存入不同的資料表
+    const collectionName = isDLC ? "leaderboard_chem" : "leaderboard_basic";
+    
+    await addDoc(collection(db, collectionName), {
+      playerName: playerName || "神秘玩家", 
       score: score,
       level: gameLevel,
-      timestamp: serverTimestamp() // 記錄伺服器當下時間
+      timestamp: serverTimestamp() 
     });
     console.log("✅ 分數上傳成功！");
     return true;
@@ -37,12 +39,13 @@ export async function uploadScore(playerName, score, gameLevel) {
 }
 
 // ==========================================
-// 2. 取得排行榜前 10 名 (getTopScores)
+// 2. 取得排行榜前 100 名 (支援切換模式)
 // ==========================================
-export async function getTopScores() {
+export async function getTopScores(isDLC) {
   try {
-    // 查詢條件：針對 leaderboard 集合，依 score 欄位由大到小排序，最多抓 10 筆
-    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+    const collectionName = isDLC ? "leaderboard_chem" : "leaderboard_basic";
+    // ★ 將 limit 改為 100
+    const q = query(collection(db, collectionName), orderBy("score", "desc"), limit(100));
     const querySnapshot = await getDocs(q);
     
     let leaderboardData = [];

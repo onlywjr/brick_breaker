@@ -981,22 +981,15 @@ export function endGame() {
     msg = `
       <div class="victory-screen">
         <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
-        <div class="vs-score" style="margin-bottom: 8px;">你的等級: Level ${level}</div>
+        <div class="vs-score" style="margin-bottom: 20px;">你的等級: Level ${level}</div>
         
-        <!-- 上傳分數區塊 -->
-        <div style="margin-top: 15px; display:flex; flex-direction:column; align-items:center; gap:8px;">
-          <input type="text" id="player-name" placeholder="輸入你的大名" maxlength="12" style="padding:8px 12px; border-radius:8px; border:2px solid #C9B1E8; outline:none; text-align:center; font-weight:900; color:#5D576B; font-size:14px; width:200px; box-sizing:border-box;">
-          
-          <div style="display:flex; gap:10px;">
-            <button id="submit-score-btn" class="menu-item-macaron macaron-yellow" onclick="window.submitScore()" style="font-size:14px; padding:8px 16px;">上傳分數</button>
-            <button class="menu-item-macaron macaron-blue" onclick="window.showLeaderboard()" style="font-size:14px; padding:8px 16px;">查看排行榜</button>
-          </div>
+        <!-- 左右並排的輸入區 -->
+        <div style="display:flex; justify-content:center; align-items:stretch; gap:8px; margin-bottom:20px;">
+          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="padding:10px; border-radius:8px; border:2px solid #C9B1E8; outline:none; text-align:center; font-weight:900; color:#5D576B; font-size:16px; width:160px; box-sizing:border-box;">
+          <button id="submit-score-btn" class="menu-item-macaron macaron-yellow" onclick="window.submitScore()" style="font-size:16px; padding:0 20px; margin:0; width:auto; height:auto;">上傳</button>
         </div>
         
-        <!-- 排行榜顯示區 -->
-        <div id="leaderboard-container" style="width:100%; max-width:280px; margin:0 auto;"></div>
-        
-        <button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button>
+        <button class="menu-item-macaron macaron-pink" onclick="window.backToMainMenu()">返回首頁</button>
       </div>`;
   }
   document.getElementById("title").innerHTML = msg;
@@ -2034,7 +2027,24 @@ const originalBackToMain = window.backToMainMenu;
 window.backToMainMenu = function (...args) {
   wipeGameUIState();
   if (originalBackToMain) originalBackToMain(...args);
+
+  // ★ 退回主畫面時，根據當下選單的 DLC 開關狀態，自動刷新一次排行榜！
+  if (typeof window.toggleLeaderboard === "function") {
+    // 延遲一點點確保 HTML 已經切換完成
+    setTimeout(() => {
+      const dlcCheckbox = document.getElementById("enable-dlc");
+      const isDLC = dlcCheckbox ? dlcCheckbox.checked : true;
+      window.toggleLeaderboard(isDLC);
+    }, 100);
+  }
 };
+
+// 讓剛載入網頁時也自動讀取一次 (放在檔案最底下)
+setTimeout(() => {
+  if (document.getElementById("main-leaderboard")) {
+    window.toggleLeaderboard(true);
+  }
+}, 500);
 
 const originalReturnToLobby = window.returnToLobby;
 window.returnToLobby = function (...args) {
@@ -2061,12 +2071,10 @@ if (socket) {
   };
 }
 
-// ==========================================
-// ★ 新增：排行榜系統 (上傳與讀取)
-// ==========================================
+window.currentLeaderboardTab = true; // 預設顯示 DLC 榜單
+
 window.submitScore = async () => {
   const nameInput = document.getElementById("player-name");
-  // 如果沒輸入名字，預設叫 神秘玩家
   const name =
     nameInput && nameInput.value.trim() !== "" ?
       nameInput.value.trim()
@@ -2075,56 +2083,69 @@ window.submitScore = async () => {
 
   if (btn) {
     btn.innerText = "上傳中...";
-    btn.disabled = true; // 防止玩家狂點連發
+    btn.disabled = true;
   }
 
-  // 呼叫 firebase.js 的功能，並傳入當前 p1 分數與關卡
-  const success = await uploadScore(name, p1.score, level);
+  // ★ 傳入 chemDLCEnabled 決定存到哪一張表
+  const success = await uploadScore(name, p1.score, level, chemDLCEnabled);
 
   if (success) {
-    if (btn) btn.innerText = "上傳成功！";
-    window.showLeaderboard(); // 上傳成功後，自動顯示最新排行榜
+    if (btn) {
+      btn.innerText = "上傳成功！";
+      btn.style.background = "#86EFAC"; // 成功變成綠色
+    }
   } else {
     if (btn) {
-      btn.innerText = "上傳失敗，請重試";
+      btn.innerText = "失敗，請重試";
       btn.disabled = false;
     }
   }
 };
 
+window.toggleLeaderboard = (isDLC) => {
+  window.currentLeaderboardTab = isDLC;
+  // 更新按鈕透明度樣式
+  const tabDLC = document.getElementById("tab-dlc");
+  const tabBasic = document.getElementById("tab-basic");
+  if (tabDLC) tabDLC.style.opacity = isDLC ? "1" : "0.4";
+  if (tabBasic) tabBasic.style.opacity = !isDLC ? "1" : "0.4";
+
+  window.showLeaderboard();
+};
+
 window.showLeaderboard = async () => {
-  const container = document.getElementById("leaderboard-container");
+  const container = document.getElementById("main-leaderboard-list");
   if (!container) return;
 
   container.innerHTML =
-    "<div style='color:#DDA15E; font-size:14px; margin-top:10px;'>正在讀取最新數據...</div>";
+    "<div style='color:#DDA15E; font-size:14px; margin-top:30px; text-align:center;'>正在讀取最新數據...</div>";
 
-  const scores = await getTopScores(); // 去資料庫抓前10名
+  // ★ 根據當前標籤去抓取對應的資料庫
+  const scores = await getTopScores(window.currentLeaderboardTab);
 
   if (scores.length === 0) {
     container.innerHTML =
-      "<div style='color:#8A7E9C; font-size:14px; margin-top:10px;'>目前還沒有排名，搶下第一吧！</div>";
+      "<div style='color:#8A7E9C; font-size:14px; margin-top:30px; text-align:center;'>目前還沒有排名，搶下第一吧！</div>";
     return;
   }
 
-  // 組裝排行榜 UI
-  let html =
-    "<div style='background:rgba(255,255,255,0.85); border:2px solid rgba(217, 108, 142, 0.4); padding:10px 15px; border-radius:12px; margin-top:15px; max-height:220px; overflow-y:auto; box-shadow:0 4px 6px rgba(0,0,0,0.05); text-align:left;'>";
-  html +=
-    "<h3 style='color:#DDA15E; margin:0 0 10px 0; text-align:center; font-size:16px; font-weight:900;'>🏆 殿堂排行榜 🏆</h3>";
-
+  let html = "";
   scores.forEach((s, index) => {
     const medal =
       index === 0 ? "🥇"
       : index === 1 ? "🥈"
       : index === 2 ? "🥉"
-      : `<span style="display:inline-block; width:20px; text-align:center;">${index + 1}</span>`;
-    html += `<div style="display:flex; justify-content:space-between; color:#5D576B; margin-bottom:6px; font-size:14px; font-weight:900; border-bottom:1px dashed #ccc; padding-bottom:4px;">
-               <span>${medal} ${s.playerName} <span style="font-size:12px; opacity:0.7;">(Lv.${s.level})</span></span>
-               <span style="color:#D96C8E;">${s.score} PT</span>
+      : `<span style="display:inline-block; width:22px; text-align:center; font-size:13px;">${index + 1}</span>`;
+    // 渲染單行資料，支援卷軸縮放
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; color:#5D576B; margin-bottom:8px; font-size:14px; font-weight:900; border-bottom:1px dashed rgba(0,0,0,0.15); padding-bottom:6px;">
+               <span style="display:flex; align-items:center; gap:6px;">
+                 ${medal} 
+                 <span style="max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.playerName}</span> 
+                 <span style="font-size:11px; opacity:0.6; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px;">Lv.${s.level}</span>
+               </span>
+               <span style="color:#D96C8E; font-size:16px;">${s.score} <span style="font-size:10px;">PT</span></span>
              </div>`;
   });
-  html += "</div>";
 
   container.innerHTML = html;
 };

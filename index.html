@@ -166,119 +166,206 @@
       <div id="overlay">
         <h1 id="title">BRICK RUSH 99</h1>
         <div id="loading">正在載入遊戲資源...</div>
-
+        <!-- ★ 新增的主畫面並排容器 -->
         <div
-          id="menu-btns"
+          id="main-menu-container"
           style="
-            display: none;
-            flex-direction: column;
-            align-items: center;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
             gap: 20px;
-            width: 100%;
+            width: 90%;
+            max-width: 750px;
+            margin: 0 auto;
           ">
-          <div class="menu-group menu-group-top">
-            <button class="menu-group-item" onclick="window.startGame(1)">
-              🚀 單人冒險模式
-            </button>
-            <button class="menu-group-item" onclick="window.startGame(2)">
-              ⚡ 雙人對戰 (限時 3 分鐘)
-            </button>
-          </div>
-          <div class="menu-group menu-group-bottom">
-            <button class="menu-group-item" onclick="window.createRoom()">
-              👑 建立連線房間
-            </button>
-            <div class="menu-group-item">
-              <label>玩家暱稱:</label
-              ><input
-                type="text"
-                id="player-name-input"
-                placeholder="輸入名稱"
-                maxlength="10" />
-            </div>
-            <div class="menu-group-item split">
-              <input
-                type="text"
-                id="room-code-input"
-                placeholder="輸入代碼" /><button onclick="window.joinRoom()">
-                🔗 連線加入
+          <div
+            id="menu-btns"
+            style="
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              gap: 15px;
+            ">
+            <div class="menu-group menu-group-top">
+              <button class="menu-group-item" onclick="window.startGame(1)">
+                🚀 單人冒險模式
+              </button>
+              <button class="menu-group-item" onclick="window.startGame(2)">
+                ⚡ 雙人對戰 (限時 3 分鐘)
               </button>
             </div>
-          </div>
+            <div class="menu-group menu-group-bottom">
+              <button class="menu-group-item" onclick="window.createRoom()">
+                👑 建立連線房間
+              </button>
+              <div class="menu-group-item">
+                <label>玩家暱稱:</label
+                ><input
+                  type="text"
+                  id="player-name-input"
+                  placeholder="輸入名稱"
+                  maxlength="10" />
+              </div>
+              <div class="menu-group-item split">
+                <input
+                  type="text"
+                  id="room-code-input"
+                  placeholder="輸入代碼" /><button onclick="window.joinRoom()">
+                  🔗 連線加入
+                </button>
+              </div>
+            </div>
 
-          <!-- ★ 第三個區塊：遊戲設定 (合併單一區塊，中間分隔) -->
-          <div
-            class="menu-group"
-            style="
-              border-color: #c9b1e8;
-              box-shadow: 0 8px 25px rgba(201, 177, 232, 0.25);
-            ">
+            <!-- ★ 第三個區塊：遊戲設定 (合併單一區塊，中間分隔) -->
             <div
-              class="menu-group-item split"
-              style="cursor: default; padding: 0">
-              <!-- 左側：起始關卡 (無邊框融合設計) -->
+              class="menu-group"
+              style="
+                border-color: #c9b1e8;
+                box-shadow: 0 8px 25px rgba(201, 177, 232, 0.25);
+              ">
               <div
-                style="
-                  flex: 1;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  height: 100%;
-                  border-right: 1px solid rgba(201, 177, 232, 0.5);
-                ">
-                <label
-                  for="start-level"
+                class="menu-group-item split"
+                style="cursor: default; padding: 0">
+                <!-- 左側：起始關卡 (無邊框融合設計) -->
+                <div
                   style="
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    border-right: 1px solid rgba(201, 177, 232, 0.5);
+                  ">
+                  <label
+                    for="start-level"
+                    style="
+                      font-size: 16px;
+                      font-weight: 900;
+                      color: #5d576b;
+                      cursor: pointer;
+                      padding: 0 10px 0 20px;
+                    "
+                    >關卡</label
+                  >
+                  <input
+                    type="number"
+                    id="start-level"
+                    value="1"
+                    min="1"
+                    max="999"
+                    style="
+                      width: 40px;
+                      background: transparent;
+                      border: none;
+                      outline: none;
+                      font-family: &quot;Orbitron&quot;, sans-serif;
+                      font-size: 20px;
+                      font-weight: 900;
+                      color: #d96c8e;
+                      text-align: center;
+                      cursor: pointer;
+                      padding: 0;
+                    " />
+                </div>
+
+                <!-- 右側：化學 DLC 開關 -->
+                <label
+                  style="
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
                     font-size: 16px;
                     font-weight: 900;
                     color: #5d576b;
                     cursor: pointer;
-                    padding: 0 10px 0 20px;
-                  "
-                  >關卡</label
-                >
-                <input
-                  type="number"
-                  id="start-level"
-                  value="1"
-                  min="1"
-                  max="999"
-                  style="
-                    width: 40px;
-                    background: transparent;
-                    border: none;
-                    outline: none;
-                    font-family: &quot;Orbitron&quot;, sans-serif;
-                    font-size: 20px;
-                    font-weight: 900;
-                    color: #d96c8e;
-                    text-align: center;
-                    cursor: pointer;
-                    padding: 0;
-                  " />
+                  ">
+                  化學 DLC
+                  <div
+                    class="toggle-switch"
+                    style="margin-left: 12px; transform: scale(0.9)">
+                    <input type="checkbox" id="enable-dlc" checked />
+                    <span class="slider"></span>
+                  </div>
+                </label>
               </div>
+            </div>
+          </div>
+          <!-- 右側：排行榜面板 -->
+          <div
+            id="main-leaderboard"
+            style="
+              flex: 1;
+              background: rgba(255, 255, 255, 0.85);
+              border: 2px solid rgba(217, 108, 142, 0.4);
+              border-radius: 12px;
+              padding: 15px;
+              display: flex;
+              flex-direction: column;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            ">
+            <h3
+              style="
+                color: #dda15e;
+                margin: 0 0 10px 0;
+                text-align: center;
+                font-size: 18px;
+                font-weight: 900;
+              ">
+              🏆 神人排行榜 🏆
+            </h3>
 
-              <!-- 右側：化學 DLC 開關 -->
-              <label
+            <!-- 模式切換按鈕 -->
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 10px;
+              ">
+              <button
+                id="tab-basic"
+                onclick="window.toggleLeaderboard(false)"
                 style="
                   flex: 1;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  height: 100%;
-                  font-size: 16px;
+                  padding: 6px;
                   font-weight: 900;
-                  color: #5d576b;
+                  border-radius: 6px;
+                  border: none;
+                  background: #9dd9e8;
+                  color: #fff;
                   cursor: pointer;
+                  opacity: 0.5;
+                  transition: 0.2s;
+                ">
+                基本/數學
+              </button>
+              <button
+                id="tab-dlc"
+                onclick="window.toggleLeaderboard(true)"
+                style="
+                  flex: 1;
+                  padding: 6px;
+                  font-weight: 900;
+                  border-radius: 6px;
+                  border: none;
+                  background: #d96c8e;
+                  color: #fff;
+                  cursor: pointer;
+                  opacity: 1;
+                  transition: 0.2s;
                 ">
                 化學 DLC
-                <div
-                  class="toggle-switch"
-                  style="margin-left: 12px; transform: scale(0.9)">
-                  <input type="checkbox" id="enable-dlc" checked />
-                  <span class="slider"></span>
-                </div>
-              </label>
+              </button>
+            </div>
+
+            <!-- 啟動捲軸的列表容器 -->
+            <div
+              id="main-leaderboard-list"
+              style="flex: 1; overflow-y: auto; padding-right: 5px">
+              <!-- 內容由 JS 產生 -->
             </div>
           </div>
         </div>
