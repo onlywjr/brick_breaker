@@ -23,6 +23,58 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   </head>
   <body>
+    <!-- ★ 獨立於遊戲外框的全域載入畫面 (Splash Screen) -->
+    <div
+      id="global-loading-screen"
+      style="
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          #fff0f5 0%,
+          #e6f2ff 50%,
+          #f5f0ff 100%
+        );
+        z-index: 9999999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+      ">
+      <h1
+        style="
+          font-family:
+            &quot;Orbitron&quot;, &quot;Noto Sans TC&quot;, sans-serif;
+          font-size: clamp(32px, 8vw, 52px);
+          font-weight: 900;
+          background: linear-gradient(
+            135deg,
+            #f6a6c1 0%,
+            #c9b1e8 50%,
+            #9dd9e8 100%
+          );
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 0 10px rgba(246, 166, 193, 0.3));
+          letter-spacing: 5px;
+          margin: 0 0 20px 0;
+          text-align: center;
+        ">
+        BRICK RUSH 99
+      </h1>
+      <div
+        style="
+          font-size: 18px;
+          color: #d96c8e;
+          font-weight: 900;
+          letter-spacing: 2px;
+          animation: pulseText 1s infinite alternate;
+        ">
+        正在為您準備遊戲宇宙... 🚀
+      </div>
+    </div>
     <!-- ▼▼▼ 新增：全域離開按鈕 (放在 body 第一層，絕對不會被困住) ▼▼▼ -->
     <button
       id="global-leave-btn"
@@ -984,7 +1036,24 @@
             },
           });
 
-          setTimeout(resizeGame, 100);
+          // ==========================================
+          // ★ 替換原本的 setTimeout(resizeGame, 100);
+          // ==========================================
+          setTimeout(() => {
+            // 1. 先計算並套用正確的畫面比例
+            resizeGame();
+
+            // 2. 等比例縮放完成後，把最上層的「全域載入畫面」平滑淡出
+            const globalLoader = document.getElementById(
+              "global-loading-screen",
+            );
+            if (globalLoader) {
+              globalLoader.style.opacity = "0"; // 觸發 CSS 淡出動畫
+              setTimeout(() => {
+                globalLoader.style.display = "none"; // 徹底移除避免擋住點擊
+              }, 500);
+            }
+          }, 100);
         })
         .catch((err) => {
           document.getElementById("loading").textContent =
