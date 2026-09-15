@@ -81,6 +81,9 @@ export function updateVirtualButtonsVisibility(showVirtual, running, mode) {
   }
 }
 
+// ==========================================
+// ★ 精準設備偵測與自適應畫面縮放
+// ==========================================
 export function resizeGame() {
   const wrap = document.getElementById("wrap");
   if (!wrap) return;
@@ -96,9 +99,6 @@ export function resizeGame() {
     && chemOverlay.style.display !== "none"
     && chemOverlay.style.display !== "";
 
-  // ==========================================
-  // ★ 精準設備偵測
-  // ==========================================
   // 偵測是否為觸控設備
   const isTouchDevice = window.matchMedia(
     "(hover: none) and (pointer: coarse)",
