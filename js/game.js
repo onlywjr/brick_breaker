@@ -123,6 +123,7 @@ export let showVirtual = false;
 export let gameTimeRemaining = 180;
 export let comboCount = 0;
 export let comboTimer = 0;
+export let isRankedRun = true; // ★ 新增：是否具備上傳排行榜的資格
 
 export let p1, p2;
 export let bricks = [];
@@ -719,6 +720,9 @@ function executeStartGame(selectedMode, cv) {
   const inputLv = parseInt(document.getElementById("start-level").value, 10);
   level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
 
+  // ★ 新增：只有從第 1 關開始，才具備上傳排行榜的資格
+  isRankedRun = level === 1;
+
   // ★ 絕對不能加上 let！必須修改上方宣告的全域 p1, p2
   p1 = makePlayer("#F6A6C1", "#f9a8d4");
   p2 = makePlayer("#9DD9E8", "#9DD9E8");
@@ -977,6 +981,19 @@ export function endGame() {
     else
       msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   } else {
+    let uploadHtml = "";
+    if (isRankedRun) {
+      uploadHtml = `
+        <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 44px; border-radius: 22px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
+          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
+          <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳</button>
+        </div>`;
+    } else {
+      uploadHtml = `
+        <div style="color: #8A7E9C; font-size: 14px; font-weight: 900; margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 8px 15px; border-radius: 8px;">
+          ⚠️ 自訂關卡或測試模式無法參與排名
+        </div>`;
+    }
     // 單機/連線結算畫面：極簡風輸入框與上傳按鈕
     msg = `
       <div class="victory-screen" style="display: flex; flex-direction: column; align-items: center;">
@@ -1922,6 +1939,7 @@ export function initGlobalBindings() {
       if (running) {
         bricks.length = 0;
         boss.active = false;
+        isRankedRun = false; // ★ 使用跳關鍵，失去上傳資格
         /*
         floatTexts.push({
           t: "⚡ 跳關成功 ⚡",
@@ -1939,6 +1957,7 @@ export function initGlobalBindings() {
         level = Math.ceil((level + 1) / 10) * 10;
         buildLevel(level, document.getElementById("game"));
         resetRound(document.getElementById("game"));
+        isRankedRun = false; // ★ 使用跳關鍵，失去上傳資格
       }
     }
     if (e.key === "+" || e.key === "=") {
