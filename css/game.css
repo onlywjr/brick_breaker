@@ -433,15 +433,3 @@ body.single-layout .center-card > div:nth-child(2) {
   animation: skillInnerGlow 0.8s infinite alternate ease-in-out !important;
   border-radius: inherit;
 }
-
-/* ==========================================
-   ★ iPad 專屬：多人連線時強制要求直向 (Portrait)
-========================================== */
-@media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: landscape) {
-  body.online-battle-mode #rotate-prompt {
-    display: flex !important;
-  }
-  body.online-battle-mode #wrap {
-    display: none !important; /* 隱藏遊戲畫面，逼迫轉向 */
-  }
-}

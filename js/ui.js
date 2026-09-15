@@ -81,9 +81,6 @@ export function updateVirtualButtonsVisibility(showVirtual, running, mode) {
   }
 }
 
-// ==========================================
-// ★ 精準設備偵測與自適應畫面縮放
-// ==========================================
 export function resizeGame() {
   const wrap = document.getElementById("wrap");
   if (!wrap) return;
@@ -99,49 +96,70 @@ export function resizeGame() {
     && chemOverlay.style.display !== "none"
     && chemOverlay.style.display !== "";
 
-  // 偵測是否為觸控設備
+  // ==========================================
+  // ★ 精準設備偵測 (區分 iPad 與 一般手機)
+  // ==========================================
   const isTouchDevice = window.matchMedia(
     "(hover: none) and (pointer: coarse)",
   ).matches;
-  // 精準偵測 iPad (包含新版 iPadOS 會偽裝成 MacIntel 的情況)
   const isIPad =
     /iPad/i.test(navigator.userAgent)
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   if (mainPrompt) {
     if (isShopOpen) {
-      // 狀態 1：商店開啟中。強制隱藏主遊戲的提示，把方向控制權完全交給商店
+      // 狀態 1：商店開啟中。強制隱藏主遊戲提示，畫布保持顯示 (讓商店蓋在上面)
       mainPrompt.style.setProperty("display", "none", "important");
+      wrap.style.display = "block";
     } else if (isTouchDevice) {
       // 狀態 2：觸控行動裝置
-      if (isIPad && isOnline) {
-        // 【專屬 iPad + 連線模式】：強制要求直向
+      if (isIPad) {
+        // 【專屬 iPad】：一律強制要求直向
         if (!isPortrait) {
           mainPrompt.innerHTML =
-            "📱<br />請將 iPad 轉為直向<br />以顯示完整對戰畫面";
+            "📱<br />請將 iPad 轉為直向<br />以顯示完整遊戲畫面";
           mainPrompt.style.setProperty("display", "flex", "important");
+          wrap.style.display = "none"; // 姿勢錯誤時隱藏畫布
         } else {
           mainPrompt.style.setProperty("display", "none", "important");
+          wrap.style.display = "block"; // 姿勢正確時顯示畫布
         }
       } else {
-        // 【所有一般手機】或【iPad 單機模式】：一律強制要求橫向
+        // 【所有一般手機】：一律強制要求橫向
         if (isPortrait) {
           mainPrompt.innerHTML =
             "🔄<br />請將設備轉為橫向<br />以顯示完整遊戲畫面";
           mainPrompt.style.setProperty("display", "flex", "important");
+          wrap.style.display = "none"; // 姿勢錯誤時隱藏畫布
         } else {
           mainPrompt.style.setProperty("display", "none", "important");
+          wrap.style.display = "block"; // 姿勢正確時顯示畫布
         }
       }
     } else {
       // 電腦版無須提示
       mainPrompt.style.setProperty("display", "none", "important");
+      wrap.style.display = "block";
     }
   }
 
-  // 畫面縮放邏輯
-  const baseW = !isPortrait && isOnline ? 1200 : 840;
-  const baseH = isPortrait && isOnline ? 1150 : 660;
+  // ==========================================
+  // 畫面動態縮放邏輯
+  // ==========================================
+  let baseW = 840;
+  let baseH = 660;
+
+  // 依據連線模式與設備，調整畫布的基礎基準值
+  if (isOnline) {
+    if (isIPad) {
+      baseW = 840;
+      baseH = 1150; // iPad 連線模式直向佈局
+    } else {
+      baseW = 1200; // 手機/電腦 連線模式橫向佈局
+      baseH = 660;
+    }
+  }
+
   let scale = Math.min(w / baseW, h / baseH);
   if (scale > 1.5) scale = 1.5;
   wrap.style.transform = `scale(${scale})`;
