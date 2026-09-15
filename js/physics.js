@@ -1318,19 +1318,22 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       triggerGameEvent(`❤️ +${Math.round(power)}%`, false, pl === p1 ? 0 : 1);
 
       // ==========================================
-      // ★ 效能優化：解決全畫面愛心造成的巨大 Lag
-      // 把愛心數量大幅縮減，改為從「玩家擋板」冒出 6~8 顆往上飄
+      // ★ 修改：從畫面最底部刷一整排的愛心往上
       // ==========================================
-      const heartCount = 6 + Math.floor(Math.random() * 3);
+      // 根據畫面寬度來決定愛心數量，確保不管螢幕多寬都能塞滿一整排
+      const heartCount = Math.floor(cv.width / 25);
       for (let j = 0; j < heartCount; j++) {
         gameState.particles.push({
-          x: pl.x + Math.random() * pl.w, // 從擋板寬度內隨機位置產生
-          y: pl.y - 10, // 從擋板上方一點點開始
-          vx: (Math.random() - 0.5) * 2.0, // 稍微左右錯開
-          vy: -2 - Math.random() * 2, // 輕快地往上飄
-          size: 18 + Math.random() * 12, // 大小適中 (18~30px)
-          life: 1.0 + Math.random() * 0.5, // 縮短存活時間，飄一段距離就自然消失
-          maxLife: 1.5,
+          // X軸：均勻分佈在整個畫面寬度，並加上一點點隨機偏移避免太死板
+          x: (cv.width / heartCount) * j + (Math.random() - 0.5) * 15,
+          // Y軸：從畫面最底部（甚至超出版面一點點）開始往上衝
+          y: cv.height + 20 + Math.random() * 60,
+          vx: (Math.random() - 0.5) * 1.0,
+          // 給予極快的負Y軸速度，營造「刷上去」的海浪感
+          vy: -3 - Math.random(),
+          size: 20 + Math.random() * 30, // 愛心稍微放大 (20px ~ 50px)
+          life: 2.5 + Math.random() * 0.5, // 延長存活時間，確保能飛過整個畫面
+          maxLife: 3,
           type: "heal_heart",
           c: "rgba(255, 105, 180, 1)",
         });

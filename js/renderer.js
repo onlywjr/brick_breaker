@@ -19,6 +19,47 @@ import {
   getSkillData,
 } from "../mod/chemistry.js";
 
+// ==========================================
+// ★ 效能優化：預先渲染愛心 (Off-screen Canvas)
+// 遊戲啟動時只畫一次，之後當作圖片「蓋印章」
+// ==========================================
+const cachedHeartCanvas = document.createElement("canvas");
+cachedHeartCanvas.width = 60;
+cachedHeartCanvas.height = 60;
+const hCtx = cachedHeartCanvas.getContext("2d");
+
+// 繪製純向量貝茲曲線愛心
+hCtx.fillStyle = "#FF69B4"; // 亮粉色
+hCtx.shadowColor = "rgba(255, 105, 180, 0.8)";
+hCtx.shadowBlur = 8; // 加上一點點發光效果
+
+hCtx.beginPath();
+const hSize = 40;
+const hx = 30; // 畫布中心 X
+const hy = 15; // 畫布起始 Y
+const topH = hSize * 0.3;
+
+hCtx.moveTo(hx, hy + topH);
+hCtx.bezierCurveTo(hx, hy, hx - hSize / 2, hy, hx - hSize / 2, hy + topH);
+hCtx.bezierCurveTo(
+  hx - hSize / 2,
+  hy + (hSize + topH) / 2,
+  hx,
+  hy + hSize * 0.8,
+  hx,
+  hy + hSize,
+);
+hCtx.bezierCurveTo(
+  hx,
+  hy + hSize * 0.8,
+  hx + hSize / 2,
+  hy + (hSize + topH) / 2,
+  hx + hSize / 2,
+  hy + topH,
+);
+hCtx.bezierCurveTo(hx + hSize / 2, hy, hx, hy, hx, hy + topH);
+hCtx.fill();
+
 let currentBg = null;
 
 const BG_PALETTES = [
@@ -1546,26 +1587,20 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     // ★ 新增：回復 HP 的愛心飄浮特效
     // ==========================================
     if (p.type === "heal_heart") {
-      const progress = Math.max(0, p.life / p.maxLife);
       ctx.save();
+      // 隨著生命週期變淡
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
 
-      // 隨著時間慢慢變透明 (加上 0.8 的係數讓它不會太刺眼)
-      ctx.globalAlpha = progress * 0.8;
+      // ★ 核心優化：直接把剛剛畫好的「愛心印章」貼上來！效能極高！
+      ctx.drawImage(
+        cachedHeartCanvas,
+        p.x - p.size / 2,
+        p.y - p.size / 2,
+        p.size,
+        p.size,
+      );
 
-      // 套用一點粉紅色的柔和光暈
-      ctx.shadowColor = "#f472b6";
-      ctx.shadowBlur = 10;
-
-      ctx.font = `${p.size}px Arial`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      // 利用三角函數 (sin) 根據粒子的生命週期製造出「左右搖曳」的氣球飄浮感
-      const swayOffset = Math.sin(p.life * 4) * 8 * (1 - progress);
-
-      ctx.fillText("❤️", p.x + swayOffset, p.y);
       ctx.restore();
-      continue;
     }
 
     // ==========================================
