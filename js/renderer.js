@@ -1684,42 +1684,45 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   ctx.globalAlpha = 1;
 
   ctx.textAlign = "center";
-  // ★ 修正：改用倒序迴圈 (從尾巴開始跑)，這樣才能在陣列中安全地刪除元素
   for (let i = floatTexts.length - 1; i >= 0; i--) {
     const f = floatTexts[i];
     f.life -= 0.02;
 
-    // ==========================================
-    // ★ iOS 終極修復：壽命耗盡就徹底刪除！
-    // 防止 WebKit 引擎因無限放大而產生殘影 Bug，同時釋放記憶體
-    // ==========================================
     if (f.life <= 0) {
       floatTexts.splice(i, 1);
-      continue; // 刪除後直接跳過渲染
+      continue;
     }
 
     ctx.save();
-    // 確保透明度安全範圍 (0 ~ 1)
-    ctx.globalAlpha = Math.min(1, Math.max(0, f.life));
+    // 取得 0 到 1 的基礎壽命比例
+    const rawAlpha = Math.max(0, f.life / (f.maxLife || 1));
 
     if (f.isCountdown) {
       // ==========================================
-      // ★ 倒數專屬特效：原地放大並淡出
+      // ★ 倒數特效升級：衝擊波急遽消散 + 破解 iOS 透明度 Bug
       // ==========================================
-      const progress = 1 - f.life / f.maxLife; // 取得 0 -> 1 的動畫進度
-      const scale = 1 + progress * 1.5; // 從 1 倍放大到 2.5 倍
+      // 透明度加入 3 次方衰減：讓它在放大的過程中「瞬間」變透明，不擋視線
+      const alpha = Math.pow(rawAlpha, 3);
+      const progress = 1 - rawAlpha;
+      const scale = 1 + progress * 1.5;
 
       ctx.translate(f.x, f.y);
       ctx.scale(scale, scale);
-      ctx.textBaseline = "middle"; // 確保縮放時完美以正中央為準
+      ctx.textBaseline = "middle";
 
-      ctx.shadowColor = f.c || "#E0576B";
+      // ★ 強制將色碼轉換為 rgba，繞過 iOS globalAlpha 失效的 Bug
+      const hex = f.c || "#E0576B";
+      const r = parseInt(hex.slice(1, 3), 16) || 224;
+      const g = parseInt(hex.slice(3, 5), 16) || 87;
+      const b = parseInt(hex.slice(5, 7), 16) || 107;
+
+      // 每一層塗料都親自餵給它透明度
+      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
       ctx.shadowBlur = 15;
-      ctx.fillStyle = f.c || "#D96C8E";
-      ctx.strokeStyle = "#FFFFFF"; // 加上白色粗外框增加氣勢
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.lineWidth = 3;
 
-      // 使用 100px 超巨大粗體字
       ctx.font = "900 100px 'Orbitron', 'Noto Sans TC', sans-serif";
       ctx.fillText(f.t, 0, 0);
       ctx.strokeText(f.t, 0, 0);
@@ -1727,6 +1730,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       // ==========================================
       // ★ 一般傷害/加分文字：保持原樣向上飄動
       // ==========================================
+      ctx.globalAlpha = rawAlpha;
       f.y -= 1;
       ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
       ctx.shadowBlur = 4;
@@ -1737,6 +1741,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
     ctx.restore();
   }
+  // ★ 迴圈到此結束
   ctx.globalAlpha = 1;
 
   // 視線遮蔽特效與 HTML HUD... (保持原樣即可)
