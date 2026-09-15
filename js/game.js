@@ -977,19 +977,19 @@ export function endGame() {
     else
       msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
   } else {
-    // 結算畫面：合成單一區塊的輸入框與上傳按鈕，徹底移除排行榜
+    // 單機/連線結算畫面：極簡風輸入框與上傳按鈕
     msg = `
       <div class="victory-screen" style="display: flex; flex-direction: column; align-items: center;">
         <div class="winner-score" style="color:#D96C8E; font-size:48px;">最終得分: ${p1.score}</div>
         <div class="vs-score" style="margin-bottom: 25px;">你的等級: Level ${level}</div>
         
-        <!-- ★ 合併的輸入與上傳區塊 (與下方按鈕同寬 250px) -->
+        <!-- ★ 修正：加入 flex-shrink: 0 防止按鈕被擠扁，加入 min-width: 0 防止 input 撐破 -->
         <div id="upload-wrapper" style="display:flex; width: 100%; max-width: 250px; height: 44px; border-radius: 22px; background: white; border: 2px solid #F6D98B; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; transition: border-color 0.3s;">
-          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
-          <button id="submit-score-btn" onclick="window.submitScore()" style="background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳</button>
+          <input type="text" id="player-name" placeholder="輸入大名" maxlength="12" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; text-align: center; font-weight: 900; color: #5D576B; font-size: 15px; padding-left: 15px;">
+          <button id="submit-score-btn" onclick="window.submitScore()" style="flex-shrink: 0; background: #F6D98B; color: #FFF; border: none; font-weight: 900; font-size: 15px; padding: 0 20px; cursor: pointer; transition: 0.2s;">上傳</button>
         </div>
         
-        <!-- 返回首頁按鈕 (設定一樣的最大寬度) -->
+        <!-- 返回首頁按鈕 -->
         <button class="menu-item-macaron macaron-pink" style="width: 100%; max-width: 250px; box-sizing: border-box;" onclick="window.backToMainMenu()">返回首頁</button>
       </div>`;
   }
