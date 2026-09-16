@@ -229,8 +229,8 @@
         "upgradeCostBase": 40,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -263,8 +263,8 @@
         "upgradeCostBase": 40,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -340,8 +340,8 @@
         "upgradeCostBase": 46,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -619,8 +619,8 @@
         "upgradeCostBase": 97.5,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -653,8 +653,8 @@
         "upgradeCostBase": 100.0,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -863,8 +863,8 @@
         "upgradeCostBase": 125.0,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -931,8 +931,8 @@
         "upgradeCostBase": 127.5,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -1216,8 +1216,8 @@
         "upgradeCostBase": 172.5,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -1891,8 +1891,8 @@
         "upgradeCostBase": 333.2,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -1925,8 +1925,8 @@
         "upgradeCostBase": 334.9,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2034,8 +2034,8 @@
         "upgradeCostBase": 357.0,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2255,8 +2255,8 @@
         "upgradeCostBase": 408.0,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2323,8 +2323,8 @@
         "upgradeCostBase": 452.2,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2391,8 +2391,8 @@
         "upgradeCostBase": 494.7,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2531,8 +2531,8 @@
         "upgradeCostBase": 511.7,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2878,8 +2878,8 @@
         "upgradeCostBase": 562.7,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -2912,8 +2912,8 @@
         "upgradeCostBase": 564.4,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3021,8 +3021,8 @@
         "upgradeCostBase": 598.4,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3262,8 +3262,8 @@
         "upgradeCostBase": 664.7,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3472,8 +3472,8 @@
         "upgradeCostBase": 912.9,
         "upgradeCostGrowth": 1.0,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3506,8 +3506,8 @@
         "upgradeCostBase": 921.4,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3540,8 +3540,8 @@
         "upgradeCostBase": 935.0,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3574,8 +3574,8 @@
         "upgradeCostBase": 955.4,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -3791,8 +3791,8 @@
         "upgradeCostBase": 365.8,
         "upgradeCostGrowth": 1.08,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
@@ -4348,8 +4348,8 @@
         "upgradeCostBase": 523.6,
         "upgradeCostGrowth": 1.15,
         "scaling": {
-          "type": "step3",
-          "formula": "baseShieldPercent × (1 + floor((level - 1) / 3))"
+          "type": "diminishing_linear",
+          "formula": "baseShieldPercent × (1 + 0.30 × (level - 1))"
         }
       }
     },
