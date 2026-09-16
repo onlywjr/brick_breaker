@@ -663,7 +663,7 @@ function resetRound(cv) {
     p2.w = 120;
     p2.x = cv.width - 120 - p2.w / 2;
     p2.shrinkFx = 0;
-    let spd = 4 + Math.min(3, level * 0.2);
+    let spd = 3.5 + Math.min(4.5, level * 0.1);
     p2.ball = {
       x: p2.x + p2.w / 2,
       y: p2.y - 20,
@@ -676,7 +676,7 @@ function resetRound(cv) {
   } else {
     p2.ball = null;
   }
-  let spd = 4 + Math.min(3, level * 0.2);
+  let spd = 3.5 + Math.min(4.5, level * 0.1);
   p1.ball = {
     x: p1.x + p1.w / 2,
     y: p1.y - 20,
@@ -1992,6 +1992,25 @@ export function initGlobalBindings() {
   if (isMobileTouch) {
     showVirtual = true;
   }
+
+  // ==========================================
+  // ★ 新增：徹底封鎖滑鼠滾輪與筆電觸控板的捲動
+  // ==========================================
+  window.addEventListener(
+    "wheel",
+    (e) => {
+      // 只要遊戲在進行中，且不是在輸入框裡，就禁止畫面滾動
+      if (
+        running
+        && e.target.tagName !== "INPUT"
+        && e.target.tagName !== "TEXTAREA"
+      ) {
+        e.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+  // ==========================================
 
   // ==========================================
   // ★ 終極防偏移：遊戲進行中徹底鎖死所有拖曳與點擊手勢
