@@ -26,6 +26,7 @@ import {
   triggerVFX,
   isLevelClearing, // ★ 補上匯入
   levelStartTime, // ★ 補上匯入
+  showVirtual,
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -659,18 +660,23 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.spin = 0;
         b.spinType = null;
 
-        if (targetPl.lastSpinCmd && now - targetPl.lastSpinCmd.time < 300) {
+        // ★ 手機放寬為 500ms，電腦維持 300ms
+        const spinWindow = showVirtual ? 500 : 300;
+
+        if (
+          targetPl.lastSpinCmd
+          && now - targetPl.lastSpinCmd.time < spinWindow
+        ) {
           const spinDir = targetPl.lastSpinCmd.dir;
           const timeDiff = now - targetPl.lastSpinCmd.time;
 
-          // 計算完美度：越接近 0 毫秒越完美 (0.0 ~ 1.0)
-          const perfectRatio = Math.max(0, 1 - timeDiff / 300);
+          // 計算完美度：跟著動態時間縮放 (0.0 ~ 1.0)
+          const perfectRatio = Math.max(0, 1 - timeDiff / spinWindow);
 
           // 轉速與傷害依據完美度決定 (基礎 15 + 額外最多 35)
           b.spin = spinDir * (15 + perfectRatio * 35);
           b.spinType = spinDir === -1 ? "left" : "right";
 
-          // ★ 新增：初始化已擊中名單，確保電鑽不會在同一顆磚塊體內重複判定
           b.hitBricks = new Set();
 
           // ==========================================

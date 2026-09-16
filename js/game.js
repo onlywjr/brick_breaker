@@ -2064,6 +2064,9 @@ export function initGlobalBindings() {
     // ==========================================
     const nowTime = performance.now();
 
+    // ★ 手機防連打降低至 120ms (容許更直覺的連點)，電腦維持 250ms
+    const mashCooldown = showVirtual ? 120 : 250;
+
     if (!e.repeat) {
       const keyL = e.key.toLowerCase();
 
@@ -2075,8 +2078,11 @@ export function initGlobalBindings() {
       ) {
         const dir = keyL === "arrowleft" || keyL === "a" ? -1 : 1;
 
-        // 判定兩次按鍵的間隔，小於 250 毫秒視為「連打/亂按」
-        if (p1.lastKeyPressTime && nowTime - p1.lastKeyPressTime < 250) {
+        // ★ 套用動態防弊時間
+        if (
+          p1.lastKeyPressTime
+          && nowTime - p1.lastKeyPressTime < mashCooldown
+        ) {
           p1.isMashing = true;
         } else {
           p1.isMashing = false;
@@ -2084,15 +2090,13 @@ export function initGlobalBindings() {
         p1.lastKeyPressTime = nowTime; // 更新最後按鍵時間
 
         if (!p1.isMashing) {
-          // 沒有亂按，正常發放切球指令
           p1.lastSpinCmd = { dir: dir, time: nowTime };
         } else {
-          // 抓到亂按！沒收切球指令 (但底層物理擋板依然會正常移動)
           p1.lastSpinCmd = null;
         }
       }
 
-      // --- 2P 判定 ---
+      // --- 2P 判定 (雙人模式通常共用鍵盤，維持現狀即可，但保險起見一起改) ---
       if (
         running
         && mode === 2
@@ -2101,7 +2105,10 @@ export function initGlobalBindings() {
       ) {
         const dir = keyL === "arrowleft" ? -1 : 1;
 
-        if (p2.lastKeyPressTime && nowTime - p2.lastKeyPressTime < 250) {
+        if (
+          p2.lastKeyPressTime
+          && nowTime - p2.lastKeyPressTime < mashCooldown
+        ) {
           p2.isMashing = true;
         } else {
           p2.isMashing = false;
