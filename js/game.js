@@ -1885,7 +1885,9 @@ export function updateGameState(dt, cv) {
           y: Math.round(p1.y),
           w: p1.w,
           h: p1.h,
-          lives: p1.lives,
+          // ★ 修正：移除舊版的 lives，改傳送真實 HP 與 護盾值
+          hp: Math.round(p1.hp),
+          shield: Math.round(p1.shield || 0),
         },
         ball:
           p1.ball ?

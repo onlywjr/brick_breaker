@@ -86,6 +86,22 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
     });
 
   opps.forEach((p, index) => {
+    // ==========================================
+    // ★ 共用邏輯：計算對手的真實血量與護盾顯示字串
+    // ==========================================
+    const hpVal = p.paddle?.hp !== undefined ? p.paddle.hp : 100;
+    const shieldVal = p.paddle?.shield || 0;
+
+    // 超過 100% 顯示金心，低於 30% 顯示紅心
+    const hpEmoji =
+      hpVal > 100 ? "💛"
+      : hpVal <= 30 ? "💔"
+      : "💗";
+    let hpDisplay = `${hpEmoji} ${hpVal}%`;
+    if (shieldVal > 0) {
+      hpDisplay += ` 🛡️${shieldVal}%`; // 若有護盾則附加在後面
+    }
+
     if (index < 8) {
       let tag = bottomEl?.querySelector(
         `[data-player-id="${CSS.escape(p.id)}"]`,
@@ -104,13 +120,15 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
 
       const spans = w.querySelectorAll(".online-opponent-head span");
       if (spans.length === 2) {
-        const livesLeft =
-          p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
-        // ★ 在名字前方加上 Lv. 標籤
+        // ★ 更新側邊縮圖的標題
         spans[0].textContent = p.name || "玩家";
-        spans[1].textContent =
-          p.alive === false ? "💀 淘汰" : `❤️ x${livesLeft}`;
-        spans[1].style.color = "#7A728A";
+        spans[1].textContent = p.alive === false ? "💀 淘汰" : hpDisplay;
+
+        // 依據血量多寡稍微改變顏色提示
+        spans[1].style.color =
+          p.alive === false ? "#7A728A"
+          : hpVal <= 30 ? "#E0576B"
+          : "#7A728A";
       }
 
       const c = w.querySelector(".online-mini");
@@ -231,13 +249,12 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
         if (bottomEl) bottomEl.appendChild(tag);
       }
       tag.style.opacity = p.alive === false ? "0.4" : "1";
-      const livesLeft =
-        p.paddle?.lives !== undefined ? Math.max(0, p.paddle.lives) : 3;
-      // ★ 下方的文字標籤也同步顯示關卡
+
+      // ★ 更新底部的文字名牌
       tag.innerText =
         p.alive === false ?
           `💀 Lv.${p.level || 1} ${p.name || "玩家"}`
-        : `Lv.${p.level || 1} ${p.name || "玩家"} - ❤️x${livesLeft}`;
+        : `Lv.${p.level || 1} ${p.name || "玩家"} - ${hpDisplay}`;
     }
   });
 }
