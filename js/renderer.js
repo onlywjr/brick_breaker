@@ -984,6 +984,11 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       }
       ctx.restore();
     }
+    // ==========================================
+    // ★ 關鍵修復：補上 Boss 外層遺漏的 restore
+    // 否則會造成記憶體堆疊錯亂，導致震動位移無法復原！
+    // ==========================================
+    ctx.restore();
   }
 
   for (const d of drops) {
