@@ -724,6 +724,11 @@ export function startGameGlobal(selectedMode, cv) {
 
 // 這裡不要加 export，作為內部呼叫使用
 function executeStartGame(selectedMode, cv) {
+  // ★ 電腦版防偏移：強制解除滑鼠剛剛點擊的按鈕焦點，防止瀏覽器因為焦點而強拉畫面
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
+
   // 在 executeStartGame 開頭加入：
   chemDLCEnabled = document.getElementById("enable-dlc").checked;
   onlineMode = false;
@@ -935,6 +940,10 @@ function setupEventHUDs() {
 export let nextLevelTimer = null; // ★ 宣告倒數計時器
 
 export function startOnlineGame(state, cv) {
+  // ★ 電腦版防偏移：強制解除滑鼠剛剛點擊的按鈕焦點
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
   onlineMode = true;
   mode = 1; // 底層模式
   // ★ 強制讀取大廳同步好的 DLC 狀態
@@ -2013,6 +2022,17 @@ export function initGlobalBindings() {
   // ==========================================
 
   window.addEventListener("keydown", (e) => {
+    // ==========================================
+    // ★ 電腦版防偏移：攔截方向鍵與空白鍵，禁止瀏覽器預設的捲動網頁行為
+    // ==========================================
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)
+    ) {
+      // 確保玩家不是正在聊天框或輸入名字，才攔截按鍵
+      if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+      }
+    }
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;
     if (e.key === "*") {
