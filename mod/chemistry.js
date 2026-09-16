@@ -1646,10 +1646,8 @@ function renderShopCards() {
             oldP = Math.round(p).toString();
             newP = Math.round(p + (displayLv - 1)).toString();
           } else if (act === "add_shield") {
-            oldP = (Math.round(p * 10) / 10).toString();
-            newP = (
-              Math.round(p * (1 + 0.3 * (displayLv - 1)) * 10) / 10
-            ).toString();
+            oldP = Number(p).toFixed(1);
+            newP = (Number(p) * (1 + 0.3 * (displayLv - 1))).toFixed(1);
           } else if (
             ["damage_hp", "damage_all", "heal_hp", "clear_rows"].includes(act)
           ) {
