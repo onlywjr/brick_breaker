@@ -89,15 +89,15 @@ export function startCountdownSequence(cv) {
     });
   };
 
-  pushCount("5", "#E0576B");
+  pushCount("5", "#ffc2f7");
 
   countdownInterval = setInterval(() => {
     count--;
     if (count > 0) {
-      pushCount(count.toString(), count <= 3 ? "#FBBF24" : "#E0576B"); // 倒數後 3 秒變亮黃色
+      pushCount(count.toString(), count <= 3 ? "#ffeab3" : "#ffc0c9"); // 倒數後 3 秒變亮黃色
     } else {
       clearInterval(countdownInterval);
-      pushCount("START!", "#2EB886"); // 開始變為螢光綠
+      pushCount("START!", "#85fff3"); // 開始變為螢光綠
       isGameCountdown = false;
       levelStartTime = performance.now();
 
