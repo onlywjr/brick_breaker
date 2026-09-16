@@ -460,14 +460,31 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             return;
           } else if (mode === 1) {
             // ★ 方案 B：Boss 改為扣除 20% 真實裝甲 (護盾可抵擋)
+            const oldHp = pl.hp; // 先記住被打之前的真實 HP
+
             applyLocalDebuff(pl, "damage_hp", 20, 0);
-            floatTexts.push({
-              t: "BOSS 攻擊！-20% HP",
-              life: 1.5,
-              x: pl.x + pl.w / 2,
-              y: pl.y - 30,
-              c: "#E0576B",
-            });
+
+            const actualHpLost = oldHp - pl.hp; // 算出真實損失的 HP
+
+            // 依據是否有損血，給予正確的視覺回饋
+            if (actualHpLost > 0) {
+              floatTexts.push({
+                t: `BOSS 攻擊！-${Math.round(actualHpLost)}% HP`,
+                life: 1.5,
+                x: pl.x + pl.w / 2,
+                y: pl.y - 30,
+                c: "#E0576B",
+              });
+            } else {
+              // 代表護盾厚度 >= 20，完全無傷擋下！
+              floatTexts.push({
+                t: "護盾格擋！",
+                life: 1.5,
+                x: pl.x + pl.w / 2,
+                y: pl.y - 30,
+                c: "#5FA8D3", // 改為護盾的藍色
+              });
+            }
           } else {
             pl.score = Math.max(0, pl.score - 100);
             floatTexts.push({
@@ -567,7 +584,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
 
-// ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
+    // ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
     b.x += b.dx * dt;
     b.y += b.dy * dt;
 
@@ -576,18 +593,18 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       b.x = Math.max(b.r, Math.min(b.x, cv.width - b.r));
       playSfx("bounce");
     }
-    
+
     // ==========================================
     // ★ 關鍵修復：天花板碰撞防卡死機制
     // ==========================================
     if (b.y < b.r) {
       // 只有當球真的往上飛 (dy < 0) 時才反轉，避免已經在往下掉卻又被反轉回去
-      if (b.dy < 0) { 
+      if (b.dy < 0) {
         b.dy *= -1;
         playSfx("bounce");
       }
       // 強制把球拉回天花板邊界，徹底解決卡死問題
-      b.y = b.r; 
+      b.y = b.r;
     }
 
     for (const targetPl of activePlayers) {
