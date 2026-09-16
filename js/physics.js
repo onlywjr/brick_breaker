@@ -809,6 +809,12 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         && b.y > br.y - b.r
         && b.y < br.y + br.h + b.r
       ) {
+        // ==========================================
+        // ★ 1. 這裡新增一行：記錄這是否為旋球的攻擊
+        // (因為稍後釋放動能時，b.spinType 就會被清空了)
+        // ==========================================
+        let isSpinAttack = b.spinType === "left" || b.spinType === "right";
+
         // ★ 判斷是否為右旋電鑽 (高轉速狀態下無視反彈)
         let isDrilling = false;
         if (b.spinType === "right" && Math.abs(b.spin) > 10) {
@@ -1006,20 +1012,37 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         if (br.hp <= 0) {
           const targetPlayer = pl === p2 ? p2 : p1;
 
+          // ==========================================
           // ★ 方案 B 陷阱機制：觸發 15% 傷害，並引發範圍爆破
+          // ==========================================
           if (br.symbol === "💣️") {
-            applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
-            triggerVFX(10, "255, 50, 50", 0.4); // 加大玩家受傷特效
-            floatTexts.push({
-              t: "陷阱爆破！HP -15%",
-              life: 1.5,
-              x: br.x,
-              y: br.y,
-              c: "#E0576B",
-              big: true,
-            });
+            // ★ 旋球技術拆除：如果帶有旋轉，免除玩家傷害！
+            if (isSpinAttack) {
+              triggerVFX(5, "52, 211, 153", 0.3); // 閃爍安全的綠光
+              floatTexts.push({
+                t: "✅ 技術拆除！(免傷)",
+                life: 1.5,
+                x: br.x + br.w / 2,
+                y: br.y - 15,
+                c: "#34D399", // 護盾綠
+                big: true,
+              });
+            } else {
+              // 一般撞擊：正常扣血與紅色受傷特效
+              applyLocalDebuff(targetPlayer, "damage_hp", 15, 0);
+              triggerVFX(10, "255, 50, 50", 0.4);
+              floatTexts.push({
+                t: "陷阱爆破！HP -15%",
+                life: 1.5,
+                x: br.x,
+                y: br.y,
+                c: "#E0576B",
+                big: true,
+              });
+            }
 
             // 💥 附加效果：炸毀周圍半徑 90px 內的磚塊
+            // (技術拆除的優勢：依然保留這個爆破效果來幫忙清怪！)
             const trapCx = br.x + br.w / 2;
             const trapCy = br.y + br.h / 2;
             const explosionRadius = 90;
