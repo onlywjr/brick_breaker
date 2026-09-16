@@ -11,6 +11,8 @@ body {
   top: 0;
   left: 0;
   overflow: hidden;
+  /* ★ 終極防護：徹底封鎖「雙擊放大」功能，但保留商店的單指滑動 */
+  touch-action: manipulation;
 }
 
 body {

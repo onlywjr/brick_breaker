@@ -1984,6 +1984,34 @@ export function initGlobalBindings() {
     showVirtual = true;
   }
 
+  // ==========================================
+  // ★ 終極防偏移：遊戲進行中徹底鎖死所有拖曳與點擊手勢
+  // ==========================================
+
+  // 1. 防止玩家手指滑出按鍵區時，把整個網頁拖走 (防回彈)
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      if (running && e.target.tagName !== "INPUT") {
+        e.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  // 2. 防止玩家不小心連點到畫布或背景，強制阻擋任何預設行為
+  const cv = document.getElementById("game");
+  if (cv) {
+    cv.addEventListener(
+      "touchstart",
+      (e) => {
+        if (running) e.preventDefault();
+      },
+      { passive: false },
+    );
+  }
+  // ==========================================
+
   window.addEventListener("keydown", (e) => {
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;
