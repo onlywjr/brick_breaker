@@ -686,7 +686,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             : "#FFF";
 
           const pId = targetPl === p1 ? 0 : 1;
-          const msg = spinDir === -1 ? `🌪️ 左旋準備` : `🪛 右旋準備`;
+          const msg = spinDir === -1 ? `🌀 左旋攻擊` : `💫 右旋攻擊`;
           const color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
 
           triggerGameEvent(msg, false, pId); // 底部 HUD 提示
