@@ -2568,43 +2568,69 @@ export function getRandomElementForLevel(currentLevel = 1) {
 }
 
 // ==========================================
-// ★ 跨平台技能拖拉裝備引擎 (支援滑鼠 & 觸控)
+// ★ 跨平台技能拖拉裝備引擎 (迷你縮圖版)
 // ==========================================
 export function initSkillDragAndDrop() {
   let draggedSkillId = null;
   let dragClone = null;
-  let offsetX = 0;
-  let offsetY = 0;
 
   document.body.addEventListener("pointerdown", (e) => {
+    // 防止右鍵觸發拖拉
+    if (e.button === 2) return;
+
     const card = e.target.closest(".shop-skill-card");
     if (!card) return;
 
     draggedSkillId = card.dataset.skillId;
     if (!draggedSkillId) return;
 
-    // ★ 防呆：檢查是否已解鎖 (未解鎖不可拖拉)
+    // 防呆：檢查是否已解鎖 (未解鎖不可拖拉)
     if (!unlockedSkills.includes(draggedSkillId)) {
       draggedSkillId = null;
       return;
     }
 
-    // 建立幽靈卡片
-    dragClone = card.cloneNode(true);
+    // ==========================================
+    // ★ 核心修改：只抓取化合物名稱與化學式，建立小巧的幽靈標籤
+    // ==========================================
+    const skill = getSkillData(draggedSkillId);
+
+    let pureFormula = skill.formula;
+    let zhName = "";
+    if (skill.formula.includes("(")) {
+      const parts = skill.formula.split("(");
+      pureFormula = parts[0];
+      zhName = parts[1].replace(")", "");
+    }
+
+    dragClone = document.createElement("div");
+    // 借用原本的 formatColorizedFormula 渲染出漂亮的化學式
+    dragClone.innerHTML = `
+      <div style="font-family: serif; font-size: 20px; font-weight: 900; letter-spacing: 1px;">
+        ${formatColorizedFormula(pureFormula)}
+      </div>
+      <div style="font-size: 11px; color: #8a7e9c; font-weight: 900; margin-top: 2px;">
+        (${zhName})
+      </div>
+    `;
+
+    // 設定幽靈標籤的樣式
     dragClone.style.position = "fixed";
-    dragClone.style.zIndex = "99999";
-    dragClone.style.pointerEvents = "none"; // 讓游標可以穿透它點到下方物件
-    dragClone.style.opacity = "0.85";
-    dragClone.style.transform = "scale(1.05)";
-    dragClone.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
-    dragClone.classList.add("dragging-clone");
+    dragClone.style.zIndex = "999999";
+    dragClone.style.pointerEvents = "none"; // 絕對必要：讓游標可以穿透它點到裝備槽
+    dragClone.style.background = "rgba(255, 255, 255, 0.95)";
+    dragClone.style.border = "2px solid #f6d98b";
+    dragClone.style.borderRadius = "12px";
+    dragClone.style.padding = "8px 16px";
+    dragClone.style.boxShadow = "0 10px 25px rgba(0,0,0,0.3)";
+    dragClone.style.textAlign = "center";
 
-    const rect = card.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
+    // ★ 關鍵：讓卡片浮在手指「正上方 (Y 軸向上推 120%)」，避免手指遮擋視線！
+    dragClone.style.transform = "translate(-50%, -120%)";
 
-    dragClone.style.left = `${e.clientX - offsetX}px`;
-    dragClone.style.top = `${e.clientY - offsetY}px`;
+    // 初始位置綁定在游標/手指上
+    dragClone.style.left = `${e.clientX}px`;
+    dragClone.style.top = `${e.clientY}px`;
 
     document.body.appendChild(dragClone);
   });
@@ -2613,9 +2639,10 @@ export function initSkillDragAndDrop() {
     "pointermove",
     (e) => {
       if (!dragClone) return;
-      e.preventDefault(); // 防止手機畫面跟著捲動
-      dragClone.style.left = `${e.clientX - offsetX}px`;
-      dragClone.style.top = `${e.clientY - offsetY}px`;
+      // 如果正在拖拉，阻止預設滑動行為防畫面捲動
+      if (e.cancelable) e.preventDefault();
+      dragClone.style.left = `${e.clientX}px`;
+      dragClone.style.top = `${e.clientY}px`;
     },
     { passive: false },
   );
@@ -2625,29 +2652,28 @@ export function initSkillDragAndDrop() {
     dragClone.remove();
     dragClone = null;
 
-    // 找出手指放開瞬間壓著的元素
+    // 找出手指/滑鼠放開瞬間壓著的元素
     const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
     const slot = dropTarget ? dropTarget.closest(".equip-slot") : null;
 
     if (slot && draggedSkillId) {
       const slotIndex = parseInt(slot.dataset.slotIndex, 10);
 
-      // ★ 執行裝備邏輯：如果還沒被裝備，就塞入對應的槽位！
+      // 如果目標技能尚未被裝備在其他位置，直接覆寫該槽位
       if (!equippedSkills.includes(draggedSkillId)) {
-        if (equipSkill(draggedSkillId, slotIndex)) {
-          // 成功裝備，重置原本的點擊裝備模式狀態
-          if (typeof isEquippingMode !== "undefined") isEquippingMode = false;
-          if (typeof activeEquipSlotIndex !== "undefined")
-            activeEquipSlotIndex = null;
+        equippedSkills[slotIndex] = draggedSkillId;
+        chemStates[activePIdx].equipped = equippedSkills; // 強制寫回存檔
 
-          if (window.playSfx) window.playSfx("brk"); // 發出裝備音效
+        // 關閉點擊裝備模式 (如果處於該模式)
+        isEquippingMode = false;
+        activeEquipSlotIndex = null;
 
-          renderEquippedSlots();
-          renderShopCards();
-        }
+        if (window.playSfx) window.playSfx("brk"); // 裝備成功音效
+
+        renderEquippedSlots();
+        renderShopCards();
       } else {
-        // 如果已經裝備過了，可以稍微震動提示 (選擇性)
-        if (window.playSfx) window.playSfx("hit");
+        if (window.playSfx) window.playSfx("hit"); // 裝備過了給錯誤音效
       }
     }
     draggedSkillId = null;
