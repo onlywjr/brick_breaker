@@ -661,7 +661,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.spinType = null;
 
         // ★ 手機放寬為 500ms，電腦維持 300ms
-        const spinWindow = showVirtual ? 750 : 300;
+        const spinWindow = showVirtual ? 500 : 300;
 
         if (
           targetPl.lastSpinCmd

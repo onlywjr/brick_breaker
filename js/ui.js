@@ -15,6 +15,12 @@ export function bindVirtualButton(el, keyName) {
   const press = (e) => {
     if (e && e.cancelable) e.preventDefault();
 
+    // ==========================================
+    // ★ 關鍵修復：防幽靈點擊 (Ghost Click)
+    // 如果這個按鍵已經被按下了，就直接退出，防止手機同時觸發 touch 跟 pointer 事件！
+    // ==========================================
+    if (keys[keyName]) return;
+
     // 1. 傳統移動控制
     keys[keyName] = true;
     keys[keyName.toLowerCase()] = true;
