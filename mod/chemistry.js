@@ -390,6 +390,9 @@ export async function initChemistrySystem() {
     // ★ 啟動等比自適應縮放引擎
     initResponsiveScaler();
 
+    // ★ 啟動跨平台技能拖拉裝備引擎
+    initSkillDragAndDrop();
+
     // ==========================================
     // ★ 新增：動態計算轉換爐的元素需求權重
     // ==========================================
@@ -1732,7 +1735,9 @@ function renderShopCards() {
       : canAfford ? "affordable"
       : "unaffordable";
     const card = document.createElement("div");
-    card.className = `chem-skill-card ${cardStateClass}`;
+    // ★ 加入 shop-skill-card 與 data-skill-id 標籤供拖拉引擎識別
+    card.className = `chem-skill-card shop-skill-card ${cardStateClass}`;
+    card.dataset.skillId = skill.id;
     const colorizedFormulaHTML = formatColorizedFormula(pureFormula);
     // ★ 自動計算上下排的臨界點 (電腦版 10/2=5，手機版 6/2=3)
     const halfIndex = Math.ceil(cardsPerPage / 2);
@@ -1870,7 +1875,7 @@ function renderEquippedSlots() {
     const slot = document.createElement("div");
 
     const isActiveSlot = isEquippingMode && activeEquipSlotIndex === i;
-    let slotClass = `chem-slot ${slotId ? "filled" : ""}`;
+    let slotClass = `chem-slot equip-slot ${slotId ? "filled" : ""}`;
     if (isActiveSlot) slotClass += " equipping-active";
     slot.className = slotClass;
 
@@ -2560,4 +2565,94 @@ export function getRandomElementForLevel(currentLevel = 1) {
 
   if (pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ==========================================
+// ★ 跨平台技能拖拉裝備引擎 (支援滑鼠 & 觸控)
+// ==========================================
+export function initSkillDragAndDrop() {
+  let draggedSkillId = null;
+  let dragClone = null;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  document.body.addEventListener("pointerdown", (e) => {
+    const card = e.target.closest(".shop-skill-card");
+    if (!card) return;
+
+    draggedSkillId = card.dataset.skillId;
+    if (!draggedSkillId) return;
+
+    // ★ 防呆：檢查是否已解鎖 (未解鎖不可拖拉)
+    if (!unlockedSkills.includes(draggedSkillId)) {
+      draggedSkillId = null;
+      return;
+    }
+
+    // 建立幽靈卡片
+    dragClone = card.cloneNode(true);
+    dragClone.style.position = "fixed";
+    dragClone.style.zIndex = "99999";
+    dragClone.style.pointerEvents = "none"; // 讓游標可以穿透它點到下方物件
+    dragClone.style.opacity = "0.85";
+    dragClone.style.transform = "scale(1.05)";
+    dragClone.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
+    dragClone.classList.add("dragging-clone");
+
+    const rect = card.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    dragClone.style.left = `${e.clientX - offsetX}px`;
+    dragClone.style.top = `${e.clientY - offsetY}px`;
+
+    document.body.appendChild(dragClone);
+  });
+
+  document.body.addEventListener(
+    "pointermove",
+    (e) => {
+      if (!dragClone) return;
+      e.preventDefault(); // 防止手機畫面跟著捲動
+      dragClone.style.left = `${e.clientX - offsetX}px`;
+      dragClone.style.top = `${e.clientY - offsetY}px`;
+    },
+    { passive: false },
+  );
+
+  const handleDrop = (e) => {
+    if (!dragClone) return;
+    dragClone.remove();
+    dragClone = null;
+
+    // 找出手指放開瞬間壓著的元素
+    const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+    const slot = dropTarget ? dropTarget.closest(".equip-slot") : null;
+
+    if (slot && draggedSkillId) {
+      const slotIndex = parseInt(slot.dataset.slotIndex, 10);
+
+      // ★ 執行裝備邏輯：如果還沒被裝備，就塞入對應的槽位！
+      if (!equippedSkills.includes(draggedSkillId)) {
+        if (equipSkill(draggedSkillId, slotIndex)) {
+          // 成功裝備，重置原本的點擊裝備模式狀態
+          if (typeof isEquippingMode !== "undefined") isEquippingMode = false;
+          if (typeof activeEquipSlotIndex !== "undefined")
+            activeEquipSlotIndex = null;
+
+          if (window.playSfx) window.playSfx("brk"); // 發出裝備音效
+
+          renderEquippedSlots();
+          renderShopCards();
+        }
+      } else {
+        // 如果已經裝備過了，可以稍微震動提示 (選擇性)
+        if (window.playSfx) window.playSfx("hit");
+      }
+    }
+    draggedSkillId = null;
+  };
+
+  document.body.addEventListener("pointerup", handleDrop);
+  document.body.addEventListener("pointercancel", handleDrop);
 }
