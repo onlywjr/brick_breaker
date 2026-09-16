@@ -11,24 +11,68 @@ export function escapeHtml(value) {
 
 export function bindVirtualButton(el, keyName) {
   if (!el) return;
+
+  // 記錄觸控起始位置
+  let startY = 0;
+  let isSwiped = false; // 確保每次按下只觸發一次上滑指令
+
   const press = (e) => {
     if (e && e.cancelable) e.preventDefault();
     keys[keyName] = true;
     keys[keyName.toLowerCase()] = true;
     el.classList.add("pressed");
+
+    // 記錄第一根手指的 Y 座標
+    if (e.touches && e.touches.length > 0) {
+      startY = e.touches[0].clientY;
+      isSwiped = false;
+    }
   };
+
   const release = (e) => {
     if (e && e.cancelable) e.preventDefault();
     keys[keyName] = false;
     keys[keyName.toLowerCase()] = false;
     el.classList.remove("pressed");
+
+    // 放開時如果沒有滑動，則重置狀態
+    isSwiped = false;
+  };
+
+  // ★ 新增：偵測手指上滑 (Swipe-up)
+  const move = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    if (!startY || isSwiped || !e.touches || e.touches.length === 0) return;
+
+    const currentY = e.touches[0].clientY;
+    const diffY = startY - currentY; // 往上滑 Y 會變小，所以用 start - current
+
+    // 如果往上滑動超過 30 像素，判定為「切球」！
+    if (diffY > 30) {
+      isSwiped = true;
+
+      // ★ 呼叫全域事件系統，模擬鍵盤「瞬間點擊」
+      // 由於我們在 game.js 有防連打 (!e.repeat) 判定，
+      // 所以這裡我們直接手動派發一個乾淨的 keydown 事件！
+      const event = new KeyboardEvent("keydown", {
+        key: keyName,
+        code: keyName,
+        bubbles: true,
+        cancelable: true,
+        repeat: false, // 明確宣告這不是連發
+      });
+      window.dispatchEvent(event);
+    }
   };
 
   el.addEventListener("pointerdown", press, { passive: false });
   el.addEventListener("pointerup", release, { passive: false });
   el.addEventListener("pointercancel", release, { passive: false });
   el.addEventListener("pointerleave", release, { passive: false });
+
+  // 掛載 Touch 事件
   el.addEventListener("touchstart", press, { passive: false });
+  el.addEventListener("touchmove", move, { passive: false }); // ★ 監聽滑動
   el.addEventListener("touchend", release, { passive: false });
   el.addEventListener("contextmenu", (e) => e.preventDefault());
 }
@@ -178,7 +222,7 @@ export function resizeGame() {
 
   wrap.style.transform = `scale(${scale})`;
   wrap.style.transformOrigin = "center center";
-  
+
   // ==========================================
   // ★ 確保縮放計算完畢後才淡入顯示，徹底消除初始閃爍
   // ==========================================
