@@ -20,6 +20,133 @@ import {
 } from "../mod/chemistry.js";
 
 // ==========================================
+// ★ 八方位校正系統 (將各種起點的武器統一轉向「左側/前方」)
+// ==========================================
+const ORIGIN_ROTATION = {
+  "中上": Math.PI / 2, // 握把在上，往下指 -> 校正轉向左
+  "右上": Math.PI / 4, // 握把在右上，往左下指
+  "右中": 0, // 握把在右，往左指 (不需校正)
+  "右下": -Math.PI / 4, // 握把在右下，往左上指
+  "中下": -Math.PI / 2, // 握把在下，往上指
+  "左下": -Math.PI * 0.75, // 握把在左下，往右上指
+  "左中": Math.PI, // 握把在左，往右指
+  "左上": Math.PI * 0.75, // 握把在左上，往右下指
+};
+
+// ==========================================
+// ★ 骨架節點設定字典 (Anchor Config) - 完整擴充版
+// ==========================================
+const ANCHORS = {
+  body: {
+    default: { shoulderX: -30, shoulderY: 0 },
+    "🤖": { shoulderX: -35, shoulderY: 30 },
+    "👾": { shoulderX: -40, shoulderY: 5 },
+    "👽": { shoulderX: -45, shoulderY: 0 },
+    "👹": { shoulderX: -40, shoulderY: 10 },
+    "👺": { shoulderX: -40, shoulderY: 0 },
+    "👿": { shoulderX: -45, shoulderY: 0 },
+    "💀": { shoulderX: -45, shoulderY: 0 },
+    "👁️": { shoulderX: -45, shoulderY: 0 },
+    "🧿": { shoulderX: -45, shoulderY: 0 },
+    "🧠": { shoulderX: -48, shoulderY: 0 },
+    "🫀": { shoulderX: -40, shoulderY: 0 },
+    "☢️": { shoulderX: -45, shoulderY: 0 },
+    "⚙️": { shoulderX: -45, shoulderY: 0 },
+    "🛸": { shoulderX: -40, shoulderY: 0 },
+    "🦷": { shoulderX: -40, shoulderY: -10 },
+    "🦠": { shoulderX: -40, shoulderY: 0 },
+    "🌰": { shoulderX: -40, shoulderY: 5 },
+    "🧄": { shoulderX: -40, shoulderY: 10 },
+    "🍙": { shoulderX: -40, shoulderY: 10 },
+    "🍥": { shoulderX: -45, shoulderY: 0 },
+    "🍩": { shoulderX: -45, shoulderY: 0 },
+    "🪨": { shoulderX: -40, shoulderY: 10 },
+    "🎱": { shoulderX: -45, shoulderY: 0 },
+    "💿": { shoulderX: -45, shoulderY: 0 },
+    "🧫": { shoulderX: -40, shoulderY: 0 },
+    "⚜️": { shoulderX: -40, shoulderY: 0 },
+  },
+  arm: {
+    default: {
+      body: { x: 11, y: 5 },
+      weapon: { x: -4, y: -9 },
+      flipX: false,
+      flipY: false,
+    },
+    "🦾": {
+      body: { x: 11, y: 5 },
+      weapon: { x: -4, y: -9 },
+      flipX: false,
+      flipY: false,
+    },
+    "🦿": {
+      body: { x: -8, y: -12 },
+      weapon: { x: 6, y: 14 },
+      flipX: true,
+      flipY: false,
+      lockPoseY: true,
+    },
+    "⛓️": {
+      body: { x: 0, y: -13 },
+      weapon: { x: 0, y: 11 },
+      flipX: false,
+      flipY: false,
+      isChain: true,
+    },
+    "🪢": {
+      body: { x: 12, y: -13 },
+      weapon: { x: -12, y: 13 },
+      flipX: false,
+      flipY: false,
+      isChain: true,
+    },
+    "🔩": {
+      body: { x: -8, y: -8 },
+      weapon: { x: 10, y: 12 },
+      flipX: true,
+      flipY: false,
+    },
+    "🔗": {
+      body: { x: 10, y: -11 },
+      weapon: { x: -10, y: 11 },
+      flipX: false,
+      flipY: false,
+      isChain: true,
+    },
+    "♾️": {
+      body: { x: 11, y: 0 },
+      weapon: { x: -12, y: 0 },
+      flipX: false,
+      flipY: false,
+      isChain: true,
+    },
+    "⚕️": {
+      body: { x: 0, y: -14 },
+      weapon: { x: 0, y: 13 },
+      flipX: false,
+      flipY: false,
+      isChain: true,
+    },
+  },
+  weapon: {
+    default: { origin: "左下", handle: { x: 0, y: 0 } },
+    "🗡️": { origin: "右上", handle: { x: 12, y: -15 } },
+    "🪓": { origin: "右下", handle: { x: 9, y: 12 } },
+    "🔨": { origin: "右下", handle: { x: 11, y: 13 } },
+    "⛏️": { origin: "右下", handle: { x: 12, y: 13 } },
+    "🪃": { origin: "右下", handle: { x: 12, y: 14 } },
+    "🏹": { origin: "左下", handle: { x: -11, y: 12 } },
+    "💣": { origin: "左下", handle: { x: -3, y: 2 } },
+    "🔪": { origin: "左上", handle: { x: -13, y: -15 } },
+    "🪚": { origin: "右下", handle: { x: 11, y: 13 } },
+    "🪛": { origin: "右下", handle: { x: 11, y: 13 } },
+    "🔧": { origin: "右下", handle: { x: 11, y: 13 } },
+    "🪝": { origin: "中上", handle: { x: -6, y: -16 } },
+    "💉": { origin: "左下", handle: { x: -12, y: 13 } },
+  },
+};
+
+// ==========================================
 // ★ 效能優化：預先渲染愛心 (Off-screen Canvas)
 // 遊戲啟動時只畫一次，之後當作圖片「蓋印章」
 // ==========================================
@@ -640,10 +767,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     // 受擊閃白特效
     if (boss.flashTimer > 0) {
       ctx.shadowColor = "#FFF";
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = PERFORMANCE_MODE ? 0 : 20;
     } else {
       ctx.shadowColor = auraColor;
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = PERFORMANCE_MODE ? 0 : 15;
     }
 
     ctx.textAlign = "center";
@@ -700,133 +827,6 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         ctx.fill();
         ctx.restore();
       }
-
-      // ==========================================
-      // ★ 八方位校正系統 (將各種起點的武器統一轉向「左側/前方」)
-      // ==========================================
-      const ORIGIN_ROTATION = {
-        "中上": Math.PI / 2, // 握把在上，往下指 -> 校正轉向左
-        "右上": Math.PI / 4, // 握把在右上，往左下指
-        "右中": 0, // 握把在右，往左指 (不需校正)
-        "右下": -Math.PI / 4, // 握把在右下，往左上指
-        "中下": -Math.PI / 2, // 握把在下，往上指
-        "左下": -Math.PI * 0.75, // 握把在左下，往右上指
-        "左中": Math.PI, // 握把在左，往右指
-        "左上": Math.PI * 0.75, // 握把在左上，往右下指
-      };
-
-      // ==========================================
-      // ★ 骨架節點設定字典 (Anchor Config) - 完整擴充版
-      // ==========================================
-      const ANCHORS = {
-        body: {
-          default: { shoulderX: -30, shoulderY: 0 },
-          "🤖": { shoulderX: -35, shoulderY: 30 },
-          "👾": { shoulderX: -40, shoulderY: 5 },
-          "👽": { shoulderX: -45, shoulderY: 0 },
-          "👹": { shoulderX: -40, shoulderY: 10 },
-          "👺": { shoulderX: -40, shoulderY: 0 },
-          "👿": { shoulderX: -45, shoulderY: 0 },
-          "💀": { shoulderX: -45, shoulderY: 0 },
-          "👁️": { shoulderX: -45, shoulderY: 0 },
-          "🧿": { shoulderX: -45, shoulderY: 0 },
-          "🧠": { shoulderX: -48, shoulderY: 0 },
-          "🫀": { shoulderX: -40, shoulderY: 0 },
-          "☢️": { shoulderX: -45, shoulderY: 0 },
-          "⚙️": { shoulderX: -45, shoulderY: 0 },
-          "🛸": { shoulderX: -40, shoulderY: 0 },
-          "🦷": { shoulderX: -40, shoulderY: -10 },
-          "🦠": { shoulderX: -40, shoulderY: 0 },
-          "🌰": { shoulderX: -40, shoulderY: 5 },
-          "🧄": { shoulderX: -40, shoulderY: 10 },
-          "🍙": { shoulderX: -40, shoulderY: 10 },
-          "🍥": { shoulderX: -45, shoulderY: 0 },
-          "🍩": { shoulderX: -45, shoulderY: 0 },
-          "🪨": { shoulderX: -40, shoulderY: 10 },
-          "🎱": { shoulderX: -45, shoulderY: 0 },
-          "💿": { shoulderX: -45, shoulderY: 0 },
-          "🧫": { shoulderX: -40, shoulderY: 0 },
-          "⚜️": { shoulderX: -40, shoulderY: 0 },
-        },
-        arm: {
-          default: {
-            body: { x: 11, y: 5 },
-            weapon: { x: -4, y: -9 },
-            flipX: false,
-            flipY: false,
-          },
-          "🦾": {
-            body: { x: 11, y: 5 },
-            weapon: { x: -4, y: -9 },
-            flipX: false,
-            flipY: false,
-          },
-          "🦿": {
-            body: { x: -8, y: -12 },
-            weapon: { x: 6, y: 14 },
-            flipX: true,
-            flipY: false,
-            lockPoseY: true,
-          },
-          "⛓️": {
-            body: { x: 0, y: -13 },
-            weapon: { x: 0, y: 11 },
-            flipX: false,
-            flipY: false,
-            isChain: true,
-          },
-          "🪢": {
-            body: { x: 12, y: -13 },
-            weapon: { x: -12, y: 13 },
-            flipX: false,
-            flipY: false,
-            isChain: true,
-          },
-          "🔩": {
-            body: { x: -8, y: -8 },
-            weapon: { x: 10, y: 12 },
-            flipX: true,
-            flipY: false,
-          },
-          "🔗": {
-            body: { x: 10, y: -11 },
-            weapon: { x: -10, y: 11 },
-            flipX: false,
-            flipY: false,
-            isChain: true,
-          },
-          "♾️": {
-            body: { x: 11, y: 0 },
-            weapon: { x: -12, y: 0 },
-            flipX: false,
-            flipY: false,
-            isChain: true,
-          },
-          "⚕️": {
-            body: { x: 0, y: -14 },
-            weapon: { x: 0, y: 13 },
-            flipX: false,
-            flipY: false,
-            isChain: true,
-          },
-        },
-        weapon: {
-          default: { origin: "左下", handle: { x: 0, y: 0 } },
-          "🗡️": { origin: "右上", handle: { x: 12, y: -15 } },
-          "🪓": { origin: "右下", handle: { x: 9, y: 12 } },
-          "🔨": { origin: "右下", handle: { x: 11, y: 13 } },
-          "⛏️": { origin: "右下", handle: { x: 12, y: 13 } },
-          "🪃": { origin: "右下", handle: { x: 12, y: 14 } },
-          "🏹": { origin: "左下", handle: { x: -11, y: 12 } },
-          "💣": { origin: "左下", handle: { x: -3, y: 2 } },
-          "🔪": { origin: "左上", handle: { x: -13, y: -15 } },
-          "🪚": { origin: "右下", handle: { x: 11, y: 13 } },
-          "🪛": { origin: "右下", handle: { x: 11, y: 13 } },
-          "🔧": { origin: "右下", handle: { x: 11, y: 13 } },
-          "🪝": { origin: "中上", handle: { x: -6, y: -16 } },
-          "💉": { origin: "左下", handle: { x: -12, y: 13 } },
-        },
-      };
 
       const bAnchor = ANCHORS.body[boss.parts.body] || ANCHORS.body.default;
 
@@ -1722,8 +1722,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       const b = parseInt(hex.slice(5, 7), 16) || 107;
 
       // 每一層塗料都親自餵給它透明度
-      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      ctx.shadowBlur = 15;
+      if (!PERFORMANCE_MODE) {
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        ctx.shadowBlur = 15;
+      } else {
+        ctx.shadowBlur = 0; // 效能模式下關閉陰影
+      }
       ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
       ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.lineWidth = 3;
