@@ -1312,6 +1312,33 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     if (!pl.ball) continue;
     const b = pl.ball;
 
+    // ==========================================
+    // ★ 旋球系統：完美時機「縮圈」視覺回饋
+    // ==========================================
+    // 只有在球往下掉，且距離擋板 180px 以內時才顯示縮圈
+    if (b.dy > 0 && b.y > pl.y - 180 && b.y < pl.y) {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      // 計算距離比例 (1.0 遠 -> 0.0 近)
+      const distRatio = Math.max(0, Math.min(1, (pl.y - (b.y + b.r)) / 180));
+      const ringRadius = b.r + distRatio * 40; // 圈圈隨著距離從大縮到小
+
+      ctx.beginPath();
+      ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distRatio})`;
+      ctx.lineWidth = 2 + (1 - distRatio) * 2;
+
+      // 當圈圈縮到最完美時(極近)，變成高亮金色提示
+      if (distRatio < 0.15) {
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.9)";
+        ctx.shadowColor = "#FBBF24";
+        ctx.shadowBlur = 10;
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+    // ==========================================
+
     let activeAction = null;
     let ballEmoji = "";
     if (pl.activeBuffs) {
@@ -1331,6 +1358,9 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
     if (!ballEmoji) {
       if (b.isPiercing) ballEmoji = "☄️";
+      // ★ 新增：根據左右旋顯示不同圖示
+      else if (b.spinType === "left") ballEmoji = "🌪️";
+      else if (b.spinType === "right") ballEmoji = "🪛";
       else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
       else if (b.fire) ballEmoji = "🔥";
     }
@@ -1361,7 +1391,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
     if (
       b.history.length > 0
-      && (b.isPiercing
+      && (b.spin
+        || b.isPiercing
         || (pl.speedBuffRatio && pl.speedBuffRatio > 1)
         || b.fire
         || (pl.scoreMultiplier && pl.scoreMultiplier > 1))
@@ -1369,7 +1400,11 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       let rgbColor =
-        activeAction === "laser_pierce" ? "255, 100, 200"
+        b.spinType === "left" ?
+          "168, 85, 247" // 氣旋紫
+        : b.spinType === "right" ?
+          "251, 191, 36" // 電鑽金
+        : activeAction === "laser_pierce" ? "255, 100, 200"
         : activeAction === "phase_piercing" ? "163, 158, 173"
         : b.isPiercing ? "216, 180, 254"
         : b.fire ? "249, 115, 22"
@@ -1424,19 +1459,72 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
 
     const isP1 = pl === p1;
-    ctx.beginPath();
-    ctx.arc(0, 0, 14, 0, Math.PI * 2);
-    ctx.fillStyle =
-      isP1 ? "rgba(255, 122, 166, 0.25)" : "rgba(0, 168, 210, 0.25)";
-    ctx.fill();
 
-    if (ballEmoji) {
-      ctx.font = "18px Arial";
+    // ==========================================
+    // ★ 旋球系統：戰鬥陀螺視覺重製 (Beyblade Style)
+    // ==========================================
+    if (b.spinType === "left" || b.spinType === "right") {
+      ctx.save();
+      const isLeft = b.spinType === "left";
+
+      // 轉速極大化：分母越小轉越快
+      ctx.rotate(performance.now() / (isLeft ? -15 : 15));
+
+      const mainColor = isLeft ? "#A78BFA" : "#FBBF24"; // 左旋紫，右旋金
+      const glowColor = isLeft ? "#8B5CF6" : "#F59E0B";
+
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 15;
+
+      // 1. 高速旋轉的殘影底盤
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${isLeft ? "167, 139, 250" : "251, 191, 36"}, 0.4)`;
+      ctx.fill();
+
+      // 2. 齒輪邊緣 (短短的突出攻擊角，更有陀螺感)
+      ctx.fillStyle = mainColor;
+      for (let i = 0; i < 6; i++) {
+        ctx.save();
+        ctx.rotate(((Math.PI * 2) / 6) * i);
+        ctx.beginPath();
+        ctx.moveTo(12, -3);
+        ctx.lineTo(16, 0);
+        ctx.lineTo(12, 3);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. 陀螺金屬內核
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.fillStyle = "#FFFDFB";
+      ctx.shadowBlur = 0;
+      ctx.fill();
+
+      // 4. 核心裝甲線條
+      ctx.strokeStyle = mainColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    } else if (ballEmoji) {
+      // 處理其他非旋球的狀態 (如火焰、雷射的 Emoji)
+      ctx.font = "24px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(ballEmoji, 0, 1);
+      ctx.fillText(ballEmoji, 0, 2);
     } else {
+      // 正常狀態：畫出原本的球體與底色
       ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle =
+        isP1 ? "rgba(255, 122, 166, 0.25)" : "rgba(0, 168, 210, 0.25)";
+      ctx.fill();
+
       ctx.scale(0.85, 0.85);
       if (isP1) {
         ctx.fillStyle = "#A89CB8";
@@ -1485,6 +1573,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       }
       ctx.restore();
     }
+    // ==========================================
+    // ★ 關鍵修復：這裡補上原本遺漏的 ctx.restore()！
+    // 解決倒數文字消失與飄浮字亂飛的 Bug
+    // ==========================================
     ctx.restore();
   }
 

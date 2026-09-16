@@ -2058,6 +2058,65 @@ export function initGlobalBindings() {
         e.preventDefault();
       }
     }
+
+    // ==========================================
+    // ★ 旋球系統：記錄「瞬間切球」的時間戳記 (防連打機制)
+    // ==========================================
+    const nowTime = performance.now();
+
+    if (!e.repeat) {
+      const keyL = e.key.toLowerCase();
+
+      // --- 1P 判定 ---
+      if (
+        running
+        && p1
+        && ["arrowleft", "a", "arrowright", "d"].includes(keyL)
+      ) {
+        const dir = keyL === "arrowleft" || keyL === "a" ? -1 : 1;
+
+        // 判定兩次按鍵的間隔，小於 250 毫秒視為「連打/亂按」
+        if (p1.lastKeyPressTime && nowTime - p1.lastKeyPressTime < 250) {
+          p1.isMashing = true;
+        } else {
+          p1.isMashing = false;
+        }
+        p1.lastKeyPressTime = nowTime; // 更新最後按鍵時間
+
+        if (!p1.isMashing) {
+          // 沒有亂按，正常發放切球指令
+          p1.lastSpinCmd = { dir: dir, time: nowTime };
+        } else {
+          // 抓到亂按！沒收切球指令 (但底層物理擋板依然會正常移動)
+          p1.lastSpinCmd = null;
+        }
+      }
+
+      // --- 2P 判定 ---
+      if (
+        running
+        && mode === 2
+        && p2
+        && ["arrowleft", "arrowright"].includes(keyL)
+      ) {
+        const dir = keyL === "arrowleft" ? -1 : 1;
+
+        if (p2.lastKeyPressTime && nowTime - p2.lastKeyPressTime < 250) {
+          p2.isMashing = true;
+        } else {
+          p2.isMashing = false;
+        }
+        p2.lastKeyPressTime = nowTime;
+
+        if (!p2.isMashing) {
+          p2.lastSpinCmd = { dir: dir, time: nowTime };
+        } else {
+          p2.lastSpinCmd = null;
+        }
+      }
+    }
+    // ==========================================
+
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;
     if (e.key === "*") {

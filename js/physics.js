@@ -584,6 +584,23 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
 
+    // ==========================================
+    // ★ 旋球系統：馬格努斯效應 (Magnus Effect)
+    // ==========================================
+    if (b.spin) {
+      const magnusStrength = 0.005; // 稍微增強橫向飄移感
+
+      // ★ 修正 1：只對 X 軸產生強烈弧線，保護 Y 軸動力不流失
+      b.dx += b.spin * magnusStrength * dt;
+
+      // 空氣阻力讓旋轉慢慢衰減
+      b.spin *= 0.985;
+      if (Math.abs(b.spin) < 2) {
+        b.spin = 0;
+        b.spinType = null;
+      }
+    }
+
     // ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
     b.x += b.dx * dt;
     b.y += b.dy * dt;
@@ -605,6 +622,21 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
       // 強制把球拉回天花板邊界，徹底解決卡死問題
       b.y = b.r;
+
+      // ★ 天花板碰壁動能釋放
+      if (b.spin) {
+        b.spin = 0;
+        b.spinType = null;
+        // ★ 修正：乘上 Math.SQRT2 補回畢氏定理遺失的速度，並套用玩家身上的加速 Buff！
+        const baseSp =
+          (3.5 + Math.min(4.5, level * 0.1))
+          * Math.SQRT2
+          * (pl.speedBuffRatio || 1);
+        const currentSp = Math.hypot(b.dx, b.dy);
+        b.dx = (b.dx / currentSp) * baseSp;
+        b.dy = (b.dy / currentSp) * baseSp;
+        burst(b.x, b.y, "#FFF");
+      }
     }
 
     for (const targetPl of activePlayers) {
@@ -620,6 +652,61 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.dx = hit * sp * 0.85;
         b.dy = -Math.abs(Math.sqrt(Math.max(sp * sp - b.dx * b.dx, 4)));
         playSfx("bounce");
+
+        // ==========================================
+        // ★ 旋球系統：完美切球判定 (Just Frame)
+        // ==========================================
+        b.spin = 0;
+        b.spinType = null;
+
+        if (targetPl.lastSpinCmd && now - targetPl.lastSpinCmd.time < 300) {
+          const spinDir = targetPl.lastSpinCmd.dir;
+          const timeDiff = now - targetPl.lastSpinCmd.time;
+
+          // 計算完美度：越接近 0 毫秒越完美 (0.0 ~ 1.0)
+          const perfectRatio = Math.max(0, 1 - timeDiff / 300);
+
+          // 轉速與傷害依據完美度決定 (基礎 15 + 額外最多 35)
+          b.spin = spinDir * (15 + perfectRatio * 35);
+          b.spinType = spinDir === -1 ? "left" : "right";
+
+          // ★ 新增：初始化已擊中名單，確保電鑽不會在同一顆磚塊體內重複判定
+          b.hitBricks = new Set();
+
+          // ==========================================
+          // ★ 視覺與聽覺發動回饋 (新增 Perfect / Great 飄浮字)
+          // ==========================================
+          let timingText =
+            perfectRatio > 0.8 ? "PERFECT!"
+            : perfectRatio > 0.4 ? "GREAT!"
+            : "GOOD";
+          let timingColor =
+            perfectRatio > 0.8 ? "#FBBF24"
+            : perfectRatio > 0.4 ? "#34D399"
+            : "#FFF";
+
+          const pId = targetPl === p1 ? 0 : 1;
+          const msg = spinDir === -1 ? `🌪️ 左旋準備` : `🪛 右旋準備`;
+          const color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
+
+          triggerGameEvent(msg, false, pId); // 底部 HUD 提示
+
+          // 直接在接球的位置噴出完美度判定大字！
+          floatTexts.push({
+            t: timingText,
+            life: 1.2,
+            x: b.x,
+            y: targetPl.y - 30,
+            c: timingColor,
+            big: true,
+          });
+
+          burst(b.x, targetPl.y, color);
+          playSfx("brk");
+
+          targetPl.lastSpinCmd = null;
+        }
+        // ==========================================
 
         if (targetPl !== b.owner && mode === 2) {
           targetPl.w = Math.max(targetPl.minW, targetPl.w - 25);
@@ -713,13 +800,23 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     for (const br of bricks) {
       if (!br.hp) continue;
 
+      // ★ 新增：如果球已經打過這顆磚塊(如右旋貫穿中)，就直接略過它，直接穿過去！
+      if (b.hitBricks && b.hitBricks.has(br)) continue;
+
       if (
         b.x > br.x - b.r
         && b.x < br.x + br.w + b.r
         && b.y > br.y - b.r
         && b.y < br.y + br.h + b.r
       ) {
-        if (!b.fire && !b.isPiercing && !b.isHeavy) {
+        // ★ 判斷是否為右旋電鑽 (高轉速狀態下無視反彈)
+        let isDrilling = false;
+        if (b.spinType === "right" && Math.abs(b.spin) > 10) {
+          isDrilling = true;
+        }
+
+        // 電鑽狀態下不會執行這段反彈邏輯，直接穿過去！
+        if (!b.fire && !b.isPiercing && !b.isHeavy && !isDrilling) {
           const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
           const overlapY = Math.abs(br.y + br.h / 2 - b.y) / br.h;
           if (overlapX > overlapY) b.dx *= -1;
@@ -787,6 +884,95 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           }
 
           br.hp -= hitDmg;
+
+          // ==========================================
+          // ★ 旋球系統：擊中磚塊釋放動能與超級傷害
+          // ==========================================
+          if (b.spinType === "left") {
+            // 左旋：氣旋爆破 (範圍傷害提升！)
+            let aoeDmg = Math.floor(Math.abs(b.spin) * 0.8);
+            if (aoeDmg > 0) {
+              triggerVFX(6, "167, 139, 250", 0.25);
+
+              // ★ 關鍵修復：將強大的爆破傷害也扣在被擊中的主磚塊身上！
+              br.hp -= aoeDmg;
+
+              floatTexts.push({
+                t: `風暴 -${aoeDmg}`,
+                life: 1.2,
+                x: br.x + br.w / 2,
+                y: br.y - 15,
+                c: "#A78BFA",
+                big: true,
+              });
+
+              bricks.forEach((otherBr) => {
+                if (
+                  otherBr !== br
+                  && otherBr.hp > 0
+                  && Math.hypot(otherBr.x - br.x, otherBr.y - br.y) < 130
+                ) {
+                  otherBr.hp -= aoeDmg;
+                  burst(
+                    otherBr.x + otherBr.w / 2,
+                    otherBr.y + otherBr.h / 2,
+                    "#A78BFA",
+                  );
+                  if (otherBr.hp <= 0) {
+                    otherBr.killedBySkill = true;
+                    if (otherBr.symbol && chemDLCEnabled)
+                      addAtom(otherBr.symbol, 1, pl === p2 ? 1 : 0);
+                    pl.score += 10 * (pl.scoreMultiplier || 1);
+                  }
+                }
+              });
+            }
+            // 左旋擊中後立刻釋放動能
+            b.spin = 0;
+            b.spinType = null;
+            // ★ 修正：乘上 Math.SQRT2 補回畢氏定理遺失的速度，並套用玩家身上的加速 Buff！
+            const baseSp =
+              (3.5 + Math.min(4.5, level * 0.1))
+              * Math.SQRT2
+              * (pl.speedBuffRatio || 1);
+            const currentSp = Math.hypot(b.dx, b.dy);
+            b.dx = (b.dx / currentSp) * baseSp;
+            b.dy = (b.dy / currentSp) * baseSp;
+          } else if (b.spinType === "right") {
+            // 右旋：電鑽貫穿 (真實削甲提升！)
+            let drillDmg = Math.floor(Math.abs(b.spin) * 1.5);
+            if (drillDmg > 0) {
+              br.hp -= drillDmg;
+              burst(b.x, b.y, "#FBBF24");
+
+              floatTexts.push({
+                t: `鑽透 -${drillDmg}`,
+                life: 0.8,
+                x: br.x + Math.random() * 20,
+                y: br.y,
+                c: "#FBBF24",
+                big: true,
+              });
+            }
+
+            if (b.hitBricks) b.hitBricks.add(br);
+
+            // ★ 關鍵修復：從 0.65 改成 0.85，大幅降低轉速消耗
+            // 讓電鑽可以暢通無阻地一口氣鑽透整條長長的磚塊陣！
+            b.spin *= 0.85;
+            if (Math.abs(b.spin) < 10) {
+              b.spin = 0;
+              b.spinType = null;
+              // ★ 修正：乘上 Math.SQRT2 補回畢氏定理遺失的速度，並套用玩家身上的加速 Buff！
+              const baseSp =
+                (3.5 + Math.min(4.5, level * 0.1))
+                * Math.SQRT2
+                * (pl.speedBuffRatio || 1);
+              const currentSp = Math.hypot(b.dx, b.dy);
+              b.dx = (b.dx / currentSp) * baseSp;
+              b.dy = (b.dy / currentSp) * baseSp;
+            }
+          }
 
           if (isShockwave) {
             triggerVFX(4);
