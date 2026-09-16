@@ -2065,7 +2065,7 @@ export function initGlobalBindings() {
     const nowTime = performance.now();
 
     // ★ 手機防連打降低至 120ms (容許更直覺的連點)，電腦維持 250ms
-    const mashCooldown = showVirtual ? 60 : 250;
+    const mashCooldown = showVirtual ? 0 : 250;
 
     if (!e.repeat) {
       const keyL = e.key.toLowerCase();
