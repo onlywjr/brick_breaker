@@ -2076,7 +2076,7 @@ export function initGlobalBindings() {
         const dir = keyL === "arrowleft" || keyL === "a" ? -1 : 1;
 
         // 判定兩次按鍵的間隔，小於 250 毫秒視為「連打/亂按」
-        if (p1.lastKeyPressTime && nowTime - p1.lastKeyPressTime < 0) {
+        if (p1.lastKeyPressTime && nowTime - p1.lastKeyPressTime < 250) {
           p1.isMashing = true;
         } else {
           p1.isMashing = false;
@@ -2101,7 +2101,7 @@ export function initGlobalBindings() {
       ) {
         const dir = keyL === "arrowleft" ? -1 : 1;
 
-        if (p2.lastKeyPressTime && nowTime - p2.lastKeyPressTime < 0) {
+        if (p2.lastKeyPressTime && nowTime - p2.lastKeyPressTime < 250) {
           p2.isMashing = true;
         } else {
           p2.isMashing = false;

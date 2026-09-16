@@ -659,7 +659,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         b.spin = 0;
         b.spinType = null;
 
-        if (targetPl.lastSpinCmd && now - targetPl.lastSpinCmd.time < 1000) {
+        if (targetPl.lastSpinCmd && now - targetPl.lastSpinCmd.time < 300) {
           const spinDir = targetPl.lastSpinCmd.dir;
           const timeDiff = now - targetPl.lastSpinCmd.time;
 
