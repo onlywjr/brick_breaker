@@ -1879,6 +1879,12 @@ function renderEquippedSlots() {
     if (isActiveSlot) slotClass += " equipping-active";
     slot.className = slotClass;
 
+    // ==========================================
+    // ★ 凶手就是漏了這一行！賦予格子「身分證編號」
+    // 讓拖拉引擎放開手時，知道要把技能存到陣列的第幾個 index！
+    // ==========================================
+    slot.dataset.slotIndex = i;
+
     const priorityBadge = `<div class="slot-priority">${i + 1}</div>`;
 
     if (slotId) {
@@ -2568,115 +2574,184 @@ export function getRandomElementForLevel(currentLevel = 1) {
 }
 
 // ==========================================
-// ★ 跨平台技能拖拉裝備引擎 (迷你縮圖版)
+// ★ 跨平台技能拖拉裝備引擎 (終極防彈版：嚴格指標判定)
 // ==========================================
 export function initSkillDragAndDrop() {
   let draggedSkillId = null;
   let dragClone = null;
+  let potentialCard = null;
+  let isDragging = false;
+  let startX = 0,
+    startY = 0;
+  let lastX = 0,
+    lastY = 0;
+  let preventNextClick = false;
+
+  // 攔截點擊：如果剛剛在拖拉，就吃掉接下來的 Click，防止誤觸升級
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (preventNextClick) {
+        e.stopPropagation();
+        e.preventDefault();
+        preventNextClick = false;
+      }
+    },
+    true,
+  );
 
   document.body.addEventListener("pointerdown", (e) => {
-    // 防止右鍵觸發拖拉
     if (e.button === 2) return;
 
     const card = e.target.closest(".shop-skill-card");
     if (!card) return;
 
-    draggedSkillId = card.dataset.skillId;
-    if (!draggedSkillId) return;
+    const skillId = card.dataset.skillId;
+    if (!skillId || !unlockedSkills.includes(skillId)) return;
 
-    // 防呆：檢查是否已解鎖 (未解鎖不可拖拉)
-    if (!unlockedSkills.includes(draggedSkillId)) {
-      draggedSkillId = null;
-      return;
+    potentialCard = card;
+    draggedSkillId = skillId;
+    startX = e.clientX;
+    startY = e.clientY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    isDragging = false;
+
+    if (e.target.setPointerCapture) {
+      e.target.setPointerCapture(e.pointerId);
     }
-
-    // ==========================================
-    // ★ 核心修改：只抓取化合物名稱與化學式，建立小巧的幽靈標籤
-    // ==========================================
-    const skill = getSkillData(draggedSkillId);
-
-    let pureFormula = skill.formula;
-    let zhName = "";
-    if (skill.formula.includes("(")) {
-      const parts = skill.formula.split("(");
-      pureFormula = parts[0];
-      zhName = parts[1].replace(")", "");
-    }
-
-    dragClone = document.createElement("div");
-    // 借用原本的 formatColorizedFormula 渲染出漂亮的化學式
-    dragClone.innerHTML = `
-      <div style="font-family: serif; font-size: 20px; font-weight: 900; letter-spacing: 1px;">
-        ${formatColorizedFormula(pureFormula)}
-      </div>
-      <div style="font-size: 11px; color: #8a7e9c; font-weight: 900; margin-top: 2px;">
-        (${zhName})
-      </div>
-    `;
-
-    // 設定幽靈標籤的樣式
-    dragClone.style.position = "fixed";
-    dragClone.style.zIndex = "999999";
-    dragClone.style.pointerEvents = "none"; // 絕對必要：讓游標可以穿透它點到裝備槽
-    dragClone.style.background = "rgba(255, 255, 255, 0.95)";
-    dragClone.style.border = "2px solid #f6d98b";
-    dragClone.style.borderRadius = "12px";
-    dragClone.style.padding = "8px 16px";
-    dragClone.style.boxShadow = "0 10px 25px rgba(0,0,0,0.3)";
-    dragClone.style.textAlign = "center";
-
-    // ★ 關鍵：讓卡片浮在手指「正上方 (Y 軸向上推 120%)」，避免手指遮擋視線！
-    dragClone.style.transform = "translate(-50%, -120%)";
-
-    // 初始位置綁定在游標/手指上
-    dragClone.style.left = `${e.clientX}px`;
-    dragClone.style.top = `${e.clientY}px`;
-
-    document.body.appendChild(dragClone);
   });
 
   document.body.addEventListener(
     "pointermove",
     (e) => {
-      if (!dragClone) return;
-      // 如果正在拖拉，阻止預設滑動行為防畫面捲動
-      if (e.cancelable) e.preventDefault();
-      dragClone.style.left = `${e.clientX}px`;
-      dragClone.style.top = `${e.clientY}px`;
+      if (!potentialCard) return;
+
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      if (!isDragging) {
+        const dist = Math.hypot(lastX - startX, lastY - startY);
+        if (dist > 10) {
+          isDragging = true;
+
+          if (typeof isEquippingMode !== "undefined") isEquippingMode = false;
+          if (typeof activeEquipSlotIndex !== "undefined")
+            activeEquipSlotIndex = null;
+          renderEquippedSlots();
+
+          const skill = getSkillData(draggedSkillId);
+          let pureFormula = skill.formula;
+          let zhName = "";
+          if (skill.formula.includes("(")) {
+            const parts = skill.formula.split("(");
+            pureFormula = parts[0];
+            zhName = parts[1].replace(")", "");
+          }
+
+          dragClone = document.createElement("div");
+          dragClone.innerHTML = `
+          <div style="font-family: serif; font-size: 20px; font-weight: 900; letter-spacing: 1px;">
+            ${formatColorizedFormula(pureFormula)}
+          </div>
+          <div style="font-size: 11px; color: #8a7e9c; font-weight: 900; margin-top: 2px;">
+            (${zhName})
+          </div>
+        `;
+
+          dragClone.style.position = "fixed";
+          dragClone.style.zIndex = "999999";
+          dragClone.style.pointerEvents = "none";
+          dragClone.style.background = "rgba(255, 255, 255, 0.95)";
+          dragClone.style.border = "2px solid #f6d98b";
+          dragClone.style.borderRadius = "12px";
+          dragClone.style.padding = "8px 16px";
+          dragClone.style.boxShadow = "0 10px 25px rgba(0,0,0,0.3)";
+          dragClone.style.textAlign = "center";
+          dragClone.style.transform = "translate(-50%, -120%)";
+          dragClone.style.left = `${lastX}px`;
+          dragClone.style.top = `${lastY}px`;
+
+          document.body.appendChild(dragClone);
+        }
+      }
+
+      if (isDragging) {
+        if (e.cancelable) e.preventDefault();
+        dragClone.style.left = `${lastX}px`;
+        dragClone.style.top = `${lastY}px`;
+
+        // ==========================================
+        // ★ 修復：嚴格指標範圍判定，拔除 padding，一次絕對只會亮一格
+        // ==========================================
+        let foundHover = false;
+        document.querySelectorAll(".equip-slot").forEach((slot) => {
+          const rect = slot.getBoundingClientRect();
+          // 嚴格判斷指標是否在格子的 x 軸與 y 軸範圍內
+          if (
+            !foundHover
+            && lastX >= rect.left
+            && lastX <= rect.right
+            && lastY >= rect.top
+            && lastY <= rect.bottom
+          ) {
+            slot.classList.add("equipping-active");
+            foundHover = true; // 確保只要有一格發光，就不會再觸發其他格
+          } else {
+            slot.classList.remove("equipping-active");
+          }
+        });
+      }
     },
     { passive: false },
   );
 
   const handleDrop = (e) => {
-    if (!dragClone) return;
-    dragClone.remove();
-    dragClone = null;
+    if (!potentialCard) return;
 
-    // 找出手指/滑鼠放開瞬間壓著的元素
-    const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
-    const slot = dropTarget ? dropTarget.closest(".equip-slot") : null;
+    if (isDragging) {
+      preventNextClick = true;
 
-    if (slot && draggedSkillId) {
-      const slotIndex = parseInt(slot.dataset.slotIndex, 10);
+      let droppedSlot = null;
+      document.querySelectorAll(".equip-slot").forEach((slot) => {
+        const rect = slot.getBoundingClientRect();
 
-      // 如果目標技能尚未被裝備在其他位置，直接覆寫該槽位
-      if (!equippedSkills.includes(draggedSkillId)) {
-        equippedSkills[slotIndex] = draggedSkillId;
-        chemStates[activePIdx].equipped = equippedSkills; // 強制寫回存檔
+        // ==========================================
+        // ★ 放開時一樣進行嚴格判定
+        // ==========================================
+        if (
+          lastX >= rect.left
+          && lastX <= rect.right
+          && lastY >= rect.top
+          && lastY <= rect.bottom
+        ) {
+          droppedSlot = slot;
+        }
+        slot.classList.remove("equipping-active"); // 清除所有發光狀態
+      });
 
-        // 關閉點擊裝備模式 (如果處於該模式)
-        isEquippingMode = false;
-        activeEquipSlotIndex = null;
-
-        if (window.playSfx) window.playSfx("brk"); // 裝備成功音效
-
-        renderEquippedSlots();
-        renderShopCards();
-      } else {
-        if (window.playSfx) window.playSfx("hit"); // 裝備過了給錯誤音效
+      if (droppedSlot && draggedSkillId) {
+        const slotIndex = parseInt(droppedSlot.dataset.slotIndex, 10);
+        if (!equippedSkills.includes(draggedSkillId)) {
+          if (equipSkill(draggedSkillId, slotIndex)) {
+            chemStates[activePIdx].equipped = equippedSkills;
+            if (window.playSfx) window.playSfx("brk");
+            renderEquippedSlots();
+            renderShopCards();
+          }
+        } else {
+          if (window.playSfx) window.playSfx("hit");
+        }
       }
     }
+
+    if (dragClone) {
+      dragClone.remove();
+      dragClone = null;
+    }
+    potentialCard = null;
     draggedSkillId = null;
+    isDragging = false;
   };
 
   document.body.addEventListener("pointerup", handleDrop);
