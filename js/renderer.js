@@ -2209,7 +2209,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
                     </div>
                   </div>
                   
-                  <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 1px solid rgba(195, 255, 253, 0.7);  border-radius: 12px; padding: 0px 10px; background: rgb(0, 0, 0); transition: all 0.3s; flex-shrink: 0;">
+                  <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 2px solid rgba(193, 133, 255, 0.5); border-radius: 12px; padding: 0px 10px; background: rgb(222 222 222); transition: all 0.3s; flex-shrink: 0;">
                       <span id="chakra-title-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 12px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-right: 8px; transition: color 0.3s;">CHAKRA</span>
                       
                       <div style="width: 100px; height: 10px; background: rgb(255, 255, 255); border-radius: 5px; overflow: hidden; position: relative;">
