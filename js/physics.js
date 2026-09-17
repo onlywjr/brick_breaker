@@ -877,14 +877,6 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           else b.dy *= -1;
         }
 
-        // 電鑽狀態下不會執行這段反彈邏輯，直接穿過去！
-        if (!b.fire && !b.isPiercing && !b.isHeavy && !isDrilling) {
-          const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
-          const overlapY = Math.abs(br.y + br.h / 2 - b.y) / br.h;
-          if (overlapX > overlapY) b.dx *= -1;
-          else b.dy *= -1;
-        }
-
         // ★ 重擊爆炸附加經濟系統
         if (b.isHeavy) {
           triggerVFX(5);
