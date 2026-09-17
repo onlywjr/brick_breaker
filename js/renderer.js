@@ -1502,7 +1502,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         // 控制點2: 再從遠處往下方壓
         // 終點: 彎曲收尾在極端位置
         // ==========================================
-        ctx.bezierCurveTo(80, -20 * rotDir, 60, 30 * rotDir, 40, 90 * rotDir);
+        ctx.bezierCurveTo(80, -20 * rotDir, 30, 30 * rotDir, 10, 90 * rotDir);
 
         // 尾端切角：風刃末端的厚度
         ctx.lineTo(50, 90 * rotDir);
@@ -2209,10 +2209,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
                     </div>
                   </div>
                   
-                  <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 2px solid ${isAwakened ? "#38BDF8" : "#c9b1e8"}; border-radius: 12px; padding: 2px 10px; background: rgba(255,255,255,0.85); transition: all 0.3s; flex-shrink: 0;">
+                  <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 1px solid rgba(195, 255, 253, 0.7);  border-radius: 12px; padding: 0px 10px; background: rgb(0, 0, 0); transition: all 0.3s; flex-shrink: 0;">
                       <span id="chakra-title-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 12px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-right: 8px; transition: color 0.3s;">CHAKRA</span>
                       
-                      <div style="width: 100px; height: 10px; background: rgba(0,0,0,0.25); border-radius: 5px; overflow: hidden; position: relative;">
+                      <div style="width: 100px; height: 10px; background: rgb(255, 255, 255); border-radius: 5px; overflow: hidden; position: relative;">
                           <div id="chakra-fill-bar" style="width: ${progress}%; height: 100%; background: ${isAwakened ? "#E0FFFF" : "linear-gradient(90deg, #38BDF8, #818CF8)"}; transition: width 0.15s ease-out, background 0.3s;"></div>
                       </div>
                       

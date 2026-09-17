@@ -1601,8 +1601,9 @@ export function updateGameState(dt, cv) {
     document.getElementById("p1-energy-wrap"),
   );
 
-  comboCount = gameState.comboCount;
-  comboTimer = gameState.comboTimer;
+  // ★ 關鍵修復：確保全域變數嚴格對齊 gameState 的最新狀態 (即使是 0)
+  comboCount = gameState.comboCount !== undefined ? gameState.comboCount : 0;
+  comboTimer = gameState.comboTimer !== undefined ? gameState.comboTimer : 0;
   particles = particles.filter((p) => (p.life -= 0.03 * dt) > 0);
   particles.forEach((p) => {
     p.x += p.vx * dt;
