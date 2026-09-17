@@ -1533,7 +1533,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.arc(0, 0, 10, 0, Math.PI * 2);
       const rGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
       rGrad.addColorStop(0, "#FFFFFF");
-      rGrad.addColorStop(0.6, "#BAE6FD");
+      rGrad.addColorStop(0.6, "#ffea82");
       rGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
       ctx.fillStyle = rGrad;
       ctx.fill();
@@ -2210,14 +2210,13 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
                   </div>
                   
                   <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 2px solid rgba(193, 133, 255, 0.5); border-radius: 12px; padding: 0px 10px; background: rgb(222 222 222); transition: all 0.3s; flex-shrink: 0;">
-                      <span id="chakra-title-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 12px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-right: 8px; transition: color 0.3s;">CHAKRA</span>
+                      <span id="chakra-title-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 12px; color: ${isAwakened ? "#d96c8e" : "#8A7E9C"}; margin-right: 8px; transition: color 0.3s;">CHAKRA</span>
                       
                       <div style="width: 100px; height: 10px; background: rgb(255, 255, 255); border-radius: 5px; overflow: hidden; position: relative;">
                           <div id="chakra-fill-bar" style="width: ${progress}%; height: 100%; background: ${isAwakened ? "#E0FFFF" : "linear-gradient(90deg, #38BDF8, #818CF8)"}; transition: width 0.15s ease-out, background 0.3s;"></div>
                       </div>
                       
-                      <span id="chakra-count-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-left: 8px; transition: color 0.3s;">${combo}/${maxCombo}</span>
-                      <span id="chakra-max-text" style="font-size: 12px; font-weight: 900; color: #38BDF8; margin-left: 6px; display: ${isAwakened ? "inline" : "none"}; text-shadow: 0 0 5px #38BDF8;">MAX!</span>
+                      <span id="chakra-max-text" style="font-size: 12px; font-weight: 900; color: #0074a6; margin-left: 6px; display: ${isAwakened ? "inline" : "none"}; text-shadow: 0 0 5px #084f6d;">MAX!</span>
                   </div>
                 </div>
               `;

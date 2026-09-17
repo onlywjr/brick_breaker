@@ -1,5 +1,5 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
-export const TEST_MODE = true;
+export const TEST_MODE = false;
 
 // ==========================================
 // ★ 新增：效能模式與優化開關
@@ -689,6 +689,27 @@ function resetRound(cv) {
     fire: false,
     owner: p1,
   };
+
+  // ==========================================
+  // ★ 核心修復：強制清理上一局殘留的視覺特效與播報，並強制同步 UI
+  // ==========================================
+
+  // 1. 清空所有殘留的飄浮字、粒子與幽靈球
+  particles.length = 0;
+  floatTexts.length = 0;
+  ghostBalls.length = 0;
+
+  // 2. 清除 HTML HUD 事件播報文字
+  ["p1-event-hud", "p2-event-hud", "center-event-text"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.opacity = "0";
+      el.innerText = "";
+    }
+  });
+
+  // 3. 強制推動 0 毫秒的狀態更新，讓全新滿血、0分的狀態在倒數前瞬間寫入畫面上！
+  updateGameState(0, cv);
 }
 
 export function burst(x, y, c) {
@@ -2179,7 +2200,6 @@ export function clearAttackPending() {
 // ★ 開發者測試專用：乾淨畫面凍結 (按 P 鍵)
 // ==========================================
 window.addEventListener("keydown", (e) => {
-
   if (!TEST_MODE) return;
 
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;

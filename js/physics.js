@@ -305,7 +305,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
   // 獨立更新磚塊移動 (移出玩家迴圈，避免雙人模式雙倍速)
   for (const br of bricks) {
-    if (!br.hp) continue;
+    if (br.hp <= 0) continue; // ★ 避免負血量磚塊繼續飄移
     // ★ 結界生效時，強制剝奪方塊的移動能力
     if (br.isMoving && !hasVoid) {
       br.x += br.dx * dt;
@@ -897,7 +897,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     }
 
     for (const br of bricks) {
-      if (!br.hp) continue;
+      // ★ 效能救星：徹底略過血量歸零或負數的死亡磚塊！避免無窮鞭屍！
+      if (br.hp <= 0) continue;
 
       // ★ 新增：如果球已經打過這顆磚塊(如右旋貫穿中)，就直接略過它，直接穿過去！
       if (b.hitBricks && b.hitBricks.has(br)) continue;
