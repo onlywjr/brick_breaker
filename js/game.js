@@ -15,6 +15,8 @@ let lastP2W = -1;
 let lastP1Energy = -1;
 let lastP2Energy = -1;
 
+import { containsProfanity } from "./censor.js"; // ★ 引入髒話過濾器
+
 import { uploadScore, getTopScores } from "./firebase.js";
 
 import { loadAudio, loadedAudio, playSfx } from "./audio.js";
@@ -2362,6 +2364,23 @@ window.submitScore = async () => {
     btn.innerText = "上傳中";
     btn.disabled = true;
   }
+
+  // ==========================================
+  // ★ 靜默封鎖機制 (Shadowban)
+  // ==========================================
+  if (containsProfanity(name)) {
+    // 假裝網路傳輸，刻意延遲 0.6 秒讓玩家覺得有在上傳
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    // UI 顯示上傳成功，但實際上什麼都沒做
+    if (btn) {
+      btn.innerText = "已上傳";
+      btn.style.background = "#86EFAC";
+      if (wrapper) wrapper.style.borderColor = "#86EFAC";
+    }
+    return; // ★ 直接中斷，絕對不會呼叫 Firebase API！
+  }
+  // ==========================================
 
   const success = await uploadScore(name, p1.score, level, chemDLCEnabled);
 
