@@ -388,110 +388,133 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     if (pl.invincibleTimer > 0) pl.invincibleTimer -= dt / 60;
   });
 
+  // ==========================================
+  // ★ 原版 Boss 行為與彈幕發射 (還原區塊)
+  // ==========================================
   if (boss.active) {
-    if (
-      b.x > boss.x - b.r
-      && b.x < boss.x + boss.w + b.r
-      && b.y > boss.y - b.r
-      && b.y < boss.y + boss.h + b.r
-    ) {
-      const overlapX = Math.abs(boss.x + boss.w / 2 - b.x) / boss.w;
-      const overlapY = Math.abs(boss.y + boss.h / 2 - b.y) / boss.h;
+    boss.x += boss.dx * dt;
+    if (boss.x < 50 || boss.x + boss.w > cv.width - 50) boss.dx *= -1;
+    if (boss.flashTimer > 0) boss.flashTimer -= dt / 60;
+    let hpPercent = boss.hp / boss.maxHp;
+    if (hpPercent <= 0.33) boss.phase = 3;
+    else if (hpPercent <= 0.66) boss.phase = 2;
 
-      // ★ 判斷是否為右旋電鑽 (高轉速狀態下無視反彈)
-      let isDrilling = b.spinType === "right" && Math.abs(b.spin) > 10;
+    boss.attackCooldown -= dt / 60;
+    if (boss.attackCooldown <= 0) {
+      boss.attackCooldown = boss.phase === 3 ? 1.5 : 2.5;
+      let bx = boss.x + boss.w / 2;
+      let by = boss.y + boss.h;
+      let diffFactor = Math.max(0, Math.floor((boss.level - 10) / 10));
+      let bulletSpeed = 3 + diffFactor * 0.5;
+      let bulletColor = `hsl(${boss.parts.hueMain}, 90%, 80%)`;
 
-      // ★ 螺旋丸或電鑽狀態下絕對貫穿 (無視反彈)
-      if (!b.isRasengan && !isDrilling) {
-        if (overlapX > overlapY) b.dx *= -1;
-        else b.dy *= -1;
-      }
-
-      // ==========================================
-      // ★ 全新 Boss 真實傷害結算引擎 (含左右旋球)
-      // ==========================================
-      let hitDmg = 10; // 基礎傷害
-      let hitColor = "#5D576B"; // 預設灰色數字
-
-      if (b.fire) hitDmg += 10;
-      if (b.isHeavy) hitDmg += 15 * (b.heavyPower || 1);
-
-      // ★ 判定旋球技能加成
-      if (b.isRasengan) {
-        hitDmg += 50;
-        hitColor = "#38BDF8"; // 螺旋丸青藍色
-        triggerVFX(10, "56, 189, 248", 0.3); // 擊中 Boss 附加螢幕震動
-      } else if (b.spinType === "left") {
-        // 左旋：氣旋爆破 (單次高爆發)
-        let stormDmg = Math.floor(Math.abs(b.spin) * 0.8);
-        hitDmg += stormDmg;
-        hitColor = "#A78BFA"; // 風暴紫
-        triggerVFX(6, "167, 139, 250", 0.2);
-
-        // 左旋擊中後立刻釋放動能 (彈開並極速加速)
-        b.spin = 0;
-        b.spinType = null;
-        const baseSp =
-          (3.5 + Math.min(4.5, level * 0.1))
-          * Math.SQRT2
-          * (pl.speedBuffRatio || 1);
-        const currentSp = Math.hypot(b.dx, b.dy);
-        b.dx = (b.dx / currentSp) * baseSp;
-        b.dy = (b.dy / currentSp) * baseSp;
-      } else if (b.spinType === "right") {
-        // 右旋：電鑽貫穿 (連續削甲)
-        let drillDmg = Math.floor(Math.abs(b.spin) * 1.5);
-        hitDmg += drillDmg;
-        hitColor = "#FBBF24"; // 電鑽金
-
-        // 右旋貫穿會快速消耗轉速，轉速沒了就會卡在裡面彈開
-        b.spin *= 0.85;
-        if (Math.abs(b.spin) < 10) {
-          b.spin = 0;
-          b.spinType = null;
-          const baseSp =
-            (3.5 + Math.min(4.5, level * 0.1))
-            * Math.SQRT2
-            * (pl.speedBuffRatio || 1);
-          const currentSp = Math.hypot(b.dx, b.dy);
-          b.dx = (b.dx / currentSp) * baseSp;
-          b.dy = (b.dy / currentSp) * baseSp;
+      if (boss.phase === 1) {
+        boss.bullets.push({
+          x: bx - 30,
+          y: by,
+          dx: 0,
+          dy: bulletSpeed,
+          type: "laser",
+          c: bulletColor,
+        });
+        boss.bullets.push({
+          x: bx + 30,
+          y: by,
+          dx: 0,
+          dy: bulletSpeed,
+          type: "laser",
+          c: bulletColor,
+        });
+        if (diffFactor >= 2)
+          boss.bullets.push({
+            x: bx,
+            y: by,
+            dx: 0,
+            dy: bulletSpeed,
+            type: "laser",
+            c: bulletColor,
+          });
+      } else if (boss.phase === 2) {
+        let limit = 1 + Math.floor(diffFactor / 2);
+        for (let a = -limit; a <= limit; a += 1) {
+          boss.bullets.push({
+            x: bx,
+            y: by,
+            dx: a * (2 + diffFactor * 0.2),
+            dy: bulletSpeed * 0.8,
+            type: "orb",
+            c: bulletColor,
+          });
+        }
+      } else {
+        let limit = 2 + Math.floor(diffFactor / 2);
+        for (let a = -limit; a <= limit; a += 1) {
+          boss.bullets.push({
+            x: bx,
+            y: by,
+            dx: a * (1.5 + diffFactor * 0.2),
+            dy: bulletSpeed,
+            type: "orb",
+            c: "#E0576B",
+          });
         }
       }
+    }
 
-      boss.hp -= hitDmg;
-      boss.flashTimer = 0.15;
+    for (let i = boss.bullets.length - 1; i >= 0; i--) {
+      let b = boss.bullets[i];
+      b.x += b.dx * dt;
+      b.y += b.dy * dt;
+      if (b.y > cv.height) {
+        boss.bullets.splice(i, 1);
+        continue;
+      }
 
-      burst(b.x, b.y, hitColor);
-      floatTexts.push({
-        t: `-${Math.floor(hitDmg)}`,
-        life: 0.8,
-        x: b.x + (Math.random() - 0.5) * 40,
-        y: boss.y - 10 - Math.random() * 20,
-        c: hitColor,
-        big: b.isRasengan || b.spinType !== null, // 只要是用技能打的，數字都會變大
-      });
-
-      playSfx("hit");
-
-      if (boss.hp <= 0) {
-        boss.active = false;
-        pl.score += 500;
-        burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
-        floatTexts.push({
-          t: "BOSS DEFEATED! +500",
-          life: 2,
-          x: cv.width / 2,
-          y: boss.y,
-          c: "#DDA15E",
-          big: true,
-        });
-        playSfx("brk");
-        maybeDrop(
-          { x: boss.x + boss.w / 2, y: boss.y + boss.h / 2, w: 0, h: 0 },
-          "star",
-          drops,
-        );
+      for (const pl of activePlayers) {
+        if (
+          b.y + 10 > pl.y
+          && b.y < pl.y + pl.h
+          && b.x + 10 > pl.x
+          && b.x < pl.x + pl.w
+        ) {
+          boss.bullets.splice(i, 1);
+          burst(b.x, b.y, b.c || "#E0576B");
+          if (onlineMode && pl === p1) {
+            onlineFinishLocalElimination();
+            return;
+          } else if (mode === 1) {
+            const oldHp = pl.hp;
+            applyLocalDebuff(pl, "damage_hp", 20, 0);
+            const actualHpLost = oldHp - pl.hp;
+            if (actualHpLost > 0) {
+              floatTexts.push({
+                t: `BOSS 攻擊！-${Math.round(actualHpLost)}% HP`,
+                life: 1.5,
+                x: pl.x + pl.w / 2,
+                y: pl.y - 30,
+                c: "#E0576B",
+              });
+            } else {
+              floatTexts.push({
+                t: "護盾格擋！",
+                life: 1.5,
+                x: pl.x + pl.w / 2,
+                y: pl.y - 30,
+                c: "#5FA8D3",
+              });
+            }
+          } else {
+            pl.score = Math.max(0, pl.score - 100);
+            floatTexts.push({
+              t: "BOSS 攻擊 -100 分!",
+              life: 1.5,
+              x: pl.x + pl.w / 2,
+              y: pl.y - 30,
+              c: "#E0576B",
+            });
+          }
+          break;
+        }
       }
     }
   }
@@ -772,6 +795,9 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       }
     }
 
+    // ==========================================
+    // ★ 球擊中 Boss 的大招傷害與貫穿結算區塊
+    // ==========================================
     if (boss.active) {
       if (
         b.x > boss.x - b.r
@@ -781,20 +807,73 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       ) {
         const overlapX = Math.abs(boss.x + boss.w / 2 - b.x) / boss.w;
         const overlapY = Math.abs(boss.y + boss.h / 2 - b.y) / boss.h;
-        if (overlapX > overlapY) b.dx *= -1;
-        else b.dy *= -1;
 
-        boss.hp -= b.fire ? 20 : 10;
+        let isDrilling = b.spinType === "right" && Math.abs(b.spin) > 10;
+
+        if (!b.isRasengan && !isDrilling) {
+          if (overlapX > overlapY) b.dx *= -1;
+          else b.dy *= -1;
+        }
+
+        let hitDmg = 10;
+        let hitColor = "#5D576B";
+
+        if (b.fire) hitDmg += 10;
+        if (b.isHeavy) hitDmg += 15 * (b.heavyPower || 1);
+
+        if (b.isRasengan) {
+          hitDmg += 50;
+          hitColor = "#38BDF8";
+          triggerVFX(10, "56, 189, 248", 0.3);
+        } else if (b.spinType === "left") {
+          let stormDmg = Math.floor(Math.abs(b.spin) * 0.8);
+          hitDmg += stormDmg;
+          hitColor = "#A78BFA";
+          triggerVFX(6, "167, 139, 250", 0.2);
+
+          b.spin = 0;
+          b.spinType = null;
+          const baseSp =
+            (3.5 + Math.min(4.5, level * 0.1))
+            * Math.SQRT2
+            * (pl.speedBuffRatio || 1);
+          const currentSp = Math.hypot(b.dx, b.dy);
+          b.dx = (b.dx / currentSp) * baseSp;
+          b.dy = (b.dy / currentSp) * baseSp;
+        } else if (b.spinType === "right") {
+          let drillDmg = Math.floor(Math.abs(b.spin) * 1.5);
+          hitDmg += drillDmg;
+          hitColor = "#FBBF24";
+
+          b.spin *= 0.85;
+          if (Math.abs(b.spin) < 10) {
+            b.spin = 0;
+            b.spinType = null;
+            const baseSp =
+              (3.5 + Math.min(4.5, level * 0.1))
+              * Math.SQRT2
+              * (pl.speedBuffRatio || 1);
+            const currentSp = Math.hypot(b.dx, b.dy);
+            b.dx = (b.dx / currentSp) * baseSp;
+            b.dy = (b.dy / currentSp) * baseSp;
+          }
+        }
+
+        boss.hp -= hitDmg;
         boss.flashTimer = 0.15;
-        burst(b.x, b.y, "#5D576B");
+
+        burst(b.x, b.y, hitColor);
         floatTexts.push({
-          t: `-${b.fire ? 20 : 10}`,
+          t: `-${Math.floor(hitDmg)}`,
           life: 0.8,
-          x: b.x,
-          y: boss.y - 10,
-          c: "#5D576B",
+          x: b.x + (Math.random() - 0.5) * 40,
+          y: boss.y - 10 - Math.random() * 20,
+          c: hitColor,
+          big: b.isRasengan || b.spinType !== null,
         });
+
         playSfx("hit");
+
         if (boss.hp <= 0) {
           boss.active = false;
           pl.score += 500;
