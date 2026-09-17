@@ -810,7 +810,7 @@ function executeStartGame(selectedMode, cv) {
     document.body.appendChild(pauseBtn);
   }
   pauseBtn.style.display = "flex";
-  pauseBtn.innerHTML = "⏸";
+  pauseBtn.innerHTML = "⏸︎";
   pauseBtn.style.borderColor = "#c9b1e8";
   pauseBtn.style.color = "#8A7E9C";
 
