@@ -2472,6 +2472,8 @@ if (originalToggleEquip) {
 // ★ 開發者快速測試外掛 (滿元素 + 全解鎖)
 // ==========================================
 window.cheatMaxAtoms = function (amount = 100) {
+  if (!window.TEST_MODE) return;
+
   // 1. 發放全元素
   Object.keys(ELEMENT_DATA).forEach((sym) => {
     if (chemStates[0]) chemStates[0].inventory[sym] = amount;

@@ -1,3 +1,6 @@
+// ★ 開發者與作弊模式總開關：上線前請改為 false！
+export const TEST_MODE = true;
+
 // ==========================================
 // ★ 新增：效能模式與優化開關
 // ==========================================
@@ -2129,29 +2132,21 @@ export function initGlobalBindings() {
 
     keys[e.key.toLowerCase()] = true;
     keys[e.key] = true;
+    // ★ 管制：瞬間清場跳關 (*)
     if (e.key === "*") {
-      if (running) {
+      if (running && TEST_MODE) {
         bricks.length = 0;
         boss.active = false;
-        isRankedRun = false; // ★ 使用跳關鍵，失去上傳資格
-        /*
-        floatTexts.push({
-          t: "⚡ 跳關成功 ⚡",
-          life: 1,
-          x: 400,
-          y: 300,
-          c: "#DDA15E",
-          big: true,
-        });
-        */
+        isRankedRun = false;
       }
     }
+    // ★ 管制：一次跳 10 關 (-)
     if (e.key === "-" || e.key === "_") {
-      if (running) {
+      if (running && TEST_MODE) {
         level = Math.ceil((level + 1) / 10) * 10;
         buildLevel(level, document.getElementById("game"));
         resetRound(document.getElementById("game"));
-        isRankedRun = false; // ★ 使用跳關鍵，失去上傳資格
+        isRankedRun = false;
       }
     }
     if (e.key === "+" || e.key === "=") {
@@ -2184,6 +2179,9 @@ export function clearAttackPending() {
 // ★ 開發者測試專用：乾淨畫面凍結 (按 P 鍵)
 // ==========================================
 window.addEventListener("keydown", (e) => {
+
+  if (!TEST_MODE) return;
+  
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
   if (e.key.toLowerCase() === "p") {

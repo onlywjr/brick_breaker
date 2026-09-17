@@ -27,6 +27,7 @@ import {
   isLevelClearing, // ★ 補上匯入
   levelStartTime, // ★ 補上匯入
   showVirtual,
+  TEST_MODE,
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -34,6 +35,7 @@ import { socket } from "./socket.js";
 // ★ 開發者測試快速鍵：按 'R' 一鍵充滿大招 Combo
 // ==========================================
 window.addEventListener("keydown", (e) => {
+  if (!TEST_MODE) return;
   if (e.key.toLowerCase() === "r") {
     window._cheatRasengan = true; // 標記作弊狀態
   }
