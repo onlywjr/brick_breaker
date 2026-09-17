@@ -259,7 +259,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     comboCount = 30;
     comboTimer = 2.0;
     window._cheatRasengan = false; // 觸發後關閉
-    triggerGameEvent("🌀 查克拉已充滿 (Combo = 30)！", false, 0); // 1P 畫面提示
+    triggerGameEvent("🌀 查克拉已滿，螺旋丸已就緒!", false, 0); // 1P 畫面提示
   }
 
   // ★ 1. 全域 DOT 毒霧扣血
@@ -702,6 +702,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           // ==========================================
           // ★ 視覺與聽覺發動回饋 (新增 Perfect / Great 飄浮字)
           // ==========================================
+          b.isRasengan = false;
           let timingText =
             perfectRatio > 0.8 ? "PERFECT!"
             : perfectRatio > 0.4 ? "GREAT!"
@@ -710,25 +711,29 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             perfectRatio > 0.8 ? "#FBBF24"
             : perfectRatio > 0.4 ? "#34D399"
             : "#FFF";
-
-          const pId = targetPl === p1 ? 0 : 1;
-          const msg = spinDir === -1 ? `🌀 左旋攻擊` : `☄️ 右旋攻擊`;
-          const color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
+          let msg = spinDir === -1 ? `🌀 左旋攻擊` : `☄️ 右旋攻擊`;
+          let color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
 
           // ==========================================
-          // ★ 新增：螺旋丸大招觸發判定！(Combo >= 30 + 完美切球)
+          // ★ 螺旋丸大招觸發判定！(Combo >= 30 + 完美切球)
           // ==========================================
           if (perfectRatio > 0.8 && comboCount >= 30) {
             b.isRasengan = true;
-            b.spin = spinDir * 80; // 賦予突破天際的超高轉速
+            b.spin = spinDir * 80;
             timingText = "🌀 螺旋丸！";
-            timingColor = "#38BDF8"; // 查克拉青藍色
+            timingColor = "#38BDF8";
             msg = "🌀 螺旋丸發動！";
             color = "#38BDF8";
 
-            triggerVFX(15, "56, 189, 248", 0.5); // 螢幕大震動與青色閃光
-          }
+            // ★ 關鍵修復：強制將區域變數與全域狀態同步歸零
+            comboCount = 0;
+            gameState.comboCount = 0;
 
+            triggerVFX(15, "56, 189, 248", 0.5);
+          }
+          // ==========================================
+
+          const pId = targetPl === p1 ? 0 : 1;
           triggerGameEvent(msg, false, pId); // 底部 HUD 提示
 
           // 直接在接球的位置噴出完美度判定大字！
@@ -946,19 +951,24 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           // ★ 旋球系統：擊中磚塊釋放動能與超級傷害
           // ==========================================
           if (b.isRasengan) {
-            // ★ 螺旋丸：絕對毀滅與大範圍查克拉爆破 (不會減速)
+            // ★ 螺旋丸：絕對毀滅與大範圍查克拉爆破
             let aoeDmg = 25;
             br.hp -= aoeDmg;
-            triggerVFX(8, "56, 189, 248", 0.4); // 青藍色震波
 
-            floatTexts.push({
-              t: `螺旋丸 -${aoeDmg}`,
-              life: 1.2,
-              x: br.x + br.w / 2,
-              y: br.y - 15,
-              c: "#38BDF8",
-              big: true,
-            });
+            // ★ 效能優化：限制震動與大字的觸發頻率 (防止 1 幀內貫穿 5 顆磚塊導致效能崩潰)
+            if (!b.lastRasenganVfx || now - b.lastRasenganVfx > 60) {
+              triggerVFX(8, "56, 189, 248", 0.4); // 青藍色震波
+              b.lastRasenganVfx = now;
+
+              floatTexts.push({
+                t: `螺旋丸 -${aoeDmg}`,
+                life: 1.0,
+                x: br.x + br.w / 2,
+                y: br.y - 15,
+                c: "#38BDF8",
+                big: true,
+              });
+            }
 
             // 查克拉餘波炸毀周圍磚塊
             bricks.forEach((otherBr) => {
@@ -968,11 +978,19 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 && Math.hypot(otherBr.x - br.x, otherBr.y - br.y) < 110
               ) {
                 otherBr.hp -= aoeDmg;
-                burst(
-                  otherBr.x + otherBr.w / 2,
-                  otherBr.y + otherBr.h / 2,
-                  "#38BDF8",
-                );
+
+                // ★ 效能優化：拔除原本沉重的 burst()，改為低機率只噴 1 顆微小粒子
+                if (Math.random() > 0.6) {
+                  particles.push({
+                    x: otherBr.x + otherBr.w / 2,
+                    y: otherBr.y + otherBr.h / 2,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 0.6,
+                    c: "#38BDF8",
+                  });
+                }
+
                 if (otherBr.hp <= 0) {
                   otherBr.killedBySkill = true;
                   if (otherBr.symbol && chemDLCEnabled)
@@ -1177,7 +1195,12 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             maybeDrop(br, null, drops); // 只有關閉 DLC 時才掉落一般膠囊
           }
           playSfx("brk");
-          comboCount++;
+
+          // ★ 修正：將 Combo 上限鎖定在 30 (大招 MAX 狀態)
+          if (comboCount < 30) {
+            comboCount++;
+          }
+
           comboTimer = 2.0;
           let baseScore = 10 * (pl.scoreMultiplier || 1);
 
@@ -1199,10 +1222,12 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             let bonus = Math.floor(baseScore * 0.2 * effectiveCombo);
             pl.score += baseScore + bonus;
 
-            // ★ 改用 HUD 播報 (依然顯示真實的連擊數讓玩家爽)
+            // ★ 改用 HUD 播報
             const pId = pl === p1 ? 0 : 1;
-            // 當達到高連擊時，改變播報顏色增加回饋感
-            if (comboCount >= 25) {
+            // 當達到高連擊時，改變播報與顏色增加回饋感
+            if (comboCount >= 30) {
+              triggerGameEvent(`🔥 COMBO MAX! 🔥`, false, pId); // 滿氣顯示 MAX!
+            } else if (comboCount >= 25) {
               triggerGameEvent(`🔥 COMBO x${comboCount}! 🔥`, false, pId);
             } else {
               triggerGameEvent(`COMBO x${comboCount}!`, false, pId);

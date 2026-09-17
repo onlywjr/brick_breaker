@@ -1957,6 +1957,8 @@ export function loop(ts, cv) {
         p1,
         p2,
         activePlayers: mode === 2 ? [p1, p2] : [p1],
+        comboCount, // ★ 致命漏字：把連擊數傳給渲染器！
+        comboTimer, // ★ 順便把計時器也傳進去
       },
       loadedImages,
     );

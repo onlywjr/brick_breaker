@@ -1416,7 +1416,13 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         let pt = b.history[i];
         let ratio = i / b.history.length;
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, b.r * (0.4 + 0.6 * ratio), 0, Math.PI * 2);
+        // 螺旋丸的殘影半徑擴大 1.8 倍
+        let trailR =
+          b.isRasengan ?
+            b.r * 1.8 * (0.4 + 0.6 * ratio)
+          : b.r * (0.4 + 0.6 * ratio);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, trailR, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${rgbColor}, ${ratio * 0.6})`;
         ctx.shadowColor = `rgb(${rgbColor})`;
         ctx.shadowBlur = 10 * ratio;
@@ -1463,44 +1469,88 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     const isP1 = pl === p1;
 
     // ==========================================
-    // ★ 究極奧義：螺旋丸視覺重製 (風遁查克拉)
+    // ★ 究極奧義：螺旋丸視覺重製 (長尾風遁查克拉)
     // ==========================================
     if (b.isRasengan) {
       ctx.save();
       const isLeft = b.spinType === "left";
-      ctx.rotate(performance.now() / (isLeft ? -8 : 8)); // 突破極限的轉速
+      const rotDir = isLeft ? -1 : 1;
+      const nowTime = performance.now();
 
-      const mainColor = "#38BDF8"; // 查克拉藍
+      // 突破極限的本體轉速
+      ctx.rotate(nowTime / (isLeft ? -8 : 8));
+
+      const mainColor = "#38BDF8";
       const glowColor = "#0EA5E9";
 
       ctx.shadowColor = glowColor;
-      ctx.shadowBlur = 25;
+      ctx.shadowBlur = 30;
 
-      // 1. 核心高密度壓縮查克拉球
+      // 1. 外部高速長尾氣旋 (大彎月鐮刀風刃)
+      for (let i = 0; i < 5; i++) {
+        ctx.save();
+        // 讓氣旋尾巴交錯旋轉，製造狂暴感
+        ctx.rotate(((Math.PI * 2) / 5) * i - (nowTime / 120) * rotDir);
+
+        ctx.beginPath();
+        // 起點：貼著球體邊緣
+        ctx.moveTo(20, -4 * rotDir);
+
+        // ==========================================
+        // ★ 利用貝茲曲線畫出「先向外甩、再往內勾」的銳利彎月 (綠線效果)
+        // 控制點1: 把曲線用力往右上方拉扯
+        // 控制點2: 再從遠處往下方壓
+        // 終點: 彎曲收尾在極端位置
+        // ==========================================
+        ctx.bezierCurveTo(80, -20 * rotDir, 60, 30 * rotDir, 40, 90 * rotDir);
+
+        // 尾端切角：風刃末端的厚度
+        ctx.lineTo(50, 90 * rotDir);
+
+        // 內側弧線：順著極大的彎度拉回球體邊緣，形成銳利鐮刀
+        ctx.bezierCurveTo(90, 40 * rotDir, 50, 10 * rotDir, 18, 4 * rotDir);
+        ctx.closePath();
+
+        // 填滿漸層：配合新的彎曲座標調整漸層方向
+        const tailGrad = ctx.createLinearGradient(20, 0, 70, 90 * rotDir);
+        tailGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        tailGrad.addColorStop(0.4, "rgba(56, 189, 248, 0.85)");
+        tailGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+
+        ctx.fillStyle = tailGrad;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 2. 高密度外圍光罩
       ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.arc(0, 0, 26, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
       ctx.fill();
 
-      // 2. 內部查克拉流動波紋
-      ctx.strokeStyle = mainColor;
-      ctx.lineWidth = 3;
+      // 3. 核心壓縮查克拉球
       ctx.beginPath();
-      ctx.arc(0, 0, 12, 0, Math.PI);
-      ctx.stroke();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      const rGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+      rGrad.addColorStop(0, "#FFFFFF");
+      rGrad.addColorStop(0.6, "#BAE6FD");
+      rGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+      ctx.fillStyle = rGrad;
+      ctx.fill();
 
-      // 3. 外部高速氣旋環 (完美致敬螺旋丸外圍的白色風壓)
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 4; i++) {
-        ctx.save();
-        // 讓氣旋以不同角度交錯瘋狂旋轉
-        ctx.rotate(performance.now() / (10 + i * 5) + (i * Math.PI) / 2);
+      // 4. 核心內部的不穩定能量亂流
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 6; i++) {
         ctx.beginPath();
-        // 繪製拉長的橢圓氣流
-        ctx.ellipse(0, 0, 24, 6, 0, 0, Math.PI * 2);
+        ctx.arc(
+          0,
+          0,
+          14,
+          ((Math.PI * 2) / 6) * i,
+          ((Math.PI * 2) / 6) * i + Math.PI / 1.5,
+        );
         ctx.stroke();
-        ctx.restore();
       }
 
       ctx.restore();
@@ -1949,7 +1999,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       hud.style.display = "flex";
       const p1El = document.getElementById("hud-1p");
       const p2El = document.getElementById("hud-2p");
-      const topHudEl = document.getElementById("top-hud-buff-display"); // 抓取上方紅圈容器
+      const topHudEl = document.getElementById("top-hud-buff-display");
 
       const categoryColors = {
         "攻擊": "#E0576B",
@@ -1960,7 +2010,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         "實驗": "#8A7E9C",
       };
 
-      // 1. 生成技能 CD 狀態與餘額標籤 (給 Bottom Status Bar 使用)
+      // 1. 生成技能 CD 狀態與餘額標籤
       const getStatusText = (pId) => {
         const eq = chemStates[pId]?.equipped || [];
         const inv = chemStates[pId]?.inventory || {};
@@ -1996,15 +2046,10 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
             const color =
               categoryColors[skill.category] || categoryColors["實驗"];
 
-            // ==========================================
-            // ★ 計算 CD 比例 (完美對齊 V3.2 引擎)
-            // ==========================================
             let cdRatio = 0;
-            const cdKey = `${pId}_${sId}`; // ★ 使用 1P/2P 複合 Key
+            const cdKey = `${pId}_${sId}`;
 
             if (skillCooldowns[cdKey]) {
-              // 1. 重建 V3.2 動態查表與計算邏輯
-              // 由於 ELEMENT_TIER 在這份檔案中未匯入，我們用簡單的寫法重建判斷
               const getElementGW = (sym) => {
                 const gwMap = {
                   "O": 11.0,
@@ -2040,8 +2085,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
                 const atomicNum =
                   window.ATOMIC_NUMBER ? window.ATOMIC_NUMBER[sym] : 0;
-                if (atomicNum >= 104) return 14.0; // superHeavy
-                if (atomicNum >= 89 && atomicNum <= 103) return 13.5; // superRare/radioactive
+                if (atomicNum >= 104) return 14.0;
+                if (atomicNum >= 89 && atomicNum <= 103) return 13.5;
                 if (
                   [
                     "Rb",
@@ -2107,7 +2152,6 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
             const textColor = isCoolingDown ? "#64748B" : color;
 
             return `<span style="position: relative; display: inline-flex; align-items: center; background: ${bgColor}; color: ${textColor}; padding: 2px 10px; border-radius: 12px; margin: 0 4px; overflow: hidden;">
-                    <!-- ★ 更深色的黑底遮罩層，縮減時平滑過渡 -->
                     <span style="position: absolute; top: 0; left: 0; height: 100%; width: ${maskWidth}; background: rgba(0, 0, 0, 0.45); z-index: 1; transition: width 0.1s linear;"></span>
                     <span style="position: relative; z-index: 2; font-family: serif; font-weight: 900; letter-spacing: 0.5px; ${isCoolingDown ? "color: #FFF;" : ""}">${subscripted}</span>
                     <span style="position: relative; z-index: 2; font-size: 0.85em; margin-left: 4px; ${isCoolingDown ? "color: #E2E8F0;" : "color: #333; opacity: 0.85;"}">x${maxCasts}</span>
@@ -2116,7 +2160,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
           .join("");
       };
 
-      // 2. 生成生效中技能的輪播顯示器 (給 Top HUD 使用)
+      // 2. 生成生效中技能的輪播顯示器
       const getActiveBuffHtml = (pl) => {
         if (!pl || !pl.activeBuffs) return "";
         const now = performance.now();
@@ -2141,9 +2185,96 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
                 </span>`;
       };
 
-      // 3. 寫入 Bottom Status Bar
-      if (p1El)
-        p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
+      // ==========================================
+      // ★ 3. 根據模式智慧分流：完整版 vs 極簡版
+      // ==========================================
+      if (p1El) {
+        const combo = gameState.comboCount || 0;
+        const maxCombo = 30;
+        const progress = Math.min(100, (combo / maxCombo) * 100);
+        const isAwakened = combo >= maxCombo;
+
+        if (mode === 1 || onlineMode) {
+          // --- A. 單人與連線對戰：完整右靠齊設計 ---
+          p1El.style.flex = "1";
+          let comboWrap = document.getElementById("chakra-bar-container");
+
+          if (!comboWrap) {
+            p1El.innerHTML = `
+                <div style="display: flex; align-items: center; width: 100%; justify-content: space-between; white-space: nowrap;">
+                  <div style="display: flex; align-items: center; overflow: hidden;">
+                    <span style="color: #d96c8e; margin-right: 8px; font-weight: 900;">1P</span> 
+                    <div id="hud-skills-container" style="display: flex; align-items: center;">
+                      ${getStatusText(0)}
+                    </div>
+                  </div>
+                  
+                  <div id="chakra-bar-container" style="display: flex; align-items: center; margin-left: auto; border: 2px solid ${isAwakened ? "#38BDF8" : "#c9b1e8"}; border-radius: 12px; padding: 2px 10px; background: rgba(255,255,255,0.85); transition: all 0.3s; flex-shrink: 0;">
+                      <span id="chakra-title-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 12px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-right: 8px; transition: color 0.3s;">CHAKRA</span>
+                      
+                      <div style="width: 100px; height: 10px; background: rgba(0,0,0,0.25); border-radius: 5px; overflow: hidden; position: relative;">
+                          <div id="chakra-fill-bar" style="width: ${progress}%; height: 100%; background: ${isAwakened ? "#E0FFFF" : "linear-gradient(90deg, #38BDF8, #818CF8)"}; transition: width 0.15s ease-out, background 0.3s;"></div>
+                      </div>
+                      
+                      <span id="chakra-count-text" style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px; color: ${isAwakened ? "#38BDF8" : "#8A7E9C"}; margin-left: 8px; transition: color 0.3s;">${combo}/${maxCombo}</span>
+                      <span id="chakra-max-text" style="font-size: 12px; font-weight: 900; color: #38BDF8; margin-left: 6px; display: ${isAwakened ? "inline" : "none"}; text-shadow: 0 0 5px #38BDF8;">MAX!</span>
+                  </div>
+                </div>
+              `;
+          } else {
+            // 平滑更新完整版
+            document.getElementById("hud-skills-container").innerHTML =
+              getStatusText(0);
+            const fillBar = document.getElementById("chakra-fill-bar");
+            const countText = document.getElementById("chakra-count-text");
+            const maxText = document.getElementById("chakra-max-text");
+            const titleText = document.getElementById("chakra-title-text");
+
+            if (fillBar) fillBar.style.width = `${progress}%`;
+            if (countText) countText.innerText = `${combo}/${maxCombo}`;
+
+            if (isAwakened) {
+              comboWrap.style.borderColor = "#38BDF8";
+              comboWrap.style.boxShadow = "0 0 10px rgba(56, 189, 248, 0.6)";
+              if (titleText) {
+                titleText.style.color = "#38BDF8";
+                titleText.style.textShadow = "0 0 5px #38BDF8";
+              }
+              if (fillBar) {
+                fillBar.style.background = "#E0FFFF";
+                fillBar.style.boxShadow = "0 0 10px #38BDF8";
+              }
+              if (countText) {
+                countText.style.color = "#38BDF8";
+                countText.style.textShadow = "0 0 5px #38BDF8";
+              }
+              if (maxText) maxText.style.display = "inline";
+            } else {
+              comboWrap.style.borderColor = "#c9b1e8";
+              comboWrap.style.boxShadow = "none";
+              if (titleText) {
+                titleText.style.color = "#8A7E9C";
+                titleText.style.textShadow = "none";
+              }
+              if (fillBar) {
+                fillBar.style.background =
+                  "linear-gradient(90deg, #38BDF8, #818CF8)";
+                fillBar.style.boxShadow = "none";
+              }
+              if (countText) {
+                countText.style.color = "#8A7E9C";
+                countText.style.textShadow = "none";
+              }
+              if (maxText) maxText.style.display = "none";
+            }
+          }
+        } else {
+          // --- B. 雙人模式：底部維持乾淨，只顯示裝備技能 ---
+          p1El.style.flex = "initial";
+          p1El.innerHTML = `<div style="display: flex; align-items: center;"><span style="color: #d96c8e; margin-right: 8px;">1P</span> ${getStatusText(0)}</div>`;
+        }
+      }
+
       if (p2El) {
         if (mode === 1 || onlineMode) p2El.innerHTML = "";
         else
@@ -2167,6 +2298,77 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       if (topHudEl) topHudEl.style.display = "none";
     }
   }
+
+  // ==========================================
+  // ★ 4. 極簡版大招查克拉集氣條 (只在單機雙人模式生效)
+  // ==========================================
+  const currentCombo = gameState.comboCount || 0;
+  const maxCombo = 30;
+  const progress = Math.min(100, (currentCombo / maxCombo) * 100);
+  const isAwakened = currentCombo >= maxCombo;
+
+  ["p1", "p2"].forEach((p) => {
+    const card = document.getElementById(`${p}-card`);
+    const barWrapId = `${p}-chakra-wrap`;
+
+    // ★ 若是單人或連線對戰，確保隱藏上方卡片的迷你進度條
+    if (mode === 1 || onlineMode) {
+      const existingWrap = document.getElementById(barWrapId);
+      if (existingWrap) existingWrap.style.display = "none";
+      return;
+    }
+
+    if (card && card.style.display !== "none") {
+      // 確保卡片可以作為絕對定位的基準
+      if (card.style.position !== "relative") {
+        card.style.position = "relative";
+        card.style.overflow = "hidden";
+      }
+
+      let barWrap = document.getElementById(barWrapId);
+      if (!barWrap) {
+        barWrap = document.createElement("div");
+        barWrap.id = barWrapId;
+        // 貼緊底部，高度 5px，無文字
+        barWrap.style.cssText = `
+          position: absolute; 
+          bottom: 0; 
+          left: 0; 
+          width: 100%; 
+          height: 5px; 
+          background: rgba(0,0,0,0.15); 
+          z-index: 10;
+        `;
+
+        const fillBar = document.createElement("div");
+        fillBar.id = `${p}-chakra-fill`;
+        fillBar.style.cssText = `
+          width: 0%; 
+          height: 100%; 
+          background: linear-gradient(90deg, #38BDF8, #818CF8); 
+          transition: width 0.15s ease-out, background 0.3s, box-shadow 0.3s;
+        `;
+
+        barWrap.appendChild(fillBar);
+        card.appendChild(barWrap);
+      }
+
+      barWrap.style.display = "block"; // 確保雙人模式下正確顯示
+
+      // 每一幀更新進度條寬度與發光狀態
+      const fillEl = document.getElementById(`${p}-chakra-fill`);
+      if (fillEl) {
+        fillEl.style.width = `${progress}%`;
+        if (isAwakened) {
+          fillEl.style.background = "#E0FFFF";
+          fillEl.style.boxShadow = "0 0 10px #38BDF8, inset 0 0 5px #38BDF8";
+        } else {
+          fillEl.style.background = "linear-gradient(90deg, #38BDF8, #818CF8)";
+          fillEl.style.boxShadow = "none";
+        }
+      }
+    }
+  });
 }
 
 export function resetBackground() {
