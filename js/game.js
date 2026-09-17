@@ -117,6 +117,8 @@ window.proceedToNextLevel = () => {
 
   const leaveBtn = document.getElementById("global-leave-btn");
   if (leaveBtn) leaveBtn.style.display = "block";
+  const pauseBtn = document.getElementById("global-pause-btn");
+  if (pauseBtn) pauseBtn.style.display = "flex";
 
   level++;
   buildLevel(level, document.getElementById("game"));
@@ -138,6 +140,9 @@ window.enterShopFromLevelClear = () => {
   // ★ 進入商店前，先將全域離開按鈕隱藏
   const leaveBtn = document.getElementById("global-leave-btn");
   if (leaveBtn) leaveBtn.style.display = "none";
+
+  const pauseBtn = document.getElementById("global-pause-btn");
+  if (pauseBtn) pauseBtn.style.display = "none";
 
   // ★ 單人模式永遠是 1P (0)
   openChemistryShop("配方商店", 0, window.proceedToNextLevel);
@@ -791,6 +796,24 @@ function executeStartGame(selectedMode, cv) {
   document.getElementById("status").style.display = "flex";
   document.getElementById("global-leave-btn").style.display = "block";
 
+  // ★ 動態建立並顯示全域左上角暫停按鈕 (固定位置 Fixed)
+  let pauseBtn = document.getElementById("global-pause-btn");
+  if (!pauseBtn) {
+    pauseBtn = document.createElement("button");
+    pauseBtn.id = "global-pause-btn";
+    pauseBtn.style.cssText =
+      "position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(255,255,255,0.85); border: 2px solid #c9b1e8; border-radius: 12px; width: 48px; height: 48px; font-size: 20px; color: #8A7E9C; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); outline: none; transition: 0.2s; padding: 0 0 0 5px;";
+    pauseBtn.onclick = () => {
+      if (typeof window.togglePauseGame === "function")
+        window.togglePauseGame();
+    };
+    document.body.appendChild(pauseBtn);
+  }
+  pauseBtn.style.display = "flex";
+  pauseBtn.innerHTML = "⏸";
+  pauseBtn.style.borderColor = "#c9b1e8";
+  pauseBtn.style.color = "#8A7E9C";
+
   const inputLv = parseInt(document.getElementById("start-level").value, 10);
   level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
 
@@ -832,6 +855,59 @@ function executeStartGame(selectedMode, cv) {
   // ★ 啟動倒數 (音樂移至倒數後自動播放)
   startCountdownSequence(cv);
 }
+
+// ==========================================
+// ★ 全域暫停與恢復系統 (畫面左上角)
+// ==========================================
+window.togglePauseGame = function () {
+  const cv = document.getElementById("game");
+  if (!cv || cv.style.display === "none") return;
+  // 連線模式、過關緩衝期、倒數期間禁止暫停
+  if (onlineMode || isLevelClearing || isGameCountdown) return;
+
+  const btn = document.getElementById("global-pause-btn");
+
+  if (running) {
+    // 執行暫停
+    running = false;
+    cancelAnimationFrame(animId);
+
+    if (btn) {
+      btn.innerHTML = "▶";
+      btn.style.borderColor = "#38BDF8";
+      btn.style.color = "#38BDF8";
+      btn.style.boxShadow = "0 0 10px rgba(56, 189, 248, 0.4)";
+    }
+
+    // 渲染半透明暫停遮罩與字樣
+    const ctx = cv.getContext("2d");
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.font = "900 56px 'Orbitron', 'Noto Sans TC', sans-serif";
+    ctx.fillStyle = "#FFF";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "#38BDF8";
+    ctx.shadowBlur = 20;
+    ctx.fillText("⏸ PAUSED", cv.width / 2, cv.height / 2);
+    ctx.restore();
+  } else {
+    // 執行恢復
+    running = true;
+
+    if (btn) {
+      btn.innerHTML = "⏸";
+      btn.style.borderColor = "#c9b1e8";
+      btn.style.color = "#8A7E9C";
+      btn.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
+    }
+
+    loop.last = performance.now();
+    cancelAnimationFrame(animId);
+    animId = requestAnimationFrame((ts) => loop(ts, cv));
+  }
+};
 
 // ==========================================
 // ★ 乾淨的 HTML Event HUD 播報系統
@@ -988,6 +1064,8 @@ export function startOnlineGame(state, cv) {
   cv.style.display = "block";
   document.getElementById("status").style.display = "flex";
   document.getElementById("global-leave-btn").style.display = "none";
+  if (document.getElementById("global-pause-btn"))
+    document.getElementById("global-pause-btn").style.display = "none";
 
   resizeGame(); // ★ 加上這行：切換模式後立刻計算正確比例
 
@@ -1097,6 +1175,8 @@ export function endGame() {
   document.getElementById("status").style.display = "none";
   if (document.getElementById("global-leave-btn"))
     document.getElementById("global-leave-btn").style.display = "none";
+  if (document.getElementById("global-pause-btn"))
+    document.getElementById("global-pause-btn").style.display = "none";
 
   // ==========================================
   // ★ 正確的隱藏時機：遊戲真正結束時才把主畫面排行榜藏起來
@@ -1136,6 +1216,9 @@ export function showOnlineMatchOver(result) {
   document.getElementById("status").style.display = "none";
   if (document.getElementById("global-leave-btn"))
     document.getElementById("global-leave-btn").style.display = "none";
+
+  if (document.getElementById("global-pause-btn"))
+    document.getElementById("global-pause-btn").style.display = "none";
   document.getElementById("lobby-screen").style.display = "none";
   document.getElementById("room-status").style.display = "none";
   document.getElementById("bottom-status-bar").style.display = "none";
@@ -2257,6 +2340,8 @@ function wipeGameUIState() {
   }
   const statusEl = document.getElementById("status");
   if (statusEl) statusEl.style.display = "none";
+  const pauseBtn = document.getElementById("global-pause-btn");
+  if (pauseBtn) pauseBtn.style.display = "none";
 }
 
 // ==========================================
