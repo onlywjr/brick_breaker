@@ -522,6 +522,15 @@ function initResponsiveScaler() {
     applyScale();
     if (window.layoutPointsDisplay) window.layoutPointsDisplay();
   });
+
+  // ★ 新增：修復 180 度翻轉時的化學 UI 跑版
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      applyScale();
+      if (window.layoutPointsDisplay) window.layoutPointsDisplay();
+    }, 200);
+  });
+
   // 初次開啟時計算一次
   applyScale();
 }

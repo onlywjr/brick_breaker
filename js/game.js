@@ -2265,7 +2265,11 @@ export function initGlobalBindings() {
     keys[e.key] = false;
   });
   window.addEventListener("resize", resizeGame);
-  window.addEventListener("orientationchange", resizeGame);
+
+  // ★ 修正 180 度翻轉破版問題：給瀏覽器 200ms 重繪時間
+  window.addEventListener("orientationchange", () => {
+    setTimeout(resizeGame, 200);
+  });
 }
 export function resetMatchState() {
   onlineEliminated = false;
