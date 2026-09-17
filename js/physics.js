@@ -31,6 +31,15 @@ import {
 import { socket } from "./socket.js";
 
 // ==========================================
+// ★ 開發者測試快速鍵：按 'R' 一鍵充滿大招 Combo
+// ==========================================
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "r") {
+    window._cheatRasengan = true; // 標記作弊狀態
+  }
+});
+
+// ==========================================
 // ★ 元素動態權重與分類表 (Game Weight)
 // GW = 遊戲中的「技能價值」與「發動成本」
 // 權重越高，冷卻越快 (代表收集不易或價值極高)
@@ -242,6 +251,16 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     ghostBalls,
   } = gameState;
   const now = performance.now();
+
+  // ==========================================
+  // ★ 攔截作弊指令：瞬間將 Combo 充滿至 30
+  // ==========================================
+  if (window._cheatRasengan) {
+    comboCount = 30;
+    comboTimer = 2.0;
+    window._cheatRasengan = false; // 觸發後關閉
+    triggerGameEvent("🌀 查克拉已充滿 (Combo = 30)！", false, 0); // 1P 畫面提示
+  }
 
   // ★ 1. 全域 DOT 毒霧扣血
   if (globalDotState.active) {
@@ -628,6 +647,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       if (b.spin) {
         b.spin = 0;
         b.spinType = null;
+        b.isRasengan = false; // ★ 碰到天花板解除螺旋丸
         // ★ 修正：乘上 Math.SQRT2 補回畢氏定理遺失的速度，並套用玩家身上的加速 Buff！
         const baseSp =
           (3.5 + Math.min(4.5, level * 0.1))
@@ -694,6 +714,20 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           const pId = targetPl === p1 ? 0 : 1;
           const msg = spinDir === -1 ? `🌀 左旋攻擊` : `☄️ 右旋攻擊`;
           const color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
+
+          // ==========================================
+          // ★ 新增：螺旋丸大招觸發判定！(Combo >= 30 + 完美切球)
+          // ==========================================
+          if (perfectRatio > 0.8 && comboCount >= 30) {
+            b.isRasengan = true;
+            b.spin = spinDir * 80; // 賦予突破天際的超高轉速
+            timingText = "🌀 螺旋丸！";
+            timingColor = "#38BDF8"; // 查克拉青藍色
+            msg = "🌀 螺旋丸發動！";
+            color = "#38BDF8";
+
+            triggerVFX(15, "56, 189, 248", 0.5); // 螢幕大震動與青色閃光
+          }
 
           triggerGameEvent(msg, false, pId); // 底部 HUD 提示
 
@@ -827,6 +861,17 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           isDrilling = true;
         }
 
+        // ★ 螺旋丸擁有風遁切割特性，絕對貫穿！
+        if (b.isRasengan) isDrilling = true;
+
+        // 電鑽狀態下不會執行這段反彈邏輯，直接穿過去！
+        if (!b.fire && !b.isPiercing && !b.isHeavy && !isDrilling) {
+          const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
+          const overlapY = Math.abs(br.y + br.h / 2 - b.y) / br.h;
+          if (overlapX > overlapY) b.dx *= -1;
+          else b.dy *= -1;
+        }
+
         // 電鑽狀態下不會執行這段反彈邏輯，直接穿過去！
         if (!b.fire && !b.isPiercing && !b.isHeavy && !isDrilling) {
           const overlapX = Math.abs(br.x + br.w / 2 - b.x) / br.w;
@@ -900,7 +945,44 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           // ==========================================
           // ★ 旋球系統：擊中磚塊釋放動能與超級傷害
           // ==========================================
-          if (b.spinType === "left") {
+          if (b.isRasengan) {
+            // ★ 螺旋丸：絕對毀滅與大範圍查克拉爆破 (不會減速)
+            let aoeDmg = 25;
+            br.hp -= aoeDmg;
+            triggerVFX(8, "56, 189, 248", 0.4); // 青藍色震波
+
+            floatTexts.push({
+              t: `螺旋丸 -${aoeDmg}`,
+              life: 1.2,
+              x: br.x + br.w / 2,
+              y: br.y - 15,
+              c: "#38BDF8",
+              big: true,
+            });
+
+            // 查克拉餘波炸毀周圍磚塊
+            bricks.forEach((otherBr) => {
+              if (
+                otherBr !== br
+                && otherBr.hp > 0
+                && Math.hypot(otherBr.x - br.x, otherBr.y - br.y) < 110
+              ) {
+                otherBr.hp -= aoeDmg;
+                burst(
+                  otherBr.x + otherBr.w / 2,
+                  otherBr.y + otherBr.h / 2,
+                  "#38BDF8",
+                );
+                if (otherBr.hp <= 0) {
+                  otherBr.killedBySkill = true;
+                  if (otherBr.symbol && chemDLCEnabled)
+                    addAtom(otherBr.symbol, 1, pl === p2 ? 1 : 0);
+                  pl.score += 10 * (pl.scoreMultiplier || 1);
+                }
+              }
+            });
+            if (b.hitBricks) b.hitBricks.add(br);
+          } else if (b.spinType === "left") {
             // 左旋：氣旋爆破 (範圍傷害提升！)
             let aoeDmg = Math.floor(Math.abs(b.spin) * 0.8);
             if (aoeDmg > 0) {

@@ -1395,13 +1395,15 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         || b.isPiercing
         || (pl.speedBuffRatio && pl.speedBuffRatio > 1)
         || b.fire
+        || b.isRasengan // ★ 加入螺旋丸殘影判定
         || (pl.scoreMultiplier && pl.scoreMultiplier > 1))
     ) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       let rgbColor =
-        b.spinType === "left" ?
-          "168, 85, 247" // 氣旋紫
+        b.isRasengan ?
+          "56, 189, 248" // ★ 螺旋丸青藍色查克拉
+        : b.spinType === "left" ? "168, 85, 247"
         : b.spinType === "right" ?
           "251, 191, 36" // 電鑽金
         : activeAction === "laser_pierce" ? "255, 100, 200"
@@ -1461,9 +1463,48 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     const isP1 = pl === p1;
 
     // ==========================================
-    // ★ 旋球系統：戰鬥陀螺視覺重製 (Beyblade Style)
+    // ★ 究極奧義：螺旋丸視覺重製 (風遁查克拉)
     // ==========================================
-    if (b.spinType === "left" || b.spinType === "right") {
+    if (b.isRasengan) {
+      ctx.save();
+      const isLeft = b.spinType === "left";
+      ctx.rotate(performance.now() / (isLeft ? -8 : 8)); // 突破極限的轉速
+
+      const mainColor = "#38BDF8"; // 查克拉藍
+      const glowColor = "#0EA5E9";
+
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 25;
+
+      // 1. 核心高密度壓縮查克拉球
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.fill();
+
+      // 2. 內部查克拉流動波紋
+      ctx.strokeStyle = mainColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 12, 0, Math.PI);
+      ctx.stroke();
+
+      // 3. 外部高速氣旋環 (完美致敬螺旋丸外圍的白色風壓)
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        ctx.save();
+        // 讓氣旋以不同角度交錯瘋狂旋轉
+        ctx.rotate(performance.now() / (10 + i * 5) + (i * Math.PI) / 2);
+        ctx.beginPath();
+        // 繪製拉長的橢圓氣流
+        ctx.ellipse(0, 0, 24, 6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.restore();
+    } else if (b.spinType === "left" || b.spinType === "right") {
       ctx.save();
       const isLeft = b.spinType === "left";
 
