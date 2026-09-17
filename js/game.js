@@ -802,7 +802,7 @@ function executeStartGame(selectedMode, cv) {
     pauseBtn = document.createElement("button");
     pauseBtn.id = "global-pause-btn";
     pauseBtn.style.cssText =
-      "position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(255,255,255,0.85); border: 2px solid #c9b1e8; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; color: #8A7E9C; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); outline: none; transition: 0.2s; padding: 0 0 0 5px;";
+      "position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(255,255,255,0.85); border: 2px solid #c9b1e8; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; color: #8A7E9C; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); outline: none; transition: 0.2s; padding: 0 0 2px 3px;";
     pauseBtn.onclick = () => {
       if (typeof window.togglePauseGame === "function")
         window.togglePauseGame();
