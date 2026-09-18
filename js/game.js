@@ -1,6 +1,8 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
 export const TEST_MODE = false;
 
+const DEFAULT_SPD = 3.5 + Math.min(3.5, level * 0.1);
+
 // ==========================================
 // ★ 新增：效能模式與優化開關
 // ==========================================
@@ -51,6 +53,7 @@ import {
   resetSkillCooldowns,
   resetGlobalDotState,
   applyLocalDebuff,
+  ELEMENT_GW_MAP,
 } from "./physics.js";
 
 import {
@@ -291,12 +294,12 @@ function makePlayer(color, lightColor) {
 }
 
 function generateBrickSymbol(gameMode, currentLevel) {
-  // ★ 方案 B：單人模式從第 5 關起，有 8% 機率生成高危險陷阱磚塊
+  // ★ 1. 陷阱方塊判定 (單人模式專屬，8% 機率)
   if (gameMode === 1 && currentLevel >= 5 && Math.random() < 0.08) {
     return "💣️";
   }
 
-  // ★ 新增：未開啟化學 DLC 時，改為生成數學符號
+  // ★ 2. 數學極限模式 (關閉化學 DLC 時)
   if (!chemDLCEnabled) {
     const operators = ["+", "-"];
     if (currentLevel >= 4) operators.push("×", "÷", "(", ")");
@@ -307,52 +310,112 @@ function generateBrickSymbol(gameMode, currentLevel) {
     if (currentLevel >= 4) numMax = 50;
     if (currentLevel >= 7) numMax = 99;
 
-    // 60% 機率生成數字，40% 機率生成運算子或括號
     if (Math.random() < 0.6) {
       return Math.floor(Math.random() * numMax + 1).toString();
     } else {
       return operators[Math.floor(Math.random() * operators.length)];
     }
   }
-  // --- 以下保留原本的化學 DLC 邏輯 ---
-  const basicPool = ["H", "C", "O", "N"];
-  let rarePool = [];
 
+  // ==========================================
+  // ★ V3.5 結合 ELEMENT_GW_MAP 真實權重輪盤系統
+  // ==========================================
+  let weightPool = {};
+
+  // A. 核心四大元素給予基礎池份額 (動態遞減：中後期交給轉換爐找零)
+  const coreElements = ["H", "C", "O", "N"];
+  // ★ 從 1 關的 25 點權重，隨關卡慢慢下降，到 40 關時降至最低的 5 點
+  const coreWeight = Math.max(5, 25 - Math.floor(currentLevel / 2));
+  coreElements.forEach((sym) => (weightPool[sym] = coreWeight));
+
+  // B. 裝備技能的元素大幅提升權重 (最高優先度)
   equippedSkills.forEach((skillId) => {
     if (!skillId) return;
     const skill = chemSkills.find((s) => s.id === skillId);
-    if (skill)
+    if (skill) {
       Object.keys(skill.elements).forEach((sym) => {
-        if (!basicPool.includes(sym)) rarePool.push(sym);
+        weightPool[sym] = (weightPool[sym] || 0) + 50; // 裝備加成拉高到 +50
       });
+    }
   });
 
+  // C. 單人模式的願望清單給予中等權重 (次級優先度)
   if (gameMode === 1) {
     wishlist.forEach((skillId) => {
       const skill = chemSkills.find((s) => s.id === skillId);
-      if (skill)
+      if (skill) {
         Object.keys(skill.elements).forEach((sym) => {
-          if (!basicPool.includes(sym)) rarePool.push(sym);
+          weightPool[sym] = (weightPool[sym] || 0) + 15; // 願望加成 +15
         });
+      }
     });
   }
 
-  rarePool = [...new Set(rarePool)];
-  rarePool = rarePool.filter((sym) => {
-    const category = ELEMENT_DATA[sym] ? ELEMENT_DATA[sym][1] : "unknown";
-    if (["lanthanide", "actinide", "unknown"].includes(category))
-      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_HEAVY;
-    if (["transition"].includes(category))
-      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_TRANSITION;
-    if (["alkali", "alkaline", "main-metal", "metalloid"].includes(category))
-      return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS;
-    return true;
-  });
+  // D. 依照關卡進度與 ELEMENT_GW_MAP 進行最終機率壓縮
+  let finalPool = [];
+  let totalWeight = 0;
 
-  if (rarePool.length === 0) rarePool = ["Na", "Cl", "Mg"];
-  if (Math.random() < 0.7)
-    return basicPool[Math.floor(Math.random() * basicPool.length)];
-  else return rarePool[Math.floor(Math.random() * rarePool.length)];
+  for (const [sym, baseWeight] of Object.entries(weightPool)) {
+    const category = ELEMENT_DATA[sym] ? ELEMENT_DATA[sym][1] : "unknown";
+
+    // D-1. 關卡進度鎖定審查 (未解鎖的元素直接排除)
+    if (
+      ["lanthanide", "actinide", "unknown"].includes(category)
+      && currentLevel < DIFFICULTY_CONFIG.UNLOCK_HEAVY
+    )
+      continue;
+    if (
+      ["transition"].includes(category)
+      && currentLevel < DIFFICULTY_CONFIG.UNLOCK_TRANSITION
+    )
+      continue;
+    if (
+      ["alkali", "alkaline", "main-metal", "metalloid"].includes(category)
+      && currentLevel < DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS
+    )
+      continue;
+
+    // D-2. 讀取真實價值 (GW) 來計算懲罰
+    // 基準值設定為 10.5。超過 10.5 越多，代表越貴、越重，懲罰越大
+    let gw = ELEMENT_GW_MAP[sym];
+    if (!gw) {
+      if (category === "transition") gw = 11.5;
+      else if (["lanthanide", "actinide"].includes(category)) gw = 12.5;
+      else gw = 10.5;
+    }
+
+    // 利用指數函數壓低重金屬機率 (例：H 的 GW 是 11.0 -> 懲罰 1.4 倍； U 是 12.6 -> 懲罰 4.2 倍)
+    let rarityPenalty = Math.pow(2, Math.max(0, gw - 10.5));
+
+    // ★ 神級優化：如果是你「裝備中」的超稀有元素，我們特赦它一半的懲罰，保證你能搓出大招！
+    const isEquipped = equippedSkills.some((sId) => {
+      const s = chemSkills.find((x) => x.id === sId);
+      return s && s.elements[sym];
+    });
+    if (isEquipped) rarityPenalty *= 0.5;
+
+    // 結算最終機率權重
+    const finalWeight = Math.round(baseWeight / Math.max(1, rarityPenalty));
+
+    if (finalWeight > 0) {
+      finalPool.push({ sym, weight: finalWeight });
+      totalWeight += finalWeight;
+    }
+  }
+
+  // E. 防呆機制
+  if (finalPool.length === 0) {
+    return ["Na", "Cl", "Mg"][Math.floor(Math.random() * 3)];
+  }
+
+  // F. 真實機率輪盤抽卡
+  let roll = Math.random() * totalWeight;
+  for (const item of finalPool) {
+    roll -= item.weight;
+    if (roll <= 0) return item.sym;
+  }
+
+  return finalPool[0].sym;
 }
 
 function buildLevel(lv, cv) {
@@ -673,7 +736,7 @@ function resetRound(cv) {
     p2.w = 120;
     p2.x = cv.width - 120 - p2.w / 2;
     p2.shrinkFx = 0;
-    let spd = 3.5 + Math.min(4.5, level * 0.1);
+    let spd = DEFAULT_SPD;
     p2.ball = {
       x: p2.x + p2.w / 2,
       y: p2.y - 20,
@@ -686,7 +749,7 @@ function resetRound(cv) {
   } else {
     p2.ball = null;
   }
-  let spd = 3.5 + Math.min(4.5, level * 0.1);
+  let spd = DEFAULT_SPD;
   p1.ball = {
     x: p1.x + p1.w / 2,
     y: p1.y - 20,
@@ -1659,7 +1722,6 @@ function buildMathProblem(inventory, currentLevel) {
 }
 
 export function updateGameState(dt, cv) {
-
   // ★ 終極防護網：只要是單機雙人模式，強制關閉全螢幕遮罩 UI
   if (mode === 2 && !onlineMode) {
     const blindEl = document.getElementById("online-blind");

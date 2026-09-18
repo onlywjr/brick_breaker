@@ -1488,10 +1488,12 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
     const effect = isMulti ? skill.effectMulti : skill.effectSingle;
 
     // ==========================================
-    // ★ V3.2 動態權重冷卻引擎 (最高權重驅動 + 結構/稀有度補償)
+    // ★ V3.5 統一使用 ELEMENT_GW_MAP 真實權重計算冷卻
     // ==========================================
     const getElementGW = (sym) => {
       if (ELEMENT_GW_MAP[sym]) return ELEMENT_GW_MAP[sym];
+
+      // 若元素極其冷門未在表上，使用分類做最終防呆
       if (ELEMENT_TIER.superHeavy.includes(sym)) return 14.0;
       if (ELEMENT_TIER.superRare.includes(sym)) return 13.5;
       if (ELEMENT_TIER.radioactive.includes(sym)) return 13.0;
@@ -1509,20 +1511,20 @@ export function checkAndFireEquippedSkills(pl, gameState, cv, pId = 0) {
       totalAtoms += count;
     }
 
-    // 1. 基礎權重：以配方中最稀有的元素為主體，輔以原子總數的對數微調
-    const baseSkillGW = maxElementGW + Math.log2(totalAtoms) * 0.5;
+    // 1. 基礎權重：以配方中最貴的元素為主，輔以原子總數 (總數越多，配方越難湊，應給予冷卻縮減)
+    const baseSkillGW = maxElementGW + Math.log2(Math.max(1, totalAtoms)) * 0.5;
 
-    // 2. 結構價值：利用技能設定的分子量等級區分同元素異構物
+    // 2. 結構價值：厚重的分子結構 (heavy) 賦予更高的價值乘數
     let compoundValue = 1.0;
     const tier = skill.progression?.molecularWeightTier || "medium";
     if (tier === "heavy") compoundValue = 1.25;
     else if (tier === "medium") compoundValue = 1.1;
     else if (tier === "light") compoundValue = 0.9;
 
-    // 3. 稀有度紅利：配方中含有高階元素時，給予額外冷卻縮減乘數
+    // 3. 稀有度紅利：使用越昂貴的元素 (GW > 10.5)，給予越強大的冷卻減免係數
     const rarityBonus = 1 + Math.max(0, (maxElementGW - 10.5) * 0.08);
 
-    // 4. 最終價值結算
+    // 4. 最終價值結算 (價值越高，等一下轉換出的 CD 秒數就越短)
     const finalSkillValue = baseSkillGW * compoundValue * rarityBonus;
 
     // 5. 轉換為冷卻時間 (上限 25 秒，下限 6 秒)
@@ -2134,7 +2136,7 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
       "fog_blind",
       "fake_ball_illusion",
       "storm_disruption",
-      "flash_blind", 
+      "flash_blind",
     ].includes(type)
   ) {
     // ★ 關鍵修正：單機雙人模式下，絕對不彈出全螢幕遮罩 UI！
@@ -2145,7 +2147,7 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
         blindEl.style.display = "flex";
       }
     }
-    
+
     // ★ 雖然不顯示 UI，但計時器一定要照常運作！
     // 因為 renderer 是靠這個計時器來決定要不要把對手隱形的！
     if (targetPl.timers.blind) clearTimeout(targetPl.timers.blind);

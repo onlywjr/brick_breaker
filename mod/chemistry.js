@@ -2526,9 +2526,9 @@ window.cheatMaxAtoms = function (amount = 100) {
 export const DIFFICULTY_CONFIG = {
   FULL_POTENTIAL_LEVEL: 50, // 達到 100% 原始血量潛力的關卡數
   CURVE_EXPONENT: 1.5, // 成長曲線次方 (1=線性, 1.5=平滑下凹, 2.0=前期極易/後期陡峭)
-  UNLOCK_MAIN_METALS: 15, // 解禁主族與鹼土金屬 (4~6 HP) 的關卡
-  UNLOCK_TRANSITION: 30, // 解禁過渡金屬 (10~15 HP) 的關卡
-  UNLOCK_HEAVY: 45, // 解禁超重與放射性元素 (20~30 HP) 的關卡
+  UNLOCK_MAIN_METALS: 10, // 解禁主族與鹼土金屬 (4~6 HP) 的關卡
+  UNLOCK_TRANSITION: 20, // 解禁過渡金屬 (10~15 HP) 的關卡
+  UNLOCK_HEAVY: 30, // 解禁超重與放射性元素 (20~30 HP) 的關卡
 };
 
 // ==========================================
