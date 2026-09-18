@@ -28,6 +28,7 @@ import {
   levelStartTime, // ★ 補上匯入
   showVirtual,
   TEST_MODE,
+  ghostBalls,
 } from "./game.js";
 import { socket } from "./socket.js";
 
@@ -369,6 +370,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           && gb.y > br.y - gb.r
           && gb.y < br.y + br.h + gb.r
         ) {
+          // ★ 新增這行：如果是假球幻影，它只會彈跳擾亂視線，絕對不會扣除磚塊血量！
+          if (gb.isFake) continue;
           br.hp--;
           gb.hitBricks.add(br); // 記憶已撞擊，避免卡進去瘋狂扣血
           burst(gb.x, gb.y, "rgba(200,200,200,0.5)");
@@ -524,7 +527,34 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     // ★ 新增：遞減專屬干擾計時器
     if (pl.chaosTimer > 0) pl.chaosTimer -= dt / 60;
     if (pl.magneticDebuffTimer > 0) pl.magneticDebuffTimer -= dt / 60;
+    if (pl.stormTimer > 0) pl.stormTimer -= dt / 60; // ★ 新增風暴計時
 
+    // ★ 實裝 1：真正的 DoT 持續毒傷 (每秒跳一次傷害)
+    if (pl.dotTimer > 0) {
+      pl.dotTimer -= dt / 60;
+      pl.dotTick = (pl.dotTick || 0) + dt / 60;
+      if (pl.dotTick >= 1.0) {
+        pl.dotTick = 0;
+        let dmg = pl.dotPower;
+        // 護盾優先抵擋
+        if (pl.shield && pl.shield > 0) {
+          let block = Math.min(pl.shield, dmg);
+          pl.shield -= block;
+          dmg -= block;
+        }
+        pl.hp -= dmg;
+        burst(pl.x + pl.w / 2, pl.y, "#A78BFA");
+        const pId = pl === p1 ? 0 : 1;
+        triggerGameEvent(`☣️ 輻射傷害 -${Math.round(dmg)}%`, false, pId);
+
+        if (pl.hp <= 0) {
+          pl.hp = 0;
+          triggerGameEvent(`💀 生命值耗盡！`, true, pId);
+          if (onlineMode) onlineFinishLocalElimination();
+          else endGame();
+        }
+      }
+    }
     if (chemDLCEnabled) {
       const pId = pl === p1 ? 0 : 1;
       checkAndFireEquippedSkills(pl, gameState, cv, pId);
@@ -577,7 +607,11 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     if (pl.magneticDebuffTimer > 0) {
       b.dx += (b.x > cv.width / 2 ? 0.6 : -0.6) * dt;
     }
-
+    // ★ 實裝 2：風暴干擾 (給予極強的隨機橫向與縱向強風推力)
+    if (pl.stormTimer > 0) {
+      b.dx += (Math.random() - 0.5) * 3 * dt;
+      b.dy += (Math.random() - 0.5) * 1.5 * dt;
+    }
     // ★2. 補上 magnetic_trajectory 磁力牽引判定 (效能優化版)
     let hasMagnetic = Object.values(pl.activeBuffs || {}).some(
       (buff) =>
@@ -2041,38 +2075,90 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
     return;
   }
 
-  if (
-    [
-      "damage_hp",
-      "radiation_debuff",
-      "unstable_debuff",
-      "unstable_countdown",
-    ].includes(type)
-  ) {
+  if (type === "damage_hp") {
     let dmg = power;
-
-    // ★ 優先扣除護盾
     if (targetPl.shield && targetPl.shield > 0) {
       let block = Math.min(targetPl.shield, dmg);
       targetPl.shield -= block;
       dmg -= block;
     }
-
-    // 護盾破裂後扣除真實 HP
     targetPl.hp -= dmg;
-
     const blockMsg = power > dmg ? " (護盾抵擋部分)" : "";
     triggerGameEvent(
       `💥 護盾受損 -${Math.round(dmg)}%${blockMsg}`,
       false,
       targetPl === p1 ? 0 : 1,
     );
-
     if (targetPl.hp <= 0) {
       targetPl.hp = 0;
       triggerGameEvent(`💀 生命值耗盡！`, true, targetPl === p1 ? 0 : 1);
       if (onlineMode) onlineFinishLocalElimination();
       else endGame();
+    }
+  } else if (type === "radiation_debuff" || type === "unstable_debuff") {
+    // ★ 實裝：真正的 DoT 系統 (每秒扣除 power 點數)
+    targetPl.dotTimer = duration;
+    targetPl.dotPower = power;
+    triggerGameEvent(
+      `☣️ 受到輻射污染，持續 ${duration} 秒！`,
+      false,
+      targetPl === p1 ? 0 : 1,
+    );
+  } else if (type === "unstable_countdown") {
+    // ★ 實裝：真正的定時炸彈 (倒數結束給予 15 倍 power 爆發傷害)
+    if (targetPl.timers.countdown) clearTimeout(targetPl.timers.countdown);
+    triggerGameEvent(
+      `💣 被安裝了定時炸彈！ (${duration}秒)`,
+      false,
+      targetPl === p1 ? 0 : 1,
+    );
+
+    targetPl.timers.countdown = setTimeout(() => {
+      let dmg = power * 15;
+      if (targetPl.shield && targetPl.shield > 0) {
+        let block = Math.min(targetPl.shield, dmg);
+        targetPl.shield -= block;
+        dmg -= block;
+      }
+      targetPl.hp -= dmg;
+      burst(targetPl.x + targetPl.w / 2, targetPl.y, "#E0576B");
+      triggerGameEvent(
+        `💥 炸彈引爆！ -${Math.round(dmg)}%`,
+        true,
+        targetPl === p1 ? 0 : 1,
+      );
+      if (targetPl.hp <= 0) {
+        targetPl.hp = 0;
+        if (onlineMode) onlineFinishLocalElimination();
+        else endGame();
+      }
+      targetPl.timers.countdown = null;
+    }, duration * 1000);
+  } else if (type === "storm_disruption") {
+    // ★ 實裝：物理風暴干擾 (觸發上方的強風推力)
+    targetPl.stormTimer = duration;
+    triggerGameEvent(`🌪️ 遭遇強烈電磁風暴！`, false, targetPl === p1 ? 0 : 1);
+  } else if (type === "fake_ball_illusion") {
+    // ★ 實裝：生成無視碰撞的假球幻影
+    if (targetPl.ball && ghostBalls) {
+      let ghostCount = 4; // 固定噴出 4 顆假球
+      let angleStep = Math.PI / (ghostCount + 1);
+      for (let i = 0; i < ghostCount; i++) {
+        let angle = Math.PI + angleStep * (i + 1);
+        let spd = 4 + Math.random() * 2;
+        ghostBalls.push({
+          x: targetPl.ball.x,
+          y: targetPl.ball.y - 10,
+          r: 8,
+          dx: Math.cos(angle) * spd,
+          dy: Math.sin(angle) * spd,
+          life: duration,
+          owner: targetPl,
+          hitBricks: new Set(),
+          isFake: true, // 標記為假球，略過撞磚邏輯
+        });
+      }
+      triggerGameEvent(`👻 假球幻影干擾！`, false, targetPl === p1 ? 0 : 1);
     }
   } else if (type === "shrink_width") {
     if (targetPl.timers.shrink) clearTimeout(targetPl.timers.shrink);
@@ -2109,12 +2195,9 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
   } else if (type === "chaos_trajectory") {
     targetPl.chaosTimer = duration;
   } else if (type === "fast_ball_debuff") {
-    // ★ 實裝：強制加快對手的球速
     if (targetPl.ball) {
       if (targetPl.timers.speed) clearTimeout(targetPl.timers.speed);
       else targetPl.speedBuffRatio = 1;
-
-      // 先還原舊速度，再套用對手丟過來的加速詛咒
       targetPl.ball.dx /= targetPl.speedBuffRatio;
       targetPl.ball.dy /= targetPl.speedBuffRatio;
 
@@ -2134,26 +2217,17 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
   } else if (type === "magnetic_pull") {
     targetPl.magneticDebuffTimer = duration;
   } else if (
-    [
-      "blind_screen",
-      "visual_distortion",
-      "fog_blind",
-      "fake_ball_illusion",
-      "storm_disruption",
-      "flash_blind",
-    ].includes(type)
+    ["blind_screen", "visual_distortion", "fog_blind", "flash_blind"].includes(
+      type,
+    )
   ) {
-    // ★ 關鍵修正：單機雙人模式下，絕對不彈出全螢幕遮罩 UI！
-    // 遮蔽效果已由 renderer 轉換為「本體與球隱形」
+    // 這裡只剩下真正的視覺致盲技能
     if (mode === 1 || onlineMode) {
       const blindEl = document.getElementById("online-blind");
       if (blindEl) {
         blindEl.style.display = "flex";
       }
     }
-
-    // ★ 雖然不顯示 UI，但計時器一定要照常運作！
-    // 因為 renderer 是靠這個計時器來決定要不要把對手隱形的！
     if (targetPl.timers.blind) clearTimeout(targetPl.timers.blind);
 
     targetPl.timers.blind = setTimeout(() => {
