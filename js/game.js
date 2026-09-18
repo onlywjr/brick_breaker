@@ -1,7 +1,7 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
 export const TEST_MODE = false;
 
-const DEFAULT_SPD = 3.5 + Math.min(3.5, level * 0.1);
+const DEFAULT_SPD = 3.5 + Math.min(4.5, level * 0.1);
 
 // ==========================================
 // ★ 新增：效能模式與優化開關
@@ -736,7 +736,7 @@ function resetRound(cv) {
     p2.w = 120;
     p2.x = cv.width - 120 - p2.w / 2;
     p2.shrinkFx = 0;
-    let spd = DEFAULT_SPD;
+    let spd = 3.5 + Math.min(3.5, level * 0.1);
     p2.ball = {
       x: p2.x + p2.w / 2,
       y: p2.y - 20,
@@ -749,7 +749,7 @@ function resetRound(cv) {
   } else {
     p2.ball = null;
   }
-  let spd = DEFAULT_SPD;
+  let spd = 3.5 + Math.min(3.5, level * 0.1);
   p1.ball = {
     x: p1.x + p1.w / 2,
     y: p1.y - 20,
