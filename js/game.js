@@ -1,5 +1,5 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
-export const TEST_MODE = false;
+export const TEST_MODE = true;
 
 // ==========================================
 // ★ 新增：效能模式與優化開關
@@ -760,45 +760,49 @@ function executeStartGame(selectedMode, cv) {
     document.activeElement.blur();
   }
 
-  // 在 executeStartGame 開頭加入：
-  chemDLCEnabled = document.getElementById("enable-dlc").checked;
+  const dlcCheckbox = document.getElementById("enable-dlc");
+  chemDLCEnabled = dlcCheckbox ? dlcCheckbox.checked : true;
   onlineMode = false;
-  document.getElementById("p1-label").style.display = "inline";
+
+  // ★ 建立安全切換 UI 的小工具 (元素存在才操作，防止當機)
+  const safeStyle = (id, displayValue) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = displayValue;
+  };
+
+  safeStyle("p1-label", "inline");
   document.body.classList.remove("online-battle-mode");
   if (selectedMode === 1) document.body.classList.add("single-layout");
   else document.body.classList.remove("single-layout");
 
-  resizeGame(); // ★ 加上這行：切換模式後立刻計算正確比例
+  resizeGame(); // ★ 切換模式後立刻計算正確比例
 
   onlineEliminated = false;
-  document.getElementById("online-opponents-left").style.display = "none";
-  document.getElementById("online-opponents-right").style.display = "none";
-  document.getElementById("online-opponents-bottom").style.display = "none";
-  document.getElementById("online-blind").style.display = "none";
-  document.getElementById("online-attack-status").style.display = "none";
+  safeStyle("online-opponents-left", "none");
+  safeStyle("online-opponents-right", "none");
+  safeStyle("online-opponents-bottom", "none");
+  safeStyle("online-blind", "none");
+  safeStyle("online-attack-status", "none");
   onlineMatchFinished = false;
   myPlayerId = socket?.id || null;
 
-  // ★ 確保模式正確設定 (這非常重要，物理引擎依賴這個)
+  // ★ 確保模式正確設定
   mode = selectedMode;
 
   // ★ 啟動並設定 Event HUD 佈局
   setupEventHUDs();
   const centerHud = document.getElementById("center-event-hud");
-  const p1Hud = document.getElementById("p1-event-hud");
-  const p2Hud = document.getElementById("p2-event-hud");
-
   if (centerHud)
-    centerHud.style.display = mode === 1 || onlineMode ? "flex" : "none"; // 改為 flex 以維持垂直置中
-  if (p1Hud) p1Hud.style.display = mode === 2 && !onlineMode ? "block" : "none";
-  if (p2Hud) p2Hud.style.display = mode === 2 && !onlineMode ? "block" : "none";
+    centerHud.style.display = mode === 1 || onlineMode ? "flex" : "none";
+  safeStyle("p1-event-hud", mode === 2 && !onlineMode ? "block" : "none");
+  safeStyle("p2-event-hud", mode === 2 && !onlineMode ? "block" : "none");
 
-  document.getElementById("overlay").style.display = "none";
+  safeStyle("overlay", "none");
   cv.style.display = "block";
-  document.getElementById("status").style.display = "flex";
-  document.getElementById("global-leave-btn").style.display = "block";
+  safeStyle("status", "flex");
+  safeStyle("global-leave-btn", "block");
 
-  // ★ 動態建立並顯示全域左上角暫停按鈕 (固定位置 Fixed)
+  // ★ 動態建立並顯示全域左上角暫停按鈕
   let pauseBtn = document.getElementById("global-pause-btn");
   if (!pauseBtn) {
     pauseBtn = document.createElement("button");
@@ -816,32 +820,36 @@ function executeStartGame(selectedMode, cv) {
   pauseBtn.style.borderColor = "#c9b1e8";
   pauseBtn.style.color = "#8A7E9C";
 
-  const inputLv = parseInt(document.getElementById("start-level").value, 10);
+  const startLevelInput = document.getElementById("start-level");
+  const inputLv = parseInt(startLevelInput ? startLevelInput.value : "1", 10);
   level = isNaN(inputLv) || inputLv < 1 ? 1 : inputLv;
-
-  // ★ 新增：只有從第 1 關開始，才具備上傳排行榜的資格
   isRankedRun = level === 1;
 
-  // ★ 絕對不能加上 let！必須修改上方宣告的全域 p1, p2
   p1 = makePlayer("#F6A6C1", "#f9a8d4");
   p2 = makePlayer("#9DD9E8", "#9DD9E8");
   comboCount = 0;
 
-  document.getElementById("p1-width-bar").parentElement.style.display = "none";
+  // ★ 安全隱藏寬度條與能量條
+  const p1WidthBar = document.getElementById("p1-width-bar");
+  if (p1WidthBar && p1WidthBar.parentElement)
+    p1WidthBar.parentElement.style.display = "none";
+
+  // ★ 補上安全設定 display 屬性的工具 (避免 undefined 錯誤)
+  const safeSetDisplay = (id, displayType) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = displayType;
+  };
+
   if (mode === 1) {
-    document.getElementById("p2-card").style.display = "none";
-    document.getElementById("p1-energy-wrap").style.display = "none";
-    document.getElementById("p2-energy-wrap").style.display = "none";
-    // ★ 隱藏單人無用的血條
-    document.getElementById("timer-container").style.display = "none";
+    safeSetDisplay("p2-card", "none");
+    safeSetDisplay("p1-energy-wrap", "none");
+    safeSetDisplay("p2-energy-wrap", "none");
+    safeSetDisplay("timer-container", "none");
   } else {
-    document.getElementById("p2-card").style.display = "flex";
-    // ★ 化學模式下隱藏能量條，一般模式顯示
-    document.getElementById("p1-energy-wrap").style.display =
-      chemDLCEnabled ? "none" : "block";
-    document.getElementById("p2-energy-wrap").style.display =
-      chemDLCEnabled ? "none" : "block";
-    document.getElementById("timer-container").style.display = "flex";
+    safeSetDisplay("p2-card", "flex");
+    safeSetDisplay("p1-energy-wrap", chemDLCEnabled ? "none" : "block");
+    safeSetDisplay("p2-energy-wrap", chemDLCEnabled ? "none" : "block");
+    safeSetDisplay("timer-container", "flex");
     gameTimeRemaining = 180;
   }
 
@@ -982,12 +990,6 @@ function setupEventHUDs() {
       }
     }
   });
-
-  // ★ 徹底解決雙人模式 1P 卡片偏高的問題：隱藏無用的愛心容器
-  const livesEl = document.getElementById("p1-lives");
-  if (livesEl) {
-    livesEl.style.display = mode === 1 ? "flex" : "none";
-  }
 
   // A. 單人 / 連線模式：中央上方 HUD
   if (statusDiv && !document.getElementById("center-event-hud")) {
@@ -1137,12 +1139,30 @@ export function endGame() {
 
   let msg = "";
   if (mode === 2) {
-    if (p1.score > p2.score)
-      msg = `<div class="victory-screen"><div class="trophy">🏆</div><div class="victory-title" style="color:#D96C8E">1P 獲勝！</div><div class="winner-score">得分: ${p1.score}</div><div class="vs-score">vs ${p2.score}</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
-    else if (p2.score > p1.score)
-      msg = `<div class="victory-screen"><div class="trophy">🏆</div><div class="victory-title" style="color:#5FA8D3">2P 獲勝！</div><div class="winner-score">得分: ${p2.score}</div><div class="vs-score">vs ${p1.score}</div><button class="menu-item-macaron macaron-blue" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
-    else
-      msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+    // 狀況 A：有人提早被擊倒 (KO 獲勝，無視分數)
+    if (p1.hp <= 0 || p2.hp <= 0) {
+      if (p1.hp > 0) {
+        msg = `<div class="victory-screen"><div class="trophy">🥊</div><div class="victory-title" style="color:#D96C8E">1P 擊倒對手！</div><div class="winner-score" style="font-size:28px;">KO 獲勝</div><div class="vs-score" style="margin-top:10px;">${p1.score} vs ${p2.score}</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+      } else if (p2.hp > 0) {
+        msg = `<div class="victory-screen"><div class="trophy">🥊</div><div class="victory-title" style="color:#5FA8D3">2P 擊倒對手！</div><div class="winner-score" style="font-size:28px;">KO 獲勝</div><div class="vs-score" style="margin-top:10px;">${p2.score} vs ${p1.score}</div><button class="menu-item-macaron macaron-blue" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+      } else {
+        msg = `<div class="victory-screen"><div class="trophy">💀</div><div class="victory-title" style="color:#5D576B">雙方皆陣亡！</div><div class="winner-score" style="font-size:28px;">同歸於盡</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+      }
+    }
+    // 狀況 B：3 分鐘時間到 (雙方皆存活，將剩餘血量 1% 轉為 20 分結算)
+    else {
+      const p1HpBonus = Math.max(0, Math.round(p1.hp)) * 20;
+      const p2HpBonus = Math.max(0, Math.round(p2.hp)) * 20;
+      p1.score += p1HpBonus;
+      p2.score += p2HpBonus;
+
+      if (p1.score > p2.score)
+        msg = `<div class="victory-screen"><div class="trophy">🏆</div><div class="victory-title" style="color:#D96C8E">1P 獲勝！</div><div class="winner-score">得分: ${p1.score}</div><div class="vs-score" style="font-size:14px;">(含血量加成 +${p1HpBonus})</div><div class="vs-score" style="margin-top:5px;">vs ${p2.score}</div><button class="menu-item-macaron macaron-pink" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+      else if (p2.score > p1.score)
+        msg = `<div class="victory-screen"><div class="trophy">🏆</div><div class="victory-title" style="color:#5FA8D3">2P 獲勝！</div><div class="winner-score">得分: ${p2.score}</div><div class="vs-score" style="font-size:14px;">(含血量加成 +${p2HpBonus})</div><div class="vs-score" style="margin-top:5px;">vs ${p1.score}</div><button class="menu-item-macaron macaron-blue" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+      else
+        msg = `<div class="victory-screen"><div class="trophy">🤝</div><div class="victory-title" style="color:#5D576B">平手！</div><div class="winner-score">${p1.score} : ${p2.score}</div><button class="menu-item-macaron macaron-yellow" style="margin-top:20px;" onclick="window.backToMainMenu()">返回首頁</button></div>`;
+    }
   } else {
     let uploadHtml = "";
     if (isRankedRun) {
@@ -1639,6 +1659,15 @@ function buildMathProblem(inventory, currentLevel) {
 }
 
 export function updateGameState(dt, cv) {
+
+  // ★ 終極防護網：只要是單機雙人模式，強制關閉全螢幕遮罩 UI
+  if (mode === 2 && !onlineMode) {
+    const blindEl = document.getElementById("online-blind");
+    if (blindEl && blindEl.style.display !== "none") {
+      blindEl.style.display = "none";
+    }
+  }
+  
   if (mode === 2) {
     if (gameTimeRemaining > 0) {
       gameTimeRemaining -= (dt * 16.6) / 1000;
@@ -1713,11 +1742,20 @@ export function updateGameState(dt, cv) {
   // ★ 關鍵修復：確保全域變數嚴格對齊 gameState 的最新狀態 (即使是 0)
   comboCount = gameState.comboCount !== undefined ? gameState.comboCount : 0;
   comboTimer = gameState.comboTimer !== undefined ? gameState.comboTimer : 0;
-  particles = particles.filter((p) => (p.life -= 0.03 * dt) > 0);
-  particles.forEach((p) => {
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-  });
+
+  // ★ 效能優化：捨棄 .filter() 與 .forEach()，改用單一的反向迴圈與 O(1) 極速移除
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.life -= 0.03 * dt;
+    if (p.life <= 0) {
+      // 將陣列最後一個元素覆蓋到目前位置，然後直接砍掉最後一個 (完全不引發陣列位移)
+      particles[i] = particles[particles.length - 1];
+      particles.pop();
+    } else {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+  }
 
   if (onlineMode && !onlineEliminated) {
     let myRank = 1;
@@ -1730,60 +1768,75 @@ export function updateGameState(dt, cv) {
     if (p1RankEl) p1RankEl.textContent = `🏆 #${myRank}`;
   }
 
-  // ★ 優化：只在數值改變時才觸發 DOM 更新，解除 CPU 瓶頸
+  // ★ 優化：加入元素存在判定，即使玩家刪除 HTML 進度條也不會當機
   if (p1.score !== lastP1Score) {
-    document.getElementById("p1-score").textContent = p1.score;
+    const el = document.getElementById("p1-score");
+    if (el) el.textContent = p1.score;
     lastP1Score = p1.score;
   }
 
   const p1WidthPercent = Math.round((p1.w / 120) * 100);
   if (p1WidthPercent !== lastP1W) {
-    document.getElementById("p1-width-bar").style.width = p1WidthPercent + "%";
+    const el = document.getElementById("p1-width-bar");
+    if (el) el.style.width = p1WidthPercent + "%";
     lastP1W = p1WidthPercent;
   }
 
   const p1EnergyPercent = (p1.energy / 10) * 100;
   if (p1EnergyPercent !== lastP1Energy) {
-    document.getElementById("p1-energy-bar").style.width =
-      p1EnergyPercent + "%";
+    const el = document.getElementById("p1-energy-bar");
+    if (el) el.style.width = p1EnergyPercent + "%";
     lastP1Energy = p1EnergyPercent;
   }
 
   if (mode === 2) {
     if (p2.score !== lastP2Score) {
-      document.getElementById("p2-score").textContent = p2.score;
+      const el = document.getElementById("p2-score");
+      if (el) el.textContent = p2.score;
       lastP2Score = p2.score;
     }
 
     const p2WidthPercent = Math.round((p2.w / 120) * 100);
     if (p2WidthPercent !== lastP2W) {
-      document.getElementById("p2-width-bar").style.width =
-        p2WidthPercent + "%";
+      const el = document.getElementById("p2-width-bar");
+      if (el) el.style.width = p2WidthPercent + "%";
       lastP2W = p2WidthPercent;
     }
 
     const p2EnergyPercent = (p2.energy / 10) * 100;
     if (p2EnergyPercent !== lastP2Energy) {
-      document.getElementById("p2-energy-bar").style.width =
-        p2EnergyPercent + "%";
+      const el = document.getElementById("p2-energy-bar");
+      if (el) el.style.width = p2EnergyPercent + "%";
       lastP2Energy = p2EnergyPercent;
     }
   }
 
-  // ★ V2.0 狀態列：顯示真實 HP 與護盾值
-  const livesEl = document.getElementById("p1-lives");
-  if (livesEl && (mode === 1 || onlineMode)) {
-    livesEl.style.display = "flex";
-    livesEl.style.alignItems = "center";
-
-    // 超過 100% 時顯示金色，低於 30% 顯示危險紅色
+  // ★ V3.0 狀態列：與分數並排的即時 HP 更新
+  const p1HpEl = document.getElementById("p1-hp-text");
+  if (p1HpEl) {
+    p1HpEl.style.display = "inline";
+    // 護盾溢出變金色，低於 30% 變紅色警告
     const hpColor =
       p1.hp > 100 ? "#FBBF24"
       : p1.hp <= 30 ? "#E0576B"
       : "#d96c8e";
-    let statusHtml = `<span style="font-size: 16px; margin-left: 15px; color: ${hpColor}">💗</span><span style="font-size: 16px; font-weight: 900; color: ${hpColor}; margin-right: 15px;"> ${Math.round(p1.hp)}%</span>`;
+    p1HpEl.style.color = hpColor;
+    p1HpEl.innerHTML = `💗 ${Math.round(p1.hp)}%`;
+  }
 
-    livesEl.innerHTML = statusHtml;
+  const p2HpEl = document.getElementById("p2-hp-text");
+  if (p2HpEl) {
+    if (mode === 2) {
+      p2HpEl.style.display = "inline";
+      const hpColor2 =
+        p2.hp > 100 ? "#FBBF24"
+        : p2.hp <= 30 ? "#E0576B"
+        : "#5fa8d3";
+      p2HpEl.style.color = hpColor2;
+      p2HpEl.innerHTML = `💗 ${Math.round(p2.hp)}%`;
+    } else {
+      p2HpEl.style.display = "none";
+    }
   }
 
   if (p1.reversedTimer > 0) {

@@ -641,14 +641,26 @@
       </div>
 
       <div id="status">
-        <div class="stat-card" id="p1-card">
-          <div style="display: flex; gap: 2px; align-items: center">
+        <!-- ★ 1P 卡片 -->
+        <div class="stat-card" id="p1-card" style="min-width: 220px">
+          <div style="display: flex; gap: 10px; align-items: center">
             <span
               class="stat-label"
               style="color: #dda15e; font-size: 16px"
-              id="p1-rank"></span
-            ><span class="stat-label" id="p1-label" style="color: #d96c8e"
+              id="p1-rank"></span>
+            <span class="stat-label" id="p1-label" style="color: #d96c8e"
               >1P <span class="stat-value" id="p1-score">0</span></span
+            >
+            <!-- 與分數並排的血量顯示 -->
+            <span
+              id="p1-hp-text"
+              style="
+                font-size: 16px;
+                font-weight: 900;
+                color: #d96c8e;
+                font-family: &quot;Orbitron&quot;, sans-serif;
+              "
+              >💗 100%</span
             >
           </div>
           <div class="score-bar">
@@ -666,8 +678,9 @@
                 width: 0%;
               "></div>
           </div>
-          <div id="p1-lives" class="lives-display" style="display: none"></div>
         </div>
+
+        <!-- ★ 中央卡片 (時間與關卡) -->
         <div
           class="stat-card center-card"
           style="
@@ -677,8 +690,8 @@
           <div
             style="display: flex; flex-direction: column; align-items: center"
             id="timer-container">
-            <span class="stat-label" style="color: #dda15e">TIME</span
-            ><span id="timer-txt" class="stat-value">03:00</span>
+            <span class="stat-label" style="color: #dda15e">TIME</span>
+            <span id="timer-txt" class="stat-value">03:00</span>
           </div>
           <div
             style="
@@ -686,19 +699,33 @@
               height: 40px;
               background: rgba(246, 166, 193, 0.5);
             "></div>
-
           <div
             style="display: flex; flex-direction: column; align-items: center">
-            <span class="stat-label" style="color: #7a728a">LEVEL</span
-            ><span id="level-txt" class="stat-value" style="color: #f46494"
+            <span class="stat-label" style="color: #7a728a">LEVEL</span>
+            <span id="level-txt" class="stat-value" style="color: #f46494"
               >1</span
             >
           </div>
         </div>
-        <div class="stat-card" id="p2-card">
-          <span class="stat-label" style="color: #5fa8d3"
-            >2P <span class="stat-value" id="p2-score">0</span></span
-          >
+
+        <!-- ★ 2P 卡片 -->
+        <div class="stat-card" id="p2-card" style="min-width: 220px">
+          <div style="display: flex; gap: 10px; align-items: center">
+            <span class="stat-label" style="color: #5fa8d3"
+              >2P <span class="stat-value" id="p2-score">0</span></span
+            >
+            <!-- 與分數並排的血量顯示 -->
+            <span
+              id="p2-hp-text"
+              style="
+                font-size: 16px;
+                font-weight: 900;
+                color: #5fa8d3;
+                font-family: &quot;Orbitron&quot;, sans-serif;
+              "
+              >💗 100%</span
+            >
+          </div>
           <div class="score-bar">
             <div
               id="p2-width-bar"
@@ -745,6 +772,7 @@
       <div id="online-opponents-right" class="side-opponents"></div>
       <div id="online-opponents-bottom" class="bottom-opponents"></div>
       <!-- 替換原本的 online-blind -->
+      <!-- 替換原本的 online-blind -->
       <div
         id="online-blind"
         style="
@@ -757,8 +785,9 @@
           z-index: 99;
           pointer-events: none;
           flex-direction: column;
-          justify-content: center;
+          justify-content: flex-start; /* ★ 1. 改為靠頂部對齊 */
           align-items: center;
+          padding-top: 130px; /* ★ 2. 將內容往下推 130 像素，完美避開中央大字 */
           color: white;
         ">
         <div style="font-size: 80px; animation: pulse 1s infinite alternate">

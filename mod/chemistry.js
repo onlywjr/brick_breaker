@@ -114,7 +114,11 @@ export function openChemistryShop(
 
 window.closeChemistryShop = function () {
   chemStates[activePIdx].points = multiPlayerPoints; // 關閉時存檔一次數值
-  document.getElementById("chem-ui-overlay").style.display = "none";
+
+  // ★ 安全隱藏商店 UI，防止找不到元素而當機
+  const overlay = document.getElementById("chem-ui-overlay");
+  if (overlay) overlay.style.display = "none";
+
   if (shopCloseCallback) {
     const cb = shopCloseCallback;
     shopCloseCallback = null;

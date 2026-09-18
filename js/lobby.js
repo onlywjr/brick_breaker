@@ -50,16 +50,28 @@ export function onlineMakeMiniPlayer(id, p) {
   const w = document.createElement("div");
   w.className = "online-opponent";
   w.dataset.playerId = id;
-  const h = document.createElement("div");
-  h.className = "online-opponent-head";
-  const n = document.createElement("span");
-  const i = document.createElement("span");
-  h.append(n, i);
-  const c = document.createElement("canvas");
-  c.className = "online-mini";
-  c.width = 360;
-  c.height = 250;
-  w.append(h, c);
+  // ★ 強制覆寫樣式，確保外觀緊湊、間距縮小
+  w.style.cssText =
+    "display: flex; flex-direction: column; align-items: center; padding: 10px; background: rgba(255,255,255,0.85); border-radius: 12px; border: 2px solid #c9b1e8; width: 100%; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 6px;";
+
+  w.innerHTML = `
+    <!-- 第 1 行：玩家名稱 -->
+    <div class="opp-name" style="font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+    
+    <!-- 第 2 行：愛心與血量 -->
+    <div class="opp-hp" style="font-size: 14px; font-weight: 900; color: #d96c8e;"></div>
+  
+    <!-- 第 3 行：剩餘磚塊進度條 -->
+    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;">
+      <div class="opp-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #c9b1e8, #f6a6c1); transition: width 0.2s;"></div>
+    </div> 
+
+    <!-- 第 4 行：等級與其他資訊 -->
+    <div class="opp-info" style="font-size: 11px; font-weight: 900; color: #8a7e9c;"></div> 
+
+    <!-- ★ 第 5 行：擋板畫布 (拔除舊 class，高度設為 160，並用 CSS 鎖定完美的 5:1 比例) -->
+    <canvas width="800" height="160" style="display: block; width: 100%; height: auto; aspect-ratio: 5 / 1; border-radius: 6px; background: rgba(0,0,0,0.05); margin-top: 2px;"></canvas>
+  `;
   return w;
 }
 
@@ -118,119 +130,107 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
 
       w.classList.toggle("eliminated", p.alive === false);
 
-      const spans = w.querySelectorAll(".online-opponent-head span");
-      if (spans.length === 2) {
-        // ★ 更新側邊縮圖的標題
-        spans[0].textContent = p.name || "玩家";
-        spans[1].textContent = p.alive === false ? "💀 淘汰" : hpDisplay;
+      // ==========================================
+      // ★ 將接收到的資料寫入緊湊版 HTML 中
+      // ==========================================
+      const nameEl = w.querySelector(".opp-name");
+      const hpEl = w.querySelector(".opp-hp");
+      const progEl = w.querySelector(".opp-progress");
+      const infoEl = w.querySelector(".opp-info");
 
-        // 依據血量多寡稍微改變顏色提示
-        spans[1].style.color =
-          p.alive === false ? "#7A728A"
-          : hpVal <= 30 ? "#E0576B"
-          : "#7A728A";
+      if (nameEl) nameEl.textContent = p.name || "玩家";
+
+      if (hpEl) {
+        if (p.alive === false) {
+          hpEl.textContent = "💀 淘汰";
+          hpEl.style.color = "#7A728A";
+        } else {
+          hpEl.textContent = hpDisplay;
+          hpEl.style.color = hpVal <= 30 ? "#E0576B" : "#d96c8e";
+        }
       }
 
-      const c = w.querySelector(".online-mini");
+      // 解析磚塊數量
+      let bCount = 0;
+      if (
+        p.bricks
+        && p.bricks.length === 1
+        && p.bricks[0].x === 0
+        && p.bricks[0].y === 0
+      ) {
+        bCount = p.bricks[0].ci;
+      } else if (p.bricks) {
+        bCount = p.bricks.filter((b) => b.hp > 0).length;
+      }
+
+      let maxBricks = 50;
+      const realPlayer = onlinePlayers[p.id];
+      if (realPlayer) {
+        if (realPlayer._trackedLevel !== p.level) {
+          realPlayer._trackedLevel = p.level;
+          realPlayer._maxBricks = Math.max(1, bCount);
+        } else {
+          realPlayer._maxBricks = Math.max(realPlayer._maxBricks || 1, bCount);
+        }
+        maxBricks = realPlayer._maxBricks;
+      }
+
+      if (progEl) {
+        const fillW = Math.min(1, bCount / maxBricks) * 100;
+        progEl.style.width = `${fillW}%`;
+      }
+
+      if (infoEl) {
+        infoEl.innerHTML = `Lv.${p.level || 1} <span style="opacity:0.5; margin: 0 4px;">|</span> 殘留方塊: ${bCount}`;
+      }
+
+      // ==========================================
+      // ★ 更新裁切版畫布 (只畫下半部擋板區域)
+      // ==========================================
+      const c = w.querySelector("canvas"); // ★ 改用直接抓取 canvas 標籤
       if (c) {
         const x = c.getContext("2d");
         x.clearRect(0, 0, c.width, c.height);
 
-        // 1. 畫背景漸層
+        // 畫背景漸層
         const g = x.createLinearGradient(0, 0, c.width, c.height);
         g.addColorStop(0, "#FDF4F6");
         g.addColorStop(1, "#E6F3FA");
         x.fillStyle = g;
         x.fillRect(0, 0, c.width, c.height);
 
-        x.save();
-        x.scale(c.width / 800, c.height / 600);
-
-        // ==========================================
-        // ★ 輕量化 99 人觀戰優化：解開真實數量
-        // ==========================================
-        let bCount = 0;
-
-        // 解析我們壓縮的封包
-        if (
-          p.bricks
-          && p.bricks.length === 1
-          && p.bricks[0].x === 0
-          && p.bricks[0].y === 0
-        ) {
-          bCount = p.bricks[0].ci;
-        } else if (p.bricks) {
-          // 相容舊版
-          bCount = p.bricks.filter((b) => b.hp > 0).length;
-        }
-
-        // ==========================================
-        // ★ 核心修復：利用本地字典記憶每關的「初始最大磚塊數」
-        // ==========================================
-        let maxBricks = 50;
-        const realPlayer = onlinePlayers[p.id]; // 直接存取原始物件，確保資料跨幀保留
-
-        if (realPlayer) {
-          // 只要發現對方進入新關卡，就重置最大值
-          if (realPlayer._trackedLevel !== p.level) {
-            realPlayer._trackedLevel = p.level;
-            realPlayer._maxBricks = Math.max(1, bCount); // 剛換關時的數量就是最大值
-          } else {
-            // 停留在同關卡時，永遠記住看過的「歷史最高數量」
-            realPlayer._maxBricks = Math.max(
-              realPlayer._maxBricks || 1,
-              bCount,
-            );
-          }
-          maxBricks = realPlayer._maxBricks;
-        }
-
-        if (p.alive !== false) {
-          // 底槽
-          x.fillStyle = "rgba(0,0,0,0.1)";
-          x.fillRect(50, 50, 700, 30);
-
-          // 動態比例計算
-          const fillW = Math.min(1, bCount / maxBricks) * 700;
-          x.fillStyle = "#C9B1E8";
-          x.fillRect(50, 50, fillW, 30);
-
-          // ★ 浮水印文字置中，加上關卡資訊並微調字體大小為 56px
-          x.fillStyle = "rgba(122, 114, 138, 0.7)";
-          x.font = "900 56px sans-serif";
-          x.textAlign = "center";
-          x.textBaseline = "middle";
-          x.fillText(`Lv.${p.level || 1} ｜ 殘留方塊: ${bCount}`, 400, 300);
-        }
-
-        // 畫擋板
-        if (p.paddle && p.paddle.x !== undefined) {
-          x.fillStyle = "#9DD9E8";
-          x.fillRect(
-            p.paddle.x,
-            p.paddle.y || 556,
-            p.paddle.w || 120,
-            p.paddle.h || 22,
-          );
-        }
-
-        // 畫球
-        if (p.ball && p.ball.x !== undefined && p.ball.y !== undefined) {
-          x.fillStyle = "#5D576B";
-          x.beginPath();
-          x.arc(p.ball.x, p.ball.y, 11, 0, Math.PI * 2);
-          x.fill();
-        }
-        x.restore();
-
-        // 淘汰遮罩
         if (p.alive === false) {
           x.fillStyle = "rgba(255,255,255,.65)";
           x.fillRect(0, 0, c.width, c.height);
           x.fillStyle = "#E0576B";
-          x.font = "900 26px sans-serif";
+          x.font = "900 40px sans-serif";
           x.textAlign = "center";
+          x.textBaseline = "middle";
           x.fillText("ELIMINATED", c.width / 2, c.height / 2);
+        } else {
+          x.save();
+          // ★ 鏡頭偏移魔法：把整個世界往上提 440 像素！
+          // 這樣原本在 Y=556 的擋板，就會出現在 160px 畫布的下方，上方保留空間給球掉落
+          x.translate(0, -440);
+
+          // 畫擋板
+          if (p.paddle && p.paddle.x !== undefined) {
+            x.fillStyle = "#9DD9E8";
+            x.beginPath();
+            const pw = p.paddle.w || 120;
+            const ph = p.paddle.h || 22;
+            x.roundRect(p.paddle.x, p.paddle.y || 556, pw, ph, ph / 2);
+            x.fill();
+          }
+
+          // 畫球
+          if (p.ball && p.ball.x !== undefined && p.ball.y !== undefined) {
+            x.fillStyle = "#5D576B";
+            x.beginPath();
+            x.arc(p.ball.x, p.ball.y, 11, 0, Math.PI * 2);
+            x.fill();
+          }
+          x.restore();
         }
       }
     } else {

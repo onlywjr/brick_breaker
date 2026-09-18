@@ -578,28 +578,39 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
       b.dx += (b.x > cv.width / 2 ? 0.6 : -0.6) * dt;
     }
 
-    // ★2. 補上 magnetic_trajectory 磁力牽引判定
+    // ★2. 補上 magnetic_trajectory 磁力牽引判定 (效能優化版)
     let hasMagnetic = Object.values(pl.activeBuffs || {}).some(
       (buff) =>
         buff.end > now
         && (buff.action === "trajectory_guide"
           || buff.action === "magnetic_trajectory"),
     );
+
     if (hasMagnetic && bricks.length > 0) {
-      let nearest = null;
-      let minDist = Infinity;
-      bricks.forEach((br) => {
-        if (br.y < b.y) {
-          let d = Math.hypot(br.x - b.x, br.y - b.y);
-          if (d < minDist) {
-            minDist = d;
-            nearest = br;
+      // ★ 效能優化：不需要每 16ms 就重新計算所有磚塊的距離 (Math.hypot 非常耗能)
+      // 利用隨機抽幀 (約每 4-5 幀才重新尋找目標)，視覺上依然能完美追蹤！
+      if (!b.magTargetX || Math.random() < 0.2) {
+        let nearest = null;
+        let minDist = Infinity;
+        bricks.forEach((br) => {
+          if (br.hp > 0 && br.y < b.y) {
+            let d = Math.hypot(br.x - b.x, br.y - b.y);
+            if (d < minDist) {
+              minDist = d;
+              nearest = br;
+            }
           }
-        }
-      });
-      if (nearest && b.dy < 0) {
-        b.dx += (nearest.x + nearest.w / 2 - b.x) * 0.005 * dt;
+        });
+        if (nearest) b.magTargetX = nearest.x + nearest.w / 2;
+        else b.magTargetX = null;
       }
+
+      // 根據記住的目標 X 座標進行牽引
+      if (b.magTargetX && b.dy < 0) {
+        b.dx += (b.magTargetX - b.x) * 0.005 * dt;
+      }
+    } else {
+      b.magTargetX = null; // 失去 Buff 時清除目標
     }
 
     // ==========================================
@@ -1050,10 +1061,13 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           } else if (b.spinType === "left") {
             // 左旋：氣旋爆破 (範圍傷害提升！)
             let aoeDmg = Math.floor(Math.abs(b.spin) * 0.8);
+
+            // ★ 新增：確保黑名單存在，並將首當其衝的主磚塊加入黑名單
+            if (!b.hitBricks) b.hitBricks = new Set();
+            b.hitBricks.add(br);
+
             if (aoeDmg > 0) {
               triggerVFX(6, "167, 139, 250", 0.25);
-
-              // ★ 關鍵修復：將強大的爆破傷害也扣在被擊中的主磚塊身上！
               br.hp -= aoeDmg;
 
               floatTexts.push({
@@ -1077,6 +1091,11 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                     otherBr.y + otherBr.h / 2,
                     "#A78BFA",
                   );
+
+                  // ★ 新增：將被暴風波及的周圍磚塊也加入黑名單！
+                  // 這樣球即使變回普通狀態，也能安全脫離爆破區，不會產生無法預測的亂彈
+                  b.hitBricks.add(otherBr);
+
                   if (otherBr.hp <= 0) {
                     otherBr.killedBySkill = true;
                     if (otherBr.symbol && chemDLCEnabled)
@@ -2115,18 +2134,28 @@ export function applyLocalDebuff(targetPl, type, power, duration) {
       "fog_blind",
       "fake_ball_illusion",
       "storm_disruption",
-      "flash_blind", // ★ 補齊：實裝受擊遮蔽效果
+      "flash_blind", 
     ].includes(type)
   ) {
-    const blindEl = document.getElementById("online-blind");
-    if (blindEl) {
-      blindEl.style.display = "block";
-      if (targetPl.timers.blind) clearTimeout(targetPl.timers.blind);
-
-      targetPl.timers.blind = setTimeout(() => {
-        blindEl.style.display = "none";
-        targetPl.timers.blind = null;
-      }, duration * 1000);
+    // ★ 關鍵修正：單機雙人模式下，絕對不彈出全螢幕遮罩 UI！
+    // 遮蔽效果已由 renderer 轉換為「本體與球隱形」
+    if (mode === 1 || onlineMode) {
+      const blindEl = document.getElementById("online-blind");
+      if (blindEl) {
+        blindEl.style.display = "flex";
+      }
     }
+    
+    // ★ 雖然不顯示 UI，但計時器一定要照常運作！
+    // 因為 renderer 是靠這個計時器來決定要不要把對手隱形的！
+    if (targetPl.timers.blind) clearTimeout(targetPl.timers.blind);
+
+    targetPl.timers.blind = setTimeout(() => {
+      const blindEl = document.getElementById("online-blind");
+      if (blindEl && (mode === 1 || onlineMode)) {
+        blindEl.style.display = "none";
+      }
+      targetPl.timers.blind = null;
+    }, duration * 1000);
   }
 }

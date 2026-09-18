@@ -229,58 +229,22 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// ==========================================
+// ★ 效能優化：背景快取畫布
+// ==========================================
+const bgCacheCanvas = document.createElement("canvas");
+const bgCacheCtx = bgCacheCanvas.getContext("2d");
+let isBgCached = false;
+
 export function drawGameBackground(ctx, cv) {
-  if (!currentBg) currentBg = createRandomBackground();
-
-  ctx.fillStyle = currentBg.base;
-  ctx.fillRect(0, 0, cv.width, cv.height);
-
-  ctx.save();
-  for (const g of currentBg.glow) {
-    const x = cv.width * g.x;
-    const y = cv.height * g.y;
-    const radius = Math.max(cv.width, cv.height) * g.radius;
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    gradient.addColorStop(0, hexToRgba(g.color, 0.95));
-    gradient.addColorStop(0.35, hexToRgba(g.color, 0.65));
-    gradient.addColorStop(0.75, hexToRgba(g.color, 0.25));
-    gradient.addColorStop(1, hexToRgba(g.color, 0));
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, cv.width, cv.height);
+  if (!currentBg) {
+    currentBg = createRandomBackground();
+    isBgCached = false;
   }
-
-  const center = ctx.createRadialGradient(
-    cv.width * 0.58,
-    cv.height * 0.52,
-    0,
-    cv.width * 0.58,
-    cv.height * 0.52,
-    Math.max(cv.width, cv.height) * 0.65,
-  );
-  center.addColorStop(0, "rgba(255,255,255,0.4)");
-  center.addColorStop(0.45, "rgba(255,255,255,0.15)");
-  center.addColorStop(1, "rgba(255,255,255,0.0)");
-
-  const vignette = ctx.createRadialGradient(
-    cv.width / 2,
-    cv.height / 2,
-    Math.min(cv.width, cv.height) * 0.25,
-    cv.width / 2,
-    cv.height / 2,
-    Math.max(cv.width, cv.height) * 0.75,
-  );
-  vignette.addColorStop(0, "rgba(255, 255, 255, 0)");
-  vignette.addColorStop(0.65, "rgba(255, 255, 255, 0.1)");
-  vignette.addColorStop(1, "rgba(200, 180, 200, 0.20)");
-
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, cv.width, cv.height);
-
-  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-  ctx.fillRect(0, 0, cv.width, cv.height);
 
   const blockSize = 20;
 
+  // 偵測城市背景是否需要更新 (每 3 秒一次)
   if (
     !currentBg.cityLastUpdate
     || performance.now() - currentBg.cityLastUpdate > 3000
@@ -303,49 +267,113 @@ export function drawGameBackground(ctx, cv) {
       }
       currentBg.fgWindows.push(fgCol);
     }
+    isBgCached = false; // 城市更新了，強制重畫快取
   }
 
-  const bgHeights = [
-    6, 8, 5, 9, 7, 4, 10, 6, 5, 8, 7, 4, 9, 5, 6, 8, 10, 5, 7, 6, 4, 8, 5, 9, 6,
-    7, 4, 10, 5, 6, 8, 5, 7, 9, 4, 6, 8, 5, 10, 7,
-  ];
-  for (let i = 0; i < cv.width / blockSize; i++) {
-    let blocks = bgHeights[i % bgHeights.length];
-    let h = blocks * blockSize;
-    let x = i * blockSize;
-    let y = cv.height - h;
-    ctx.fillStyle = "rgba(138, 126, 156, 0.15)";
-    ctx.fillRect(x, y, blockSize, h);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
-    for (let j = 1; j < blocks - 1; j++) {
-      if (currentBg.bgWindows[i] && currentBg.bgWindows[i][j]) {
-        ctx.fillRect(x + 6, y + j * blockSize + 6, 8, 8);
+  // ★ 效能核心：如果快取過期或尺寸改變，才重新運算那些超吃資源的漸層
+  if (
+    !isBgCached
+    || bgCacheCanvas.width !== cv.width
+    || bgCacheCanvas.height !== cv.height
+  ) {
+    bgCacheCanvas.width = cv.width;
+    bgCacheCanvas.height = cv.height;
+
+    bgCacheCtx.fillStyle = currentBg.base;
+    bgCacheCtx.fillRect(0, 0, cv.width, cv.height);
+
+    bgCacheCtx.save();
+    for (const g of currentBg.glow) {
+      const x = cv.width * g.x;
+      const y = cv.height * g.y;
+      const radius = Math.max(cv.width, cv.height) * g.radius;
+      const gradient = bgCacheCtx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, hexToRgba(g.color, 0.95));
+      gradient.addColorStop(0.35, hexToRgba(g.color, 0.65));
+      gradient.addColorStop(0.75, hexToRgba(g.color, 0.25));
+      gradient.addColorStop(1, hexToRgba(g.color, 0));
+      bgCacheCtx.fillStyle = gradient;
+      bgCacheCtx.fillRect(0, 0, cv.width, cv.height);
+    }
+
+    const center = bgCacheCtx.createRadialGradient(
+      cv.width * 0.58,
+      cv.height * 0.52,
+      0,
+      cv.width * 0.58,
+      cv.height * 0.52,
+      Math.max(cv.width, cv.height) * 0.65,
+    );
+    center.addColorStop(0, "rgba(255,255,255,0.4)");
+    center.addColorStop(0.45, "rgba(255,255,255,0.15)");
+    center.addColorStop(1, "rgba(255,255,255,0.0)");
+
+    const vignette = bgCacheCtx.createRadialGradient(
+      cv.width / 2,
+      cv.height / 2,
+      Math.min(cv.width, cv.height) * 0.25,
+      cv.width / 2,
+      cv.height / 2,
+      Math.max(cv.width, cv.height) * 0.75,
+    );
+    vignette.addColorStop(0, "rgba(255, 255, 255, 0)");
+    vignette.addColorStop(0.65, "rgba(255, 255, 255, 0.1)");
+    vignette.addColorStop(1, "rgba(200, 180, 200, 0.20)");
+
+    bgCacheCtx.fillStyle = vignette;
+    bgCacheCtx.fillRect(0, 0, cv.width, cv.height);
+
+    bgCacheCtx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    bgCacheCtx.fillRect(0, 0, cv.width, cv.height);
+
+    // 畫背景城市
+    const bgHeights = [
+      6, 8, 5, 9, 7, 4, 10, 6, 5, 8, 7, 4, 9, 5, 6, 8, 10, 5, 7, 6, 4, 8, 5, 9,
+      6, 7, 4, 10, 5, 6, 8, 5, 7, 9, 4, 6, 8, 5, 10, 7,
+    ];
+    for (let i = 0; i < cv.width / blockSize; i++) {
+      let blocks = bgHeights[i % bgHeights.length];
+      let h = blocks * blockSize;
+      let x = i * blockSize;
+      let y = cv.height - h;
+      bgCacheCtx.fillStyle = "rgba(138, 126, 156, 0.15)";
+      bgCacheCtx.fillRect(x, y, blockSize, h);
+      bgCacheCtx.fillStyle = "rgba(255, 255, 255, 0.25)";
+      for (let j = 1; j < blocks - 1; j++) {
+        if (currentBg.bgWindows[i] && currentBg.bgWindows[i][j]) {
+          bgCacheCtx.fillRect(x + 6, y + j * blockSize + 6, 8, 8);
+        }
       }
     }
+
+    // 畫前景城市
+    const fgHeights = [
+      3, 4, 2, 5, 3, 2, 6, 4, 3, 5, 2, 4, 3, 2, 5, 3, 6, 4, 2, 3, 5, 2, 4, 3, 6,
+      2, 4, 3, 5, 2, 4, 3, 6, 2, 5, 3, 4, 2, 6, 3,
+    ];
+    for (let i = 0; i < cv.width / blockSize; i++) {
+      let blocks = fgHeights[i % fgHeights.length];
+      let h = blocks * blockSize;
+      let x = i * blockSize;
+      let y = cv.height - h;
+      bgCacheCtx.fillStyle = "rgba(93, 87, 107, 0.25)";
+      bgCacheCtx.fillRect(x, y, blockSize, h);
+      bgCacheCtx.fillStyle = "rgba(253, 224, 71, 0.35)";
+      for (let j = 1; j < blocks; j++) {
+        if (currentBg.fgWindows[i] && currentBg.fgWindows[i][j]) {
+          if (currentBg.fgWindows[i][j].left)
+            bgCacheCtx.fillRect(x + 3, y + j * blockSize + 6, 4, 8);
+          if (currentBg.fgWindows[i][j].right)
+            bgCacheCtx.fillRect(x + 13, y + j * blockSize + 6, 4, 8);
+        }
+      }
+    }
+    bgCacheCtx.restore();
+    isBgCached = true;
   }
 
-  const fgHeights = [
-    3, 4, 2, 5, 3, 2, 6, 4, 3, 5, 2, 4, 3, 2, 5, 3, 6, 4, 2, 3, 5, 2, 4, 3, 6,
-    2, 4, 3, 5, 2, 4, 3, 6, 2, 5, 3, 4, 2, 6, 3,
-  ];
-  for (let i = 0; i < cv.width / blockSize; i++) {
-    let blocks = fgHeights[i % fgHeights.length];
-    let h = blocks * blockSize;
-    let x = i * blockSize;
-    let y = cv.height - h;
-    ctx.fillStyle = "rgba(93, 87, 107, 0.25)";
-    ctx.fillRect(x, y, blockSize, h);
-    ctx.fillStyle = "rgba(253, 224, 71, 0.35)";
-    for (let j = 1; j < blocks; j++) {
-      if (currentBg.fgWindows[i] && currentBg.fgWindows[i][j]) {
-        if (currentBg.fgWindows[i][j].left)
-          ctx.fillRect(x + 3, y + j * blockSize + 6, 4, 8);
-        if (currentBg.fgWindows[i][j].right)
-          ctx.fillRect(x + 13, y + j * blockSize + 6, 4, 8);
-      }
-    }
-  }
-  ctx.restore();
+  // ★ 最終每幀只需要做這一步：把畫好的隱形畫布當作圖片貼上！
+  ctx.drawImage(bgCacheCanvas, 0, 0);
 }
 
 export function drawGameEntities(ctx, cv, gameState, loadedImages) {
@@ -433,17 +461,12 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       // 【調整】輕微的微風傾斜，細雨比較會隨風飄
       const windOffset = 2 + p2 * 4;
 
-      // 【調整】降低透明度，最高只到 0.5，讓細雨看起來更柔和且半透明
-      const grad = ctx.createLinearGradient(x, y, x - windOffset, y + length);
-      grad.addColorStop(0, `rgba(${colorRGB}, 0)`);
-      grad.addColorStop(0.5, `rgba(${colorRGB}, 0.2)`);
-      grad.addColorStop(1, `rgba(${colorRGB}, 0.5)`);
-
+      // ★ 效能優化：拔除每幀 120 次的 createLinearGradient，改用單純的透明色碼！
+      // 在極細且高速移動的雨絲中，肉眼根本看不出漸層與純透明色的差異，但效能差了上百倍。
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x - windOffset, y + length);
-      ctx.strokeStyle = grad;
-      // 【調整】極細的線條寬度 (0.5 ~ 1.5 像素)
+      ctx.strokeStyle = `rgba(${colorRGB}, 0.3)`;
       ctx.lineWidth = 0.5 + p2 * 1.0;
       ctx.lineCap = "round";
       ctx.stroke();
@@ -1072,42 +1095,227 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     ctx.restore();
   }
 
-  // 找到負責畫擋板的迴圈，並將其內容替換如下：
+  // 畫擋板的迴圈
   for (const pl of activePlayers) {
-    const pim =
-      pl.w <= 90 ? loadedImages.padS
-      : pl.w >= 200 ? loadedImages.padL
-      : loadedImages.padM;
-    const hasImg = pim && pim.complete && pim.naturalWidth > 0;
+    ctx.save();
 
-    if (hasImg) {
-      ctx.save();
-      if (!PERFORMANCE_MODE) {
-        ctx.shadowColor = pl.lightColor;
-        ctx.shadowBlur = 18;
-      }
-
-      // 使用另一個小畫布將圖片填上玩家專屬的馬卡龍色
-      const tempCv = document.createElement("canvas");
-      tempCv.width = pl.w;
-      tempCv.height = pl.h;
-      const tCtx = tempCv.getContext("2d");
-      tCtx.drawImage(pim, 0, 0, pl.w, pl.h);
-      tCtx.globalCompositeOperation = "source-in";
-      tCtx.fillStyle = pl.color;
-      tCtx.fillRect(0, 0, pl.w, pl.h);
-
-      ctx.drawImage(tempCv, pl.x, pl.y);
-      ctx.restore();
-    } else {
-      // 圖片載入失敗時的備用純色方案
-      ctx.save();
-      ctx.shadowColor = pl.lightColor;
-      ctx.shadowBlur = 18;
-      ctx.fillStyle = pl.color;
-      ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
-      ctx.restore();
+    // ★ 雙人同機專屬判定：將全畫面致盲轉換為「本體隱形」
+    let isBlind = false;
+    if (mode === 2 && !onlineMode && pl.timers && pl.timers.blind) {
+      isBlind = true; // 真正中招的受害者身上會有這個盲目計時器！
     }
+
+    if (isBlind) {
+      // ★ 盲目狀態：80% 時間極度透明，20% 時間微微閃現
+      ctx.globalAlpha = Math.random() > 0.8 ? 0.25 : 0.03;
+    }
+
+    const r = pl.h / 2;
+    const capW = 24;
+
+    // 1. 全局外發光 (隱形時不發光，以免露餡)
+    if (!PERFORMANCE_MODE && !isBlind) {
+      ctx.shadowColor = pl.lightColor;
+      ctx.shadowBlur = 15;
+    }
+
+    // 2. 繪製中央玻璃管底色 (深紫灰)
+    ctx.fillStyle = "rgba(93, 87, 107, 0.6)";
+    ctx.beginPath();
+    ctx.roundRect(pl.x, pl.y, pl.w, pl.h, r);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    // --- 建立內部裁切遮罩 ---
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(pl.x, pl.y, pl.w, pl.h, r);
+    ctx.clip();
+
+    // ==========================================
+    // ★ 動態能量液體與波浪共鳴系統
+    // ==========================================
+    const nowTime = performance.now();
+    let activeCat = null;
+    let liquidColor = pl.color; // 預設液體顏色為玩家專屬色
+    let waveStroke = "rgba(255, 255, 255, 0.95)";
+    let waveGlow = pl.lightColor;
+    let waveSpeed = pl.speedBuffRatio > 1 ? 60 : 120;
+    let liquidBoil = 0; // 液體沸騰幅度 (0 代表平靜)
+
+    // A. 偵測化學技能狀態
+    if (pl.activeBuffs) {
+      for (const key in pl.activeBuffs) {
+        if (pl.activeBuffs[key].end > nowTime) {
+          activeCat = pl.activeBuffs[key].category;
+          // 依據技能分類變更液體顏色與沸騰幅度
+          if (activeCat === "攻擊") {
+            liquidColor = "#EF4444";
+            waveGlow = "#FCA5A5";
+            liquidBoil = 3;
+            waveSpeed = 40;
+          } else if (activeCat === "防禦") {
+            liquidColor = "#3B82F6";
+            waveGlow = "#93C5FD";
+            liquidBoil = 2;
+            waveSpeed = 60;
+          } else if (activeCat === "輔助") {
+            liquidColor = "#10B981";
+            waveGlow = "#6EE7B7";
+            liquidBoil = 2;
+            waveSpeed = 50;
+          } else if (activeCat === "控制") {
+            liquidColor = "#F59E0B";
+            waveGlow = "#FCD34D";
+            liquidBoil = 3;
+            waveSpeed = 40;
+          } else if (activeCat === "特殊") {
+            liquidColor = "#8B5CF6";
+            waveGlow = "#C4B5FD";
+            liquidBoil = 4;
+            waveSpeed = 30;
+          } else if (activeCat === "實驗") {
+            liquidColor = "#ec4899";
+            waveGlow = "#fbcfe8";
+            liquidBoil = 5;
+            waveSpeed = 20;
+          }
+          break;
+        }
+      }
+    }
+
+    // B. 偵測旋球與大招狀態 (最高優先權覆蓋)
+    if (pl.ball) {
+      if (pl.ball.isRasengan) {
+        waveStroke = "#E0FFFF";
+        waveGlow = "#38BDF8";
+        liquidColor = "#0284C7"; // 螺旋丸引發深藍查克拉液體
+        liquidBoil = 6; // 狂暴沸騰
+        waveSpeed = 20;
+      } else if (pl.ball.spinType === "left") {
+        waveStroke = "#F3E8FF";
+        waveGlow = "#A78BFA";
+        waveSpeed = 40;
+        liquidBoil = Math.max(liquidBoil, 2);
+      } else if (pl.ball.spinType === "right") {
+        waveStroke = "#FEF3C7";
+        waveGlow = "#FBBF24";
+        waveSpeed = 40;
+        liquidBoil = Math.max(liquidBoil, 2);
+      }
+    }
+
+    // 3. 繪製動態液體表面
+    ctx.fillStyle = liquidColor;
+    ctx.beginPath();
+    ctx.moveTo(pl.x, pl.y + pl.h); // 左下角
+    ctx.lineTo(pl.x, pl.y + pl.h / 2); // 左中
+
+    // 如果有技能，畫出海浪般的起伏；沒有則為平靜直線
+    for (let wx = 0; wx <= pl.w; wx += 5) {
+      let wy = pl.y + pl.h / 2;
+      if (liquidBoil > 0) {
+        // 雙重 sin 波疊加，讓液體看起來像滾水一樣不規則
+        wy += Math.sin(wx * 0.15 + nowTime / 80) * liquidBoil;
+        wy += Math.sin(wx * 0.3 - nowTime / 60) * (liquidBoil * 0.5);
+      }
+      ctx.lineTo(pl.x + wx, wy);
+    }
+
+    ctx.lineTo(pl.x + pl.w, pl.y + pl.h); // 右下角
+    ctx.closePath();
+    ctx.fill();
+
+    // ★ 沸騰狀態下，管內產生浮動的能量氣泡
+    if (liquidBoil > 0 && !PERFORMANCE_MODE) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      for (let b = 0; b < 6; b++) {
+        // 利用時間差產生隨機上升的氣泡
+        let bx = pl.x + capW + ((nowTime / (10 + b * 2)) % (pl.w - capW * 2));
+        let by = pl.y + pl.h - ((nowTime / (15 + b * 3)) % (pl.h * 0.8));
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.5 + (b % 2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 4. 核心升級：全局 3D 圓柱立體光影遮罩
+    const cylinderGrad = ctx.createLinearGradient(0, pl.y, 0, pl.y + pl.h);
+    cylinderGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");
+    cylinderGrad.addColorStop(0.2, "rgba(255, 255, 255, 0.15)");
+    cylinderGrad.addColorStop(0.8, "rgba(0, 0, 0, 0.05)");
+    cylinderGrad.addColorStop(1, "rgba(0, 0, 0, 0.4)");
+    ctx.fillStyle = cylinderGrad;
+    ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
+
+    // 5. 繪製上半部的不規則電流波紋
+    ctx.strokeStyle = waveStroke;
+    ctx.shadowColor = waveGlow;
+    ctx.shadowBlur = liquidBoil > 0 ? 12 : 6; // 有技能時增強發光
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+
+    const timeOffset = nowTime / waveSpeed;
+
+    for (let wx = capW - 5; wx <= pl.w - capW + 5; wx += 6) {
+      const noise =
+        Math.sin(wx * 0.4 + timeOffset * 2.5) * 2.5
+        + Math.sin(wx * 0.1 - timeOffset) * 1.5;
+      const wy = pl.y + pl.h / 3.2 + noise;
+
+      if (wx === capW - 5) ctx.moveTo(pl.x + wx, wy);
+      else ctx.lineTo(pl.x + wx, wy);
+    }
+    ctx.stroke();
+
+    ctx.restore(); // 結束內部裁切
+
+    // ==========================================
+    // 6. 陣營專屬馬卡龍金屬蓋 (1P 粉系 / 2P 藍系)
+    // ==========================================
+    const isPlayerOne = pl === p1; // ★ 換個名字避免撞名
+    const capLight = isPlayerOne ? "#FCE4EC" : "#E1F5FE"; // 亮部
+    const capBase = isPlayerOne ? "#F48FB1" : "#81D4FA"; // 基礎色
+    const capDark = isPlayerOne ? "#C2185B" : "#0288D1"; // 暗部
+    const capStroke =
+      isPlayerOne ? "rgba(233, 30, 99, 0.6)" : "rgba(3, 169, 244, 0.6)";
+
+    const metalGrad = ctx.createLinearGradient(0, pl.y, 0, pl.y + pl.h);
+    metalGrad.addColorStop(0, "#FFFFFF");
+    metalGrad.addColorStop(0.3, capLight);
+    metalGrad.addColorStop(0.8, capBase);
+    metalGrad.addColorStop(1, capDark);
+
+    ctx.fillStyle = metalGrad;
+    ctx.strokeStyle = capStroke;
+    ctx.lineWidth = 1.5;
+
+    // 左金屬蓋
+    ctx.beginPath();
+    ctx.roundRect(pl.x, pl.y, capW, pl.h, [r, 0, 0, r]);
+    ctx.fill();
+    ctx.stroke();
+
+    // 右金屬蓋
+    ctx.beginPath();
+    ctx.roundRect(pl.x + pl.w - capW, pl.y, capW, pl.h, [0, r, r, 0]);
+    ctx.fill();
+    ctx.stroke();
+
+    // 7. 蓋子上的高光小膠囊
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.beginPath();
+    ctx.roundRect(pl.x + 5, pl.y + 3, capW - 10, 4, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(pl.x + pl.w - capW + 5, pl.y + 3, capW - 10, 4, 2);
+    ctx.fill();
+
+    ctx.restore();
+    // 結束擋板繪製
 
     if (pl.shrinkFx > 0) {
       ctx.globalAlpha = pl.shrinkFx;
@@ -1311,6 +1519,19 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
   for (const pl of activePlayers) {
     if (!pl.ball) continue;
     const b = pl.ball;
+
+    // ★ 新增與擋板相同的盲目判定
+    let isBlind = false;
+    if (mode === 2 && !onlineMode && pl.timers && pl.timers.blind) {
+      isBlind = true; // 真正中招的受害者身上會有這個盲目計時器！
+    }
+
+    ctx.save(); // ★ 為整顆球的渲染加上最外層的 save
+
+    // 盲目狀態下，連球都會變成閃爍的幽靈！
+    if (isBlind) {
+      ctx.globalAlpha = Math.random() > 0.8 ? 0.3 : 0.02;
+    }
 
     // ==========================================
     // ★ 旋球系統：完美時機「縮圈」視覺回饋
@@ -1669,6 +1890,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     // 解決倒數文字消失與飄浮字亂飛的 Bug
     // ==========================================
     ctx.restore();
+
+    ctx.restore(); // ★ 這是我們剛剛在迴圈開頭為了「隱形球」加的 restore！
   }
 
   // ★ 修正 2：實體幽靈氣泡 (移除 lighter 避免融入白底消失)
@@ -1877,7 +2100,9 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     f.life -= 0.02;
 
     if (f.life <= 0) {
-      floatTexts.splice(i, 1);
+      // ★ 效能優化：用 Swap & Pop 替換極度耗能的 .splice()
+      floatTexts[i] = floatTexts[floatTexts.length - 1];
+      floatTexts.pop();
       continue;
     }
 
@@ -1947,7 +2172,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
   }
 
-  if (isBlinded && blindTarget) {
+  // ★ 修正：確保單機雙人模式下，絕對不會畫出全螢幕黑幕！
+  if (isBlinded && blindTarget && (mode === 1 || onlineMode)) {
     ctx.save();
     const pulseRadius = 160 + Math.sin(performance.now() / 80) * 20;
     const cx = blindTarget.x + blindTarget.w / 2;
@@ -2372,4 +2598,5 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
 
 export function resetBackground() {
   currentBg = null;
+  isBgCached = false;
 }
