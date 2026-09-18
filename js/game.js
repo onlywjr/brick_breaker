@@ -292,13 +292,14 @@ function makePlayer(color, lightColor) {
 }
 
 function generateBrickSymbol(gameMode, currentLevel) {
-  // ★ 1. 陷阱方塊判定 (單人模式專屬，8% 機率)
-  if (gameMode === 1 && currentLevel >= 5 && Math.random() < 0.08) {
+  // ★ 1. 陷阱方塊判定 (單人模式專屬，5% 機率)
+  if (gameMode === 1 && currentLevel >= 5 && Math.random() < 0.05) {
     return "💣️";
   }
 
   // ★ 2. 數學極限模式 (關閉化學 DLC 時)
   if (!chemDLCEnabled) {
+    // ... (保留你原本的數學模式邏輯) ...
     const operators = ["+", "-"];
     if (currentLevel >= 4) operators.push("×", "÷", "(", ")");
     if (currentLevel >= 7) operators.push("[", "]");
@@ -312,6 +313,27 @@ function generateBrickSymbol(gameMode, currentLevel) {
       return Math.floor(Math.random() * numMax + 1).toString();
     } else {
       return operators[Math.floor(Math.random() * operators.length)];
+    }
+  }
+
+  // ==========================================
+  // ★ 2.5 驚喜盲盒機制 (5% 機率)：增加前期多樣性！
+  // 無視玩家裝備，從當前「已解鎖」的元素池中隨便抽一顆！
+  // ==========================================
+  if (Math.random() < 0.08) {
+    const unlockedPool = Object.keys(ELEMENT_DATA).filter((sym) => {
+      const category = ELEMENT_DATA[sym][1];
+      // 同樣要遵守關卡解鎖進度，避免第 1 關就掉出鈾 (U)
+      if (["lanthanide", "actinide", "unknown"].includes(category))
+        return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_HEAVY;
+      if (["transition"].includes(category))
+        return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_TRANSITION;
+      if (["alkali", "alkaline", "main-metal", "metalloid"].includes(category))
+        return currentLevel >= DIFFICULTY_CONFIG.UNLOCK_MAIN_METALS;
+      return true;
+    });
+    if (unlockedPool.length > 0) {
+      return unlockedPool[Math.floor(Math.random() * unlockedPool.length)];
     }
   }
 
