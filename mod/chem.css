@@ -1070,7 +1070,7 @@
   }
   #chem-ui-overlay.show-pt-mobile #mobile-return-btn {
     display: inline-block !important;
-    width: 150px !important; /* 填滿左欄 */
+    width: 100% !important; /* 填滿左欄 */
     text-align: center !important;
     margin: 0 !important;
   }
@@ -1082,7 +1082,7 @@
     top: 50px !important;
     left: 0px !important;
     bottom: 0px !important;
-    width: 180px !important;
+    width: 220px !important;
     height: auto !important;
     transform: none !important;
     margin: 0 !important;
@@ -1148,7 +1148,7 @@
   }
 
   #chem-ui-overlay.show-pt-mobile #conv-result-area > div {
-    transform: scale(0.9) !important;
+    transform: scale(1) !important;
   }
 
   .conv-result-grid {
@@ -1162,7 +1162,7 @@
   #chem-ui-overlay.show-pt-mobile .pt-layout-wrapper {
     position: absolute !important;
     top: 15px !important;
-    left: 180px !important;
+    left: 220px !important;
     right: 15px !important;
     bottom: 15px !important;
     display: flex !important;

@@ -1220,7 +1220,7 @@ window.executeConversion = function () {
   for (const [outSym, outQty] of Object.entries(conversionResult.output)) {
     addAtom(outSym, outQty);
     const outName = ELEMENT_DATA[outSym] ? ELEMENT_DATA[outSym][0] : outSym;
-    successHtml += `<div class="conv-result-item"><span>✨ ${outName}</span><b>x${outQty}</b></div>`;
+    successHtml += `<div class="conv-result-item"><span>✨${outName}</span><b>x${outQty}</b></div>`;
   }
   successHtml += `</div>`;
 

@@ -1,5 +1,5 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
-export const TEST_MODE = true;
+export const TEST_MODE = false;
 
 // ==========================================
 // ★ 新增：效能模式與優化開關
@@ -1667,7 +1667,7 @@ export function updateGameState(dt, cv) {
       blindEl.style.display = "none";
     }
   }
-  
+
   if (mode === 2) {
     if (gameTimeRemaining > 0) {
       gameTimeRemaining -= (dt * 16.6) / 1000;
