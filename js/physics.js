@@ -925,7 +925,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
         if (boss.hp <= 0) {
           boss.active = false;
-          pl.score += 500;
+          pl.score += 500 * (pl.scoreMultiplier || 1);
           burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
           floatTexts.push({
             t: "BOSS DEFEATED! +500",
@@ -1900,36 +1900,10 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       if (pl.timers.score) clearTimeout(pl.timers.score);
       pl.scoreMultiplier = power;
 
-      // ==========================================
-      // ★ 新增：發動時天降金幣與鈔票 (精準掉向擋板)
-      // ==========================================
-      const moneyCount = 20 + Math.floor(Math.random() * 15);
-      for (let j = 0; j < moneyCount; j++) {
-        const startX = Math.random() * cv.width; // 隨機出現在畫面頂端各處
-        const startY = -30 - Math.random() * 150;
-
-        // 隨機瞄準擋板的某個 X 座標位置
-        const targetX = pl.x + Math.random() * pl.w;
-
-        // 計算到達擋板所需的大致幀數 (讓它們掉落速度不一，有快有慢)
-        const travelFrames = 40 + Math.random() * 40;
-
-        gameState.particles.push({
-          x: startX,
-          y: startY,
-          // 設定向量：確保它不管從哪邊生出來，都會往擋板飛去
-          vx: (targetX - startX) / travelFrames,
-          vy: (pl.y - startY) / travelFrames,
-          size: 20 + Math.random() * 15, // 大小不一
-          life: travelFrames * 0.03 + 0.5, // 確保壽命剛好能碰到擋板並穿透一點點
-          maxLife: 3,
-          type: "money",
-          emoji: Math.random() > 0.4 ? "💵" : "🪙", // 60% 機率是鈔票，40% 是金幣
-          rot: Math.random() * Math.PI * 2, // 初始旋轉角度
-          rotSpeed: (Math.random() - 0.5) * 0.2, // 旋轉速度
-          c: "rgba(255, 215, 0, 1)",
-        });
-      }
+      // ★ 刪除原本在這裡極度吃效能的 money 粒子生成迴圈！
+      // 改用純文字 HUD 播報，零效能負擔
+      const pId = pl === p1 ? 0 : 1;
+      triggerGameEvent(`🔥 積分 ${power} 倍狂暴！`, false, pId);
 
       pl.timers.score = setTimeout(() => {
         pl.scoreMultiplier = 1;

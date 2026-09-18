@@ -1854,10 +1854,19 @@ export function updateGameState(dt, cv) {
   }
 
   // ★ 優化：加入元素存在判定，即使玩家刪除 HTML 進度條也不會當機
-  if (p1.score !== lastP1Score) {
+  // ★ 1P 分數與火紅狂暴狀態更新
+  if (p1.score !== lastP1Score || p1.lastMultiplier !== p1.scoreMultiplier) {
     const el = document.getElementById("p1-score");
-    if (el) el.textContent = p1.score;
+    if (el) {
+      const mult = p1.scoreMultiplier || 1;
+      el.textContent = mult > 1 ? `${p1.score} (x${mult})` : p1.score;
+
+      // 動態開關火紅燃燒樣式
+      if (mult > 1) el.classList.add("score-fire-active");
+      else el.classList.remove("score-fire-active");
+    }
     lastP1Score = p1.score;
+    p1.lastMultiplier = p1.scoreMultiplier;
   }
 
   const p1WidthPercent = Math.round((p1.w / 120) * 100);
@@ -1875,10 +1884,18 @@ export function updateGameState(dt, cv) {
   }
 
   if (mode === 2) {
-    if (p2.score !== lastP2Score) {
+    // ★ 2P 分數與火紅狂暴狀態更新
+    if (p2.score !== lastP2Score || p2.lastMultiplier !== p2.scoreMultiplier) {
       const el = document.getElementById("p2-score");
-      if (el) el.textContent = p2.score;
+      if (el) {
+        const mult = p2.scoreMultiplier || 1;
+        el.textContent = mult > 1 ? `${p2.score} (x${mult})` : p2.score;
+
+        if (mult > 1) el.classList.add("score-fire-active");
+        else el.classList.remove("score-fire-active");
+      }
       lastP2Score = p2.score;
+      p2.lastMultiplier = p2.scoreMultiplier;
     }
 
     const p2WidthPercent = Math.round((p2.w / 120) * 100);
@@ -1953,7 +1970,7 @@ export function updateGameState(dt, cv) {
 
     setTimeout(() => {
       for (const pl of activePlayers) {
-        pl.score += 200;
+        pl.score += 200 * (pl.scoreMultiplier || 1);
 
         // ★ 1. 過關基礎獎勵
         pl.hp += 15;

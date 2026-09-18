@@ -606,3 +606,24 @@ body.single-layout .center-card > div:nth-child(2) {
     transform: translateY(-50%) scale(0.85);
   }
 }
+
+/* ★ 積分倍率生效時的火紅燃燒動畫 (純 GPU 加速，零 lag) */
+.score-fire-active {
+  color: #FF4D4D !important;
+  text-shadow: 
+    0 0 4px #FF4D4D,
+    0 0 10px #FF8000,
+    0 0 18px #CC0000 !important;
+  animation: scoreFirePulse 0.4s infinite alternate ease-in-out;
+}
+
+@keyframes scoreFirePulse {
+  from {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px #FF4D4D);
+  }
+  to {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px #FF8000);
+  }
+}
