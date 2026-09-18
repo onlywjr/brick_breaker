@@ -2142,13 +2142,21 @@ export function updateGameState(dt, cv) {
           y: Math.round(p1.y),
           w: p1.w,
           h: p1.h,
-          // ★ 修正：移除舊版的 lives，改傳送真實 HP 與 護盾值
           hp: Math.round(p1.hp),
           shield: Math.round(p1.shield || 0),
+          // ★ 新增：同步冰凍與免疫狀態旗標
+          frozen: p1.speed === 0,
+          invincible: p1.invincibleTimer > 0,
         },
         ball:
           p1.ball ?
-            { x: Math.round(p1.ball.x), y: Math.round(p1.ball.y) }
+            {
+              x: Math.round(p1.ball.x),
+              y: Math.round(p1.ball.y),
+              // ★ 新增：同步大招與旋球狀態旗標
+              spin: p1.ball.spinType || null,
+              rasen: p1.ball.isRasengan || false,
+            }
           : null,
 
         // ★ 終極 Hack：將「總數」藏在 w，「殘留數」藏在 ci

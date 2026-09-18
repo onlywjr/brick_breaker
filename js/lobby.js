@@ -213,22 +213,85 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
           // 這樣原本在 Y=556 的擋板，就會出現在 160px 畫布的下方，上方保留空間給球掉落
           x.translate(0, -440);
 
-          // 畫擋板
+          // ==========================================
+          // ★ 畫擋板與狀態特效
+          // ==========================================
           if (p.paddle && p.paddle.x !== undefined) {
-            x.fillStyle = "#9DD9E8";
-            x.beginPath();
             const pw = p.paddle.w || 120;
             const ph = p.paddle.h || 22;
-            x.roundRect(p.paddle.x, p.paddle.y || 556, pw, ph, ph / 2);
+            const px = p.paddle.x;
+            const py = p.paddle.y || 556;
+
+            // 1. 畫出實體冰塊 (絕對凍結)
+            if (p.paddle.frozen) {
+              x.fillStyle = "rgba(165, 243, 252, 0.55)";
+              x.strokeStyle = "#22d3ee";
+              x.lineWidth = 2;
+              x.beginPath();
+              x.roundRect(px - 4, py - 4, pw + 8, ph + 8, 6);
+              x.fill();
+              x.stroke();
+            }
+
+            // 2. 畫基礎擋板
+            x.fillStyle = "#9DD9E8";
+            x.beginPath();
+            x.roundRect(px, py, pw, ph, ph / 2);
             x.fill();
+
+            // 3. 畫出護盾或無敵狀態 (六角菱形光罩)
+            if (p.paddle.shield > 0 || p.paddle.invincible) {
+              x.strokeStyle = p.paddle.invincible ? "#FBBF24" : "#86EFAC";
+              x.lineWidth = 2;
+              x.beginPath();
+              x.moveTo(px - 10, py + ph / 2);
+              x.lineTo(px + 10, py - 8);
+              x.lineTo(px + pw - 10, py - 8);
+              x.lineTo(px + pw + 10, py + ph / 2);
+              x.lineTo(px + pw - 10, py + ph + 8);
+              x.lineTo(px + 10, py + ph + 8);
+              x.closePath();
+              x.stroke();
+              x.fillStyle = "rgba(255, 255, 255, 0.2)";
+              x.fill();
+            }
           }
 
-          // 畫球
+          // ==========================================
+          // ★ 畫球與旋轉大招特效
+          // ==========================================
           if (p.ball && p.ball.x !== undefined && p.ball.y !== undefined) {
-            x.fillStyle = "#5D576B";
-            x.beginPath();
-            x.arc(p.ball.x, p.ball.y, 11, 0, Math.PI * 2);
-            x.fill();
+            const bx = p.ball.x;
+            const by = p.ball.y;
+
+            if (p.ball.rasen) {
+              // 螺旋丸 (青色光球與殘影)
+              x.fillStyle = "rgba(56, 189, 248, 0.4)";
+              x.beginPath();
+              x.arc(bx, by, 18, 0, Math.PI * 2);
+              x.fill();
+              x.fillStyle = "#FFFFFF";
+              x.beginPath();
+              x.arc(bx, by, 10, 0, Math.PI * 2);
+              x.fill();
+            } else if (p.ball.spin === "left" || p.ball.spin === "right") {
+              // 旋風與電鑽 (左旋紫，右旋金)
+              const spinColor = p.ball.spin === "left" ? "#A78BFA" : "#FBBF24";
+              x.fillStyle = spinColor;
+              x.beginPath();
+              x.arc(bx, by, 14, 0, Math.PI * 2);
+              x.fill();
+              x.fillStyle = "#FFF";
+              x.beginPath();
+              x.arc(bx, by, 8, 0, Math.PI * 2);
+              x.fill();
+            } else {
+              // 一般球體
+              x.fillStyle = "#5D576B";
+              x.beginPath();
+              x.arc(bx, by, 11, 0, Math.PI * 2);
+              x.fill();
+            }
           }
           x.restore();
         }
