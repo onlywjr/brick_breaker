@@ -89,9 +89,9 @@ body.online-battle-mode .score-bar {
   box-sizing: border-box;
   border-radius: 12px;
   border: 2px solid #c9b1e8 !important;
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: transparent !important; /* ★ 改為透明，交給 Canvas 畫底色 */
   backdrop-filter: blur(8px);
-  width: 100%; /* 填滿父容器 (side-opponents) */
+  width: 100%;
 }
 
 .online-opponent.eliminated {

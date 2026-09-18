@@ -50,27 +50,23 @@ export function onlineMakeMiniPlayer(id, p) {
   const w = document.createElement("div");
   w.className = "online-opponent";
   w.dataset.playerId = id;
-  // ★ 強制覆寫樣式，確保外觀緊湊、間距縮小
   w.style.cssText =
-    "display: flex; flex-direction: column; align-items: center; padding: 10px; background: rgba(255,255,255,0.85); border-radius: 12px; border: 2px solid #c9b1e8; width: 100%; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 6px;";
+    "position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 10px; background: transparent; border-radius: 12px; border: 2px solid #c9b1e8; width: 100%; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 6px;";
 
   w.innerHTML = `
-    <!-- 第 1 行：玩家名稱 -->
-    <div class="opp-name" style="font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+    <!-- ★ Canvas z-index 設為 0，並加上 border-radius 貼合卡片邊角 -->
+    <canvas width="800" height="600" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; border-radius: 10px;"></canvas>
+
+    <!-- ★ 文字與進度條加上 z-index: 10，確保浮在特效上方 -->
+    <div class="opp-name" style="position: relative; z-index: 10; font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
     
-    <!-- 第 2 行：愛心與血量 -->
-    <div class="opp-hp" style="font-size: 14px; font-weight: 900; color: #d96c8e;"></div>
+    <div class="opp-hp" style="position: relative; z-index: 10; font-size: 14px; font-weight: 900; color: #d96c8e;"></div>
   
-    <!-- 第 3 行：剩餘磚塊進度條 -->
-    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;">
+    <div style="position: relative; z-index: 10; width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;">
       <div class="opp-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #c9b1e8, #f6a6c1); transition: width 0.2s;"></div>
     </div> 
 
-    <!-- 第 4 行：等級與其他資訊 -->
-    <div class="opp-info" style="font-size: 11px; font-weight: 900; color: #8a7e9c;"></div> 
-
-    <!-- ★ 第 5 行：擋板畫布 (拔除舊 class，高度設為 160，並用 CSS 鎖定完美的 5:1 比例) -->
-    <canvas width="800" height="160" style="display: block; width: 100%; height: auto; aspect-ratio: 5 / 1; border-radius: 6px; background: rgba(0,0,0,0.05); margin-top: 2px;"></canvas>
+    <div class="opp-info" style="position: relative; z-index: 10; font-size: 11px; font-weight: 900; color: #8a7e9c;"></div> 
   `;
   return w;
 }
@@ -185,34 +181,24 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       }
 
       // ==========================================
-      // ★ 更新裁切版畫布 (只畫下半部擋板區域)
+      // ★ 更新裁切版畫布 (已升級為全覆蓋模式)
       // ==========================================
-      const c = w.querySelector("canvas"); // ★ 改用直接抓取 canvas 標籤
+      const c = w.querySelector("canvas");
       if (c) {
         const x = c.getContext("2d");
         x.clearRect(0, 0, c.width, c.height);
 
-        // 畫背景漸層
-        const g = x.createLinearGradient(0, 0, c.width, c.height);
-        g.addColorStop(0, "#FDF4F6");
-        g.addColorStop(1, "#E6F3FA");
-        x.fillStyle = g;
+        // ★ 1. 先畫一層半透明的白底，替代原本 CSS 的 background
+        x.fillStyle = "rgba(255, 255, 255, 0.85)";
         x.fillRect(0, 0, c.width, c.height);
 
         if (p.alive === false) {
           x.fillStyle = "rgba(255,255,255,.65)";
           x.fillRect(0, 0, c.width, c.height);
-          x.fillStyle = "#E0576B";
-          x.font = "900 40px sans-serif";
-          x.textAlign = "center";
-          x.textBaseline = "middle";
-          x.fillText("ELIMINATED", c.width / 2, c.height / 2);
+          // 淘汰文字也可以畫在這裡，或是交給 HTML 控制
         } else {
           x.save();
-          // ★ 鏡頭偏移魔法：把整個世界往上提 440 像素！
-          // 這樣原本在 Y=556 的擋板，就會出現在 160px 畫布的下方，上方保留空間給球掉落
-          x.translate(0, -440);
-
+          x.translate(0, -120);
           // ==========================================
           // ★ 畫擋板與狀態特效
           // ==========================================

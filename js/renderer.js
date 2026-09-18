@@ -748,6 +748,45 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       ctx.strokeText(name, b.x + b.w / 2, b.y + b.h / 2);
       ctx.fillText(name, b.x + b.w / 2, b.y + b.h / 2);
     }
+
+    // ==========================================
+    // ★ 視覺強化 1：定時炸彈倒數數字與爆破預警
+    // ==========================================
+    if (b.bombCountdown !== undefined && b.bombCountdown > 0) {
+      ctx.save();
+      const nowTime = performance.now();
+      const timeLeft = b.bombCountdown.toFixed(1); // 取得保留一位小數的秒數
+      const pulse = Math.abs(Math.sin(nowTime / 80)); // 快節奏脈衝
+
+      // 1. 磚塊本體覆蓋一層閃爍的危險紅光
+      ctx.beginPath();
+      ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+      ctx.fillStyle = `rgba(224, 87, 107, ${0.3 + pulse * 0.4})`;
+      ctx.fill();
+
+      // 2. 磚塊正上方繪製帶有震動縮放的倒數秒數
+      ctx.translate(b.x + b.w / 2, b.y - 10);
+      const scale = 1 + pulse * 0.15;
+      ctx.scale(scale, scale);
+
+      ctx.font = "900 16px Orbitron, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // 黑色描邊增加可讀性
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
+      ctx.lineWidth = 3;
+      ctx.strokeText(`💣 ${timeLeft}s`, 0, 0);
+
+      // 亮紅/黃色字體
+      ctx.fillStyle = pulse > 0.5 ? "#FF4D4D" : "#FBBF24";
+      ctx.shadowColor = "#FF4D4D";
+      ctx.shadowBlur = PERFORMANCE_MODE ? 0 : 10;
+      ctx.fillText(`💣 ${timeLeft}s`, 0, 0);
+
+      ctx.restore();
+    }
+
     ctx.restore();
   }
 
@@ -1527,6 +1566,62 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
 
     ctx.save(); // ★ 為整顆球的渲染加上最外層的 save
+
+    // ==========================================
+    // ★ 視覺強化 2：磁力牽引 / 導彈追蹤雷射線 (請貼在此處！)
+    // ==========================================
+    if (b.magTargetX && b.dy < 0) {
+      // 尋找目標磚塊 (找到最接近 magTargetX 且活著的磚塊)
+      const targetBr = bricks.find(
+        (br) => br.hp > 0 && Math.abs(br.x + br.w / 2 - b.magTargetX) < 10,
+      );
+
+      if (targetBr) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        const tx = targetBr.x + targetBr.w / 2;
+        const ty = targetBr.y + targetBr.h / 2;
+        const nowTime = performance.now();
+
+        // 1. 畫出帶有虛線流光的雷射光束
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(tx, ty);
+
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.85)"; // 青藍色高能雷射
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "#38BDF8";
+        ctx.shadowBlur = PERFORMANCE_MODE ? 0 : 12;
+        ctx.setLineDash([8, 6]);
+        ctx.lineDashOffset = -(nowTime / 15); // 向目標快速流動的光束效果
+        ctx.stroke();
+
+        // 2. 在目標磚塊正中央畫出動態旋轉準星 (Crosshair)
+        ctx.translate(tx, ty);
+        ctx.rotate(nowTime / 150); // 準星狂轉
+
+        ctx.strokeStyle = "#FBBF24"; // 耀眼金準星
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([]);
+
+        // 繪製圓形十字準星
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.moveTo(-16, 0);
+        ctx.lineTo(-8, 0);
+        ctx.moveTo(8, 0);
+        ctx.lineTo(16, 0);
+        ctx.moveTo(0, -16);
+        ctx.lineTo(0, -8);
+        ctx.moveTo(0, 8);
+        ctx.lineTo(0, 16);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+    // ==========================================
 
     // 盲目狀態下，連球都會變成閃爍的幽靈！
     if (isBlind) {
