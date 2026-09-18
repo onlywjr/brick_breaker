@@ -763,14 +763,18 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
         // ==========================================
 
         if (targetPl !== b.owner && mode === 2) {
-          targetPl.w = Math.max(targetPl.minW, targetPl.w - 25);
-          targetPl.shrinkFx = 0.6;
-          burst(b.x, targetPl.y, "#D96C8E");
-          // ★ 改用 HUD 播報
-          const pId = targetPl === p1 ? 0 : 1;
-          triggerGameEvent("接到對手球! 縮小", false, pId);
+          // ★ 修正：化學模式下，關閉原版的接球自動縮小機制，嚴格交由技能控制！
+          if (!chemDLCEnabled) {
+            targetPl.w = Math.max(targetPl.minW, targetPl.w - 25);
+            targetPl.shrinkFx = 0.6;
+            burst(b.x, targetPl.y, "#D96C8E");
+            // ★ 改用 HUD 播報
+            const pId = targetPl === p1 ? 0 : 1;
+            triggerGameEvent("接到對手球! 縮小", false, pId);
+          }
         } else if (targetPl === b.owner) {
-          if (targetPl.w < 120) {
+          // ★ 修正：化學模式下，關閉原版的接球自動回復機制，避免干擾技能的計時器！
+          if (targetPl.w < 120 && !chemDLCEnabled) {
             targetPl.w = Math.min(120, targetPl.w + 15);
             burst(b.x, targetPl.y, "#5FA8D3");
 

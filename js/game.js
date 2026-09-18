@@ -1380,11 +1380,14 @@ export function onlineChooseAttack() {
     "slow_speed",
   ];
   const type = pool[Math.floor(Math.random() * pool.length)];
+  // ★ 修正：給予「縮小擋板」與「減速」正確的 0.5 乘數，否則 power 為 1 會毫無反應！
   const power =
     type === "damage_hp" ?
       Math.random() < 0.55 ?
         1
       : 2
+    : type === "shrink_width" ? 0.5
+    : type === "slow_speed" ? 0.5
     : 1;
   onlineAttackPending = true;
   socket.emit("attackPlayer", {
