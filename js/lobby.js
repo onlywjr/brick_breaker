@@ -58,7 +58,7 @@ export function onlineMakeMiniPlayer(id, p) {
 
     <!-- ★ 新增：受擊紅色遮罩 (預設 opacity 為 0) -->
     <div class="opp-attack-overlay" style="position: absolute; inset: 0; background: rgba(224, 87, 107, 0.4); z-index: 20; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;">
-        <span class="attack-msg" style="font-family: 'Noto Sans TC', sans-serif; font-weight: 900; color: white; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); padding: 4px 10px;">受到攻擊</span>
+        <span class="attack-msg" style="font-family: 'Noto Sans TC', sans-serif; font-weight: 900; color: white; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); padding: 4px 10px;">受到攻擊</span>
     </div>
 
     <!-- 其餘保持不變 -->
