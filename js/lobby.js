@@ -58,7 +58,7 @@ export function onlineMakeMiniPlayer(id, p) {
 
     <!-- ★ 新增：受擊紅色遮罩 (預設 opacity 為 0) -->
     <div class="opp-attack-overlay" style="position: absolute; inset: 0; background: rgba(224, 87, 107, 0.4); z-index: 20; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;">
-        <span style="font-family: 'Noto Sans TC', sans-serif; font-weight: 900; color: white; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); background: rgba(224, 87, 107, 0.8); padding: 4px 10px; border-radius: 6px;">受到攻擊</span>
+        <span class="attack-msg" style="font-family: 'Noto Sans TC', sans-serif; font-weight: 900; color: white; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); background: rgba(224, 87, 107, 0.8); padding: 4px 10px; border-radius: 6px;">受到攻擊</span>
     </div>
 
     <!-- 其餘保持不變 -->
@@ -191,6 +191,14 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       if (overlayEl) {
         // 當接收到對手的 underAttack 狀態為 true 時，將透明度設為 1
         overlayEl.style.opacity = p.underAttack ? "1" : "0";
+        // ★ 新增：如果正在受擊且有名字，就把名字塞進去
+        const msgEl = overlayEl.querySelector(".attack-msg");
+        if (msgEl) {
+          msgEl.innerText =
+            p.underAttack && p.lastAttackerName ?
+              `受到 ${p.lastAttackerName} 攻擊`
+            : "受到攻擊";
+        }
       }
 
       // ==========================================

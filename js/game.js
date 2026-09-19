@@ -1412,8 +1412,9 @@ export function onlineReceiveAttack(d) {
 
   burst(400, 300, "#D96C8E"); // 畫面震動爆點
 
-  // ★ 新增：設定被攻擊狀態的計時器 (例如 1.5 秒)
+  // ★ 記錄受擊狀態與攻擊者的名字
   p1.underAttackTimer = 1.5;
+  p1.lastAttackerName = name;
 
   // ★ 1. 統一呼叫底層處理物理狀態 (扣血、減速、計時器等都在這裡處理)
   applyLocalDebuff(p1, type, power, duration);
@@ -2162,8 +2163,9 @@ export function updateGameState(dt, cv) {
         alive: !onlineEliminated,
         energy: p1.energy,
         level: level,
-        // ★ 簡化：不再傳送複雜的特效狀態，改傳送是否被攻擊
+        // ★ 發送受擊狀態與攻擊者名稱
         underAttack: p1.underAttackTimer > 0,
+        lastAttackerName: p1.underAttackTimer > 0 ? p1.lastAttackerName : "",
         paddle: {
           x: Math.round(p1.x),
           y: Math.round(p1.y),
