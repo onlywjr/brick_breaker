@@ -327,7 +327,7 @@ body.online-battle-mode .score-bar {
   color: white;
   font-size: 16px;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  background: rgba(224, 87, 107, 0.8);
+  background: rgba(224, 87, 107, 0.7);
   padding: 4px 10px;
   border-radius: 6px;
 }
