@@ -2179,10 +2179,11 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "global_damage_over_time":
     case "global_corrosion":
       globalDotState = {
-        power: power,
+        // ★ 效能與平衡修正：將 DoT 傷害壓縮 85%，使其成為「軟化磚塊」的輔助，而非秒殺外掛
+        power: power * 0.15, 
         end: performance.now() + duration * 1000,
         active: true,
-        lastTick: performance.now(), // 初始化計時
+        lastTick: performance.now(),
       };
       break;
 
