@@ -55,7 +55,7 @@ export function onlineMakeMiniPlayer(id, p) {
 
   w.innerHTML = `
     <!-- ★ Canvas z-index 設為 0，並加上 border-radius 貼合卡片邊角 -->
-    <canvas width="800" height="600" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; border-radius: 10px;"></canvas>
+    <canvas width="800" height="600" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: bottom; z-index: 0; pointer-events: none; border-radius: 10px;"></canvas>
 
     <!-- ★ 文字與進度條加上 z-index: 10，確保浮在特效上方 -->
     <div class="opp-name" style="position: relative; z-index: 10; font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
@@ -198,7 +198,7 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
           // 淘汰文字也可以畫在這裡，或是交給 HTML 控制
         } else {
           x.save();
-          x.translate(0, -120);
+
           // ==========================================
           // ★ 畫擋板與狀態特效
           // ==========================================
