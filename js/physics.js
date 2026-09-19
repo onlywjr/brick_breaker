@@ -658,7 +658,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               && b.x - laserW < br.x + br.w
             ) {
               br.laserDamagePool =
-                (br.laserDamagePool || 0) + buff.power * dt * 0.15;
+                (br.laserDamagePool || 0) + buff.power * dt * 0.03;
               if (br.laserDamagePool >= 1) {
                 const dmg = Math.floor(br.laserDamagePool);
                 br.hp = Math.max(0, br.hp - dmg);
@@ -683,7 +683,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             && b.x - laserW < boss.x + boss.w
           ) {
             boss.laserDamagePool =
-              (boss.laserDamagePool || 0) + buff.power * dt * 0.15;
+              (boss.laserDamagePool || 0) + buff.power * dt * 0.03;
             if (boss.laserDamagePool >= 1) {
               const dmg = Math.floor(boss.laserDamagePool);
               boss.hp -= dmg;
@@ -1106,7 +1106,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 otherBr.y + otherBr.h / 2 - b.y,
               ) < explosionRadius
             ) {
-              otherBr.hp -= 2;
+              otherBr.hp -= b.heavyPower * 0.15;
               burst(
                 otherBr.x + otherBr.w / 2,
                 otherBr.y + otherBr.h / 2,
@@ -1126,7 +1126,14 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             }
           });
           // ★ 補上：重擊球爆破波及 Boss
-          applyAoeToBoss(b.x, b.y, explosionRadius, 2, "#5D576B", pl);
+          applyAoeToBoss(
+            b.x,
+            b.y,
+            explosionRadius,
+            b.heavyPower * 0.15,
+            "#5D576B",
+            pl,
+          );
         } else {
           // ★ 實裝真實物理增傷與撞擊震波 (shockwave / area_damage)
           let hitDmg = 1;
@@ -1316,7 +1323,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 && otherBr.hp > 0
                 && Math.hypot(otherBr.x - br.x, otherBr.y - br.y) < swRadius
               ) {
-                otherBr.hp -= shockPower;
+                otherBr.hp -= shockPower * 0.3;
                 burst(
                   otherBr.x + otherBr.w / 2,
                   otherBr.y + otherBr.h / 2,
@@ -1330,7 +1337,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 }
               }
             });
-            applyAoeToBoss(br.x, br.y, 70, shockPower, "#9DD9E8", pl);
+            applyAoeToBoss(br.x, br.y, 70, shockPower * 0.3, "#9DD9E8", pl);
           }
         }
 
@@ -2180,7 +2187,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
     case "global_corrosion":
       globalDotState = {
         // ★ 效能與平衡修正：將 DoT 傷害壓縮 85%，使其成為「軟化磚塊」的輔助，而非秒殺外掛
-        power: power * 0.15, 
+        power: power * 0.15,
         end: performance.now() + duration * 1000,
         active: true,
         lastTick: performance.now(),
