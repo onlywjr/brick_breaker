@@ -1,5 +1,5 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
-export const TEST_MODE = true;
+export const TEST_MODE = false;
 
 // ==========================================
 // ★ 新增：效能模式與優化開關

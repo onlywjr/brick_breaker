@@ -291,7 +291,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     comboCount = 30;
     comboTimer = 2.0;
     window._cheatRasengan = false; // 觸發後關閉
-    triggerGameEvent("🌀 查克拉已滿，螺旋丸已就緒!", false, 0); // 1P 畫面提示
+    triggerGameEvent("🌀 查克拉集滿，奧義已就緒!", false, 0); // 1P 畫面提示
   }
 
   // ★ 1. 全域 DOT 毒霧扣血
@@ -776,15 +776,143 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
     }
 
     // ★ 3. 統一更新最終位置 (整個迴圈只在這裡寫這兩行)
-    b.x += b.dx * dt;
-    b.y += b.dy * dt;
+    if (!b.isMagicMatrix) {
+      b.x += b.dx * dt;
+      b.y += b.dy * dt;
 
-    if (b.x < b.r || b.x > cv.width - b.r) {
-      b.dx *= -1;
-      b.x = Math.max(b.r, Math.min(b.x, cv.width - b.r));
-      playSfx("bounce");
+      if (b.x < b.r || b.x > cv.width - b.r) {
+        b.dx *= -1;
+        b.x = Math.max(b.r, Math.min(b.x, cv.width - b.r));
+        playSfx("bounce");
+      }
+
+      // ==========================================
+      // ★ 關鍵修復：天花板碰撞防卡死機制
+      // ==========================================
+      if (b.y < b.r) {
+        if (b.dy < 0) {
+          b.dy *= -1;
+          playSfx("bounce");
+        }
+        b.y = b.r;
+
+        if (b.spin) {
+          b.spin = 0;
+          b.spinType = null;
+          b.isRasengan = false;
+          const baseSp =
+            (3.5 + Math.min(4.5, level * 0.1))
+            * Math.SQRT2
+            * (pl.speedBuffRatio || 1);
+          const currentSp = Math.hypot(b.dx, b.dy);
+          b.dx = (b.dx / currentSp) * baseSp;
+          b.dy = (b.dy / currentSp) * baseSp;
+          burst(b.x, b.y, "#FFF");
+        }
+      }
+    } else {
+      // ==========================================
+      // ★ 左旋究極奧義：魔法矩陣 (數學函數版，避開 GPU 死鎖)
+      // ==========================================
+      b.magicTimer += (dt * 16.6) / 1000;
+      const R = b.magicRadius;
+      const cx = b.magicCx;
+      const cy = b.magicCy;
+
+      if (b.magicPhase === 0) {
+        // Phase 0: 飛向魔法陣頂點
+        const targetX = cx;
+        const targetY = cy - R;
+        b.x += (targetX - b.x) * 0.2 * dt;
+        b.y += (targetY - b.y) * 0.2 * dt;
+        if (
+          Math.hypot(targetX - b.x, targetY - b.y) < 5
+          || b.magicTimer > 0.4
+        ) {
+          b.magicPhase = 1;
+          b.magicTimer = 0;
+          b.x = targetX;
+          b.y = targetY;
+        }
+      } else if (b.magicPhase === 1) {
+        // Phase 1: 一筆畫出外圍圓陣 (1.0秒)
+        let progress = Math.min(1, b.magicTimer / 1.0);
+        let angle = -Math.PI / 2 + progress * Math.PI * 2;
+        b.x = cx + Math.cos(angle) * R;
+        b.y = cy + Math.sin(angle) * R;
+        if (progress >= 1) {
+          b.magicPhase = 2;
+          b.magicTimer = 0;
+          b.magicStarPoints = [];
+          for (let i = 0; i <= 5; i++) {
+            // ★ 只儲存相對於圓心的「局部座標」，大幅降低渲染複雜度
+            b.magicStarPoints.push({
+              x: Math.cos(-Math.PI / 2 + (i * 4 * Math.PI) / 5) * R,
+              y: Math.sin(-Math.PI / 2 + (i * 4 * Math.PI) / 5) * R,
+            });
+          }
+        }
+      } else if (b.magicPhase === 2) {
+        // Phase 2: 繪製內部五芒星 (1.2秒)
+        let progress = Math.min(1, b.magicTimer / 1.2);
+        let lineProgress = progress * 5;
+        let lineIndex = Math.floor(lineProgress);
+        let localP = lineProgress - lineIndex;
+        if (lineIndex >= 5) {
+          b.x = cx + b.magicStarPoints[5].x;
+          b.y = cy + b.magicStarPoints[5].y;
+          b.magicPhase = 3;
+          b.magicTimer = 0;
+        } else {
+          let pStart = b.magicStarPoints[lineIndex];
+          let pEnd = b.magicStarPoints[lineIndex + 1];
+          b.x = cx + pStart.x + (pEnd.x - pStart.x) * localP;
+          b.y = cy + pStart.y + (pEnd.y - pStart.y) * localP;
+        }
+      } else if (b.magicPhase === 3) {
+        // Phase 3: 放大漸淡並執行真實爆破 (0.5秒)
+        b.magicScale = 1 + (b.magicTimer / 0.5) * 0.4; // 放大到 1.4 倍
+        b.magicOpacity = Math.max(0, 1 - b.magicTimer / 0.5);
+
+        if (b.magicTimer > 0.5) {
+          // 毀滅結算！
+          triggerVFX(25, "100, 150, 255", 0.8);
+          burst(cx, cy, "#8B5CF6");
+          for (let i = 0; i < 20; i++)
+            burst(
+              cx + (Math.random() - 0.5) * R * 2,
+              cy + (Math.random() - 0.5) * R * 2,
+              "#60A5FA",
+            );
+
+          const dmgRadius = R * 1.5;
+          const dmg = 250; // 極大範圍真實毀滅傷害
+
+          bricks.forEach((br) => {
+            if (
+              br.hp > 0
+              && Math.hypot(br.x + br.w / 2 - cx, br.y + br.h / 2 - cy)
+                < dmgRadius
+            ) {
+              br.hp = Math.max(0, br.hp - dmg);
+              if (br.hp <= 0) {
+                br.killedBySkill = true;
+                if (br.symbol && chemDLCEnabled)
+                  addAtom(br.symbol, 1, pl === p1 ? 0 : 1);
+                pl.score += 10 * (pl.scoreMultiplier || 1);
+              }
+            }
+          });
+          applyAoeToBoss(cx, cy, dmgRadius, dmg, "#8B5CF6", pl);
+
+          // 恢復球體狀態，讓它從法陣中心往下墜落
+          b.isMagicMatrix = false;
+          b.dx = (Math.random() > 0.5 ? 1 : -1) * 2;
+          b.dy = b.savedSp || 8;
+        }
+      }
+      continue; // 魔法陣期間，球體將無視下方所有的擋板、Boss與磚塊的碰撞！
     }
-
     // ==========================================
     // ★ 關鍵修復：天花板碰撞防卡死機制
     // ==========================================
@@ -869,21 +997,43 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           let color = spinDir === -1 ? "#A78BFA" : "#FBBF24";
 
           // ==========================================
-          // ★ 螺旋丸大招觸發判定！(Combo >= 30 + 完美切球)
+          // ★ 究極奧義觸發判定！(Combo >= 30 + 完美切球)
           // ==========================================
           if (perfectRatio > 0.8 && comboCount >= 30) {
-            b.isRasengan = true;
-            b.spin = spinDir * 80;
-            timingText = "🌀 螺旋丸！";
-            timingColor = "#38BDF8";
-            msg = "🌀 螺旋丸發動！";
-            color = "#38BDF8";
+            if (spinDir === 1) {
+              // 右旋：風遁螺旋丸
+              b.isRasengan = true;
+              b.isMagicMatrix = false; // 確保不會卡狀態
+              b.spin = spinDir * 80;
+              timingText = "🌀 螺旋丸！";
+              timingColor = "#38BDF8";
+              msg = "🌀 右旋奧義：螺旋丸發動！";
+              color = "#38BDF8";
+              triggerVFX(15, "56, 189, 248", 0.5);
+            } else {
+              // 左旋：魔法矩陣
+              b.isMagicMatrix = true;
+              b.isRasengan = false; // 確保不會卡狀態
+              b.magicTimer = 0;
+              b.magicCx = cv.width / 2;
+              b.magicCy = cv.height / 2 - 30;
+              b.magicRadius = 140;
+              b.magicPhase = 0;
+              b.magicScale = 1;
+              b.magicOpacity = 1;
+              b.savedSp = Math.hypot(b.dx, b.dy);
+              b.dx = 0;
+              b.dy = 0;
 
-            // ★ 關鍵修復：強制將區域變數與全域狀態同步歸零
+              timingText = "✡️ 魔法矩陣！";
+              timingColor = "#A78BFA";
+              msg = "✡️ 左旋奧義：魔法矩陣！";
+              color = "#8B5CF6";
+              triggerVFX(15, "167, 139, 250", 0.5);
+            }
+
             comboCount = 0;
             gameState.comboCount = 0;
-
-            triggerVFX(15, "56, 189, 248", 0.5);
           }
           // ==========================================
 

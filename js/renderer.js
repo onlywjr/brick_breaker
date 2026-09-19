@@ -569,7 +569,7 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
     }
 
     if (b.maxHp && b.hp < b.maxHp) {
-      const damageRatio = 1 - b.hp / b.maxHp;
+      const damageRatio = Math.min(1, Math.max(0, 1 - b.hp / b.maxHp));
       const seed = (b.minX || b.x) * 13.37 + b.y * 42.19;
       const rnd = (i) => Math.abs(Math.sin(seed + i) * 43758.5453) % 1;
 
@@ -1679,6 +1679,99 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
       else if (b.spinType === "right") ballEmoji = "🪛";
       else if (pl.speedBuffRatio && pl.speedBuffRatio > 1) ballEmoji = "⚡";
       else if (b.fire) ballEmoji = "🔥";
+    }
+
+    // ==========================================
+    // ★ 繪製左旋究極奧義：魔法矩陣 (安全防當出版)
+    // ==========================================
+    if (b.isMagicMatrix) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      let scale = b.magicScale || 1;
+      let alpha = b.magicOpacity !== undefined ? b.magicOpacity : 1;
+
+      // 設置畫布縮放與中心 (這會將 (0,0) 設為法陣中央)
+      ctx.translate(b.magicCx, b.magicCy);
+      ctx.scale(scale, scale);
+
+      // ★ 繪製函數：傳入粗細與顏色，分段描繪法陣 (徹底避開 GPU 交叉路徑死鎖 Bug)
+      const drawMatrix = (lineWidth, color) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        // 1. 畫外圈 (獨立繪製)
+        let circleProgress =
+          b.magicPhase >= 2 ? 1
+          : b.magicPhase === 1 ? Math.min(1, b.magicTimer / 1.0)
+          : 0;
+        if (circleProgress > 0) {
+          ctx.beginPath();
+          ctx.arc(
+            0,
+            0,
+            b.magicRadius,
+            -Math.PI / 2,
+            -Math.PI / 2 + circleProgress * Math.PI * 2,
+          );
+          ctx.stroke();
+        }
+
+        // 2. 畫五芒星 (將每條線拆開獨立畫，不再構成連環多邊形)
+        if (b.magicPhase >= 2 && b.magicStarPoints) {
+          let pentagramProgress =
+            b.magicPhase >= 3 ? 5 : Math.min(5, (b.magicTimer / 1.2) * 5);
+          let fullLines = Math.floor(pentagramProgress);
+          let partial = pentagramProgress - fullLines;
+
+          ctx.beginPath();
+          // 已畫完的完整線條 (用 moveTo 切斷路徑關聯性)
+          for (let i = 0; i < fullLines; i++) {
+            let p1 = b.magicStarPoints[i];
+            let p2 = b.magicStarPoints[i + 1];
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+          }
+          // 正在畫的這條線
+          if (fullLines < 5 && partial > 0) {
+            let p1 = b.magicStarPoints[fullLines];
+            let p2 = b.magicStarPoints[fullLines + 1];
+            let curX = p1.x + (p2.x - p1.x) * partial;
+            let curY = p1.y + (p2.y - p1.y) * partial;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(curX, curY);
+          }
+          ctx.stroke();
+        }
+      };
+
+      ctx.shadowBlur = 0; // 絕對禁止開啟 shadowBlur
+
+      // 疊加四層光暈製造爆亮星雲感
+      drawMatrix(26, `rgba(96, 165, 250, ${alpha * 0.15})`);
+      drawMatrix(12, `rgba(167, 139, 250, ${alpha * 0.4})`);
+      drawMatrix(5, `rgba(167, 139, 250, ${alpha})`);
+      drawMatrix(2, `rgba(255, 255, 255, ${alpha * 0.9})`);
+
+      // 繪製作為畫筆的高能球體 (爆破前才顯示)
+      if (b.magicPhase < 3) {
+        ctx.beginPath();
+        // 將球體的絕對座標轉換為相對於 (0,0) 的局部座標
+        ctx.arc(b.x - b.magicCx, b.y - b.magicCy, 18, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(b.x - b.magicCx, b.y - b.magicCy, 8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(224, 176, 255, ${alpha})`;
+        ctx.fill();
+      }
+
+      ctx.restore(); // 恢復座標縮放轉換
+      ctx.restore(); // 釋放最外層保存的球體 ctx.save()
+      continue; // 魔法陣期間直接跳過後續原本彈珠的繪製邏輯
     }
 
     if (activeAction === "laser_pierce") {
