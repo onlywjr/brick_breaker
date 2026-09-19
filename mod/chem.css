@@ -362,8 +362,8 @@
 .chem-equipped-container-vertical {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px 5px 10px 8px;
+  gap: 11px;
+  padding: 6px 15px 0px 5px;
 }
 
 .chem-slot {
@@ -501,14 +501,18 @@
 .pt-element.owned:hover {
   display: flex;
 }
+
 .pt-element.empty {
-  filter: grayscale(0.95);
-  opacity: 0.75;
-  color: #5d576b;
+  /* 移除 filter: grayscale(0.95); 以防吃掉發光顏色 */
+  opacity: 0.6; /* 讓整體稍微變暗，區分未擁有的狀態 */
+  color: #8a7e9c; /* 文字變成暗灰紫色 */
+  background-color: #cbd5e1 !important; /* 強制把背景變成灰底，蓋掉原本的分類彩色 */
 }
+
 .pt-element.empty:hover {
-  opacity: 1;
+  opacity: 0.9;
 }
+
 .pt-element.owned .pt-badge {
   display: block;
 }
@@ -1267,7 +1271,10 @@
 
 /* 裝備槽的感應提示特效 */
 .equip-slot {
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, border-color 0.2s !important;
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s,
+    border-color 0.2s !important;
 }
 
 .equip-slot:hover {
@@ -1275,4 +1282,61 @@
   box-shadow: 0 0 15px rgba(246, 166, 193, 0.8) !important;
   border-color: #f6a6c1 !important;
   background: rgba(255, 255, 255, 0.95);
+}
+
+/* ==========================================
+   ★ 1. 週期表元素高亮光暈 (點選技能時觸發)
+========================================== */
+.pt-element.highlight-required {
+  box-shadow: 0 0 20px 1px #68ffe6 !important;
+  z-index: 50 !important;
+  opacity: 1 !important;
+}
+
+@keyframes pulse-glow {
+  from {
+    box-shadow:
+      0 0 10px 2px #34d399,
+      inset 0 0 10px #34d399;
+  }
+  to {
+    box-shadow:
+      0 0 25px 6px #10b981,
+      inset 0 0 20px #10b981;
+  }
+}
+
+/* ==========================================
+   ★ 2. 已裝備技能的發動次數小標籤 (右下角 x3)
+========================================== */
+.equipped-cast-count {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  background: #5d576b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  font-family: "Orbitron", "Noto Sans TC", sans-serif;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+
+/* 當庫存不足，無法發動時顯示為紅色警告 */
+.equipped-cast-count.zero-casts {
+  background: #e0576b;
+  color: #fffdfb;
+  animation: pulse-zero 1s infinite alternate;
+}
+
+@keyframes pulse-zero {
+  from {
+    filter: drop-shadow(0 0 2px #e0576b);
+  }
+  to {
+    filter: drop-shadow(0 0 8px #e0576b);
+  }
 }

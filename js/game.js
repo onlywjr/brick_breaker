@@ -1,5 +1,5 @@
 // ★ 開發者與作弊模式總開關：上線前請改為 false！
-export const TEST_MODE = false;
+export const TEST_MODE = true;
 
 // ==========================================
 // ★ 新增：效能模式與優化開關
@@ -1412,6 +1412,9 @@ export function onlineReceiveAttack(d) {
 
   burst(400, 300, "#D96C8E"); // 畫面震動爆點
 
+  // ★ 新增：設定被攻擊狀態的計時器 (例如 1.5 秒)
+  p1.underAttackTimer = 1.5;
+
   // ★ 1. 統一呼叫底層處理物理狀態 (扣血、減速、計時器等都在這裡處理)
   applyLocalDebuff(p1, type, power, duration);
 
@@ -2145,6 +2148,11 @@ export function updateGameState(dt, cv) {
     if (performance.now() - onlineLastStateSend >= 200) {
       onlineLastStateSend = performance.now();
 
+      // ★ 新增：更新受擊計時器 (每次發送間隔約 200ms)
+      if (p1.underAttackTimer > 0) {
+        p1.underAttackTimer -= 0.2;
+      }
+
       // ★ 1. 同時計算「殘留數量」與「本關總數量」
       const activeBrickCount = bricks.filter((b) => b.hp > 0).length;
       const totalBrickCount = Math.max(1, bricks.length); // 避免除以 0
@@ -2154,6 +2162,8 @@ export function updateGameState(dt, cv) {
         alive: !onlineEliminated,
         energy: p1.energy,
         level: level,
+        // ★ 簡化：不再傳送複雜的特效狀態，改傳送是否被攻擊
+        underAttack: p1.underAttackTimer > 0,
         paddle: {
           x: Math.round(p1.x),
           y: Math.round(p1.y),
@@ -2161,19 +2171,10 @@ export function updateGameState(dt, cv) {
           h: p1.h,
           hp: Math.round(p1.hp),
           shield: Math.round(p1.shield || 0),
-          // ★ 新增：同步冰凍與免疫狀態旗標
-          frozen: p1.speed === 0,
-          invincible: p1.invincibleTimer > 0,
         },
         ball:
           p1.ball ?
-            {
-              x: Math.round(p1.ball.x),
-              y: Math.round(p1.ball.y),
-              // ★ 新增：同步大招與旋球狀態旗標
-              spin: p1.ball.spinType || null,
-              rasen: p1.ball.isRasengan || false,
-            }
+            { x: Math.round(p1.ball.x), y: Math.round(p1.ball.y) }
           : null,
 
         // ★ 終極 Hack：將「總數」藏在 w，「殘留數」藏在 ci

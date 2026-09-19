@@ -306,3 +306,28 @@ body.online-battle-mode .score-bar {
     padding: 12px !important;
   }
 }
+
+/* ★ 新增：對手受擊遮罩 */
+.opp-attack-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(224, 87, 107, 0.4); /* 紅色半透明 */
+  z-index: 20; /* 確保在畫布上方，但在文字下方 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* 不影響點擊 */
+}
+
+.opp-attack-overlay span {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 900;
+  color: white;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  background: rgba(224, 87, 107, 0.8);
+  padding: 4px 10px;
+  border-radius: 6px;
+}

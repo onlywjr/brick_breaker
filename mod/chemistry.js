@@ -1815,6 +1815,26 @@ function renderShopCards() {
     `;
 
     card.onclick = () => {
+      // ==========================================
+      // ★ 1. 點擊卡片時，更新週期表元素的高亮光暈
+      // ==========================================
+      // 清除所有元素的亮光
+      document.querySelectorAll(".pt-element").forEach((cell) => {
+        cell.classList.remove("highlight-required");
+      });
+
+      // 為當前技能所需的元素加上亮光
+      if (skill.elements) {
+        Object.keys(skill.elements).forEach((sym) => {
+          const ptEl = document.querySelector(
+            `.pt-element[data-symbol="${sym}"]`,
+          );
+          if (ptEl) {
+            ptEl.classList.add("highlight-required");
+          }
+        });
+      }
+
       if (isEquippingMode && activeEquipSlotIndex !== null) {
         if (isUnlocked && !isEquipped) {
           if (equipSkill(skill.id, activeEquipSlotIndex)) {
@@ -1826,21 +1846,15 @@ function renderShopCards() {
         }
       } else {
         if (isUnlocked) {
-          // ★ 修正 1：刪除原本在這裡的單人升級 confirm 邏輯
-          // 僅保留亮起週期表的功能
+          // 選取卡片效果
           document
             .querySelectorAll(".chem-skill-card")
             .forEach((c) => c.classList.remove("selected"));
           card.classList.add("selected");
+          // ★ 原本這裡還有一個舊版的高亮邏輯，我們已經移到最前面並使用 highlight-required，這裡可以保留原本的 selected 邏輯即可
           document
             .querySelectorAll(".pt-element")
-            .forEach((el) => el.classList.remove("highlight"));
-          Object.keys(skill.elements).forEach((sym) => {
-            const ptEl = document.querySelector(
-              `.pt-element[data-symbol="${sym}"]`,
-            );
-            if (ptEl) ptEl.classList.add("highlight");
-          });
+            .forEach((el) => el.classList.remove("highlight")); // 保留舊的 highlight 移除，避免衝突
         } else if (canAfford) {
           window
             .customConfirm(
@@ -1849,12 +1863,12 @@ function renderShopCards() {
             .then((isYes) => {
               if (isYes) {
                 for (const [sym, num] of Object.entries(skill.elements)) {
-                  chemInventory[sym] -= num * upgradeMult; // ★ Fix: multiply by upgradeMult
+                  chemInventory[sym] -= num * upgradeMult;
                 }
                 if (!unlockedSkills.includes(skill.id)) {
                   unlockedSkills.push(skill.id);
                 }
-                skillLevels[skill.id] = currentLv + 1; // ★ Fix: currentLv + 1
+                skillLevels[skill.id] = currentLv + 1;
                 chemStates[activePIdx].levels = skillLevels;
                 chemStates[activePIdx].unlocked = unlockedSkills;
                 updateInventoryUI();
@@ -1869,9 +1883,6 @@ function renderShopCards() {
   });
 }
 
-// ==========================================
-// 更新：渲染已裝備槽位
-// ==========================================
 function renderEquippedSlots() {
   const container = document.getElementById("chem-equipped-slots");
   if (!container) return;
@@ -1892,10 +1903,6 @@ function renderEquippedSlots() {
     if (isActiveSlot) slotClass += " equipping-active";
     slot.className = slotClass;
 
-    // ==========================================
-    // ★ 凶手就是漏了這一行！賦予格子「身分證編號」
-    // 讓拖拉引擎放開手時，知道要把技能存到陣列的第幾個 index！
-    // ==========================================
     slot.dataset.slotIndex = i;
 
     const priorityBadge = `<div class="slot-priority">${i + 1}</div>`;
@@ -1903,7 +1910,26 @@ function renderEquippedSlots() {
     if (slotId) {
       const skill = getSkillData(slotId);
       const colorizedFormulaHTML = formatColorizedFormula(skill.formula);
-      slot.innerHTML = `${priorityBadge}<span style="font-family: serif; font-weight: 900; font-size: 15px;">${colorizedFormulaHTML}</span>`;
+
+      // ==========================================
+      // ★ 計算該技能目前的最大可發動次數
+      // ==========================================
+      let maxCasts = 999;
+      const inventory = chemStates[activePIdx].inventory || {};
+
+      if (skill.elements) {
+        for (const [sym, req] of Object.entries(skill.elements)) {
+          const currentQty = inventory[sym] || 0;
+          maxCasts = Math.min(maxCasts, Math.floor(currentQty / req));
+        }
+      }
+      if (maxCasts === 999) maxCasts = 0;
+
+      const zeroClass = maxCasts === 0 ? "zero-casts" : "";
+      const castBadgeHtml = `<div class="equipped-cast-count ${zeroClass}">x${maxCasts}</div>`;
+
+      // 將標籤加入 slot 內部
+      slot.innerHTML = `${priorityBadge}<span style="font-family: serif; font-weight: 900; font-size: 15px;">${colorizedFormulaHTML}</span>${castBadgeHtml}`;
     } else {
       const icon = isActiveSlot ? "×" : "+";
       const iconColor = isActiveSlot ? "#d96c8e" : "inherit";
@@ -1911,6 +1937,7 @@ function renderEquippedSlots() {
     }
 
     slot.onclick = () => {
+      // 點擊事件內容保持不變...
       if (slotId) {
         // 點擊已有裝備的槽位：卸除技能
         unequipSkill(slotId);
@@ -1946,7 +1973,7 @@ function renderEquippedSlots() {
     container.appendChild(slot);
   }
 }
-// 確保 updateInventoryUI 被呼叫時能順便刷新第一欄與按鈕狀態
+
 export function updateInventoryUI() {
   document.querySelectorAll(".pt-element").forEach((el) => {
     const symbol = el.dataset.symbol;
@@ -1963,6 +1990,9 @@ export function updateInventoryUI() {
     }
   });
   if (typeof refreshDashboard === "function") refreshDashboard();
+
+  // ★ 新增：當庫存更新時，同步刷新裝備槽的發動次數標籤！
+  if (typeof renderEquippedSlots === "function") renderEquippedSlots();
 }
 
 // 記得在載入完 HTML 後呼叫 initTabs()

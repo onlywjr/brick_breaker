@@ -50,27 +50,27 @@ export function onlineMakeMiniPlayer(id, p) {
   const w = document.createElement("div");
   w.className = "online-opponent";
   w.dataset.playerId = id;
-  // ★ 強制覆寫樣式，確保外觀緊湊、間距縮小
   w.style.cssText =
-    "display: flex; flex-direction: column; align-items: center; padding: 10px; background: rgba(255,255,255,0.85); border-radius: 12px; border: 2px solid #c9b1e8; width: 100%; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 6px;";
+    "position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 10px; background: transparent; border-radius: 12px; border: 2px solid #c9b1e8; width: 100%; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.05); gap: 6px;";
 
   w.innerHTML = `
-    <!-- 第 1 行：玩家名稱 -->
-    <div class="opp-name" style="font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+    <canvas width="800" height="320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; border-radius: 10px;"></canvas>
+
+    <!-- ★ 新增：受擊紅色遮罩 (預設 opacity 為 0) -->
+    <div class="opp-attack-overlay" style="position: absolute; inset: 0; background: rgba(224, 87, 107, 0.4); z-index: 20; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;">
+        <span style="font-family: 'Noto Sans TC', sans-serif; font-weight: 900; color: white; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); background: rgba(224, 87, 107, 0.8); padding: 4px 10px; border-radius: 6px;">受到攻擊</span>
+    </div>
+
+    <!-- 其餘保持不變 -->
+    <div class="opp-name" style="position: relative; z-index: 10; font-size: 15px; font-weight: 900; color: #5d576b; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
     
-    <!-- 第 2 行：愛心與血量 -->
-    <div class="opp-hp" style="font-size: 14px; font-weight: 900; color: #d96c8e;"></div>
+    <div class="opp-hp" style="position: relative; z-index: 10; font-size: 14px; font-weight: 900; color: #d96c8e;"></div>
   
-    <!-- 第 3 行：剩餘磚塊進度條 -->
-    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;">
+    <div style="position: relative; z-index: 10; width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;">
       <div class="opp-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #c9b1e8, #f6a6c1); transition: width 0.2s;"></div>
     </div> 
 
-    <!-- 第 4 行：等級與其他資訊 -->
-    <div class="opp-info" style="font-size: 11px; font-weight: 900; color: #8a7e9c;"></div> 
-
-    <!-- ★ 第 5 行：擋板畫布 (拔除舊 class，高度設為 160，並用 CSS 鎖定完美的 5:1 比例) -->
-    <canvas width="800" height="160" style="display: block; width: 100%; height: auto; aspect-ratio: 5 / 1; border-radius: 6px; background: rgba(0,0,0,0.05); margin-top: 2px;"></canvas>
+    <div class="opp-info" style="position: relative; z-index: 10; font-size: 11px; font-weight: 900; color: #8a7e9c;"></div> 
   `;
   return w;
 }
@@ -185,113 +185,56 @@ export function onlineRenderPlayers(leftEl, rightEl, bottomEl) {
       }
 
       // ==========================================
-      // ★ 更新裁切版畫布 (只畫下半部擋板區域)
+      // ★ 控制受擊遮罩顯示
       // ==========================================
-      const c = w.querySelector("canvas"); // ★ 改用直接抓取 canvas 標籤
+      const overlayEl = w.querySelector(".opp-attack-overlay");
+      if (overlayEl) {
+        // 當接收到對手的 underAttack 狀態為 true 時，將透明度設為 1
+        overlayEl.style.opacity = p.underAttack ? "1" : "0";
+      }
+
+      // ==========================================
+      // ★ 更新裁切版畫布 (簡化版)
+      // ==========================================
+      const c = w.querySelector("canvas");
       if (c) {
         const x = c.getContext("2d");
         x.clearRect(0, 0, c.width, c.height);
 
-        // 畫背景漸層
-        const g = x.createLinearGradient(0, 0, c.width, c.height);
-        g.addColorStop(0, "#FDF4F6");
-        g.addColorStop(1, "#E6F3FA");
-        x.fillStyle = g;
+        // ★ 1. 先畫一層半透明的白底，替代原本 CSS 的 background
+        x.fillStyle = "rgba(255, 255, 255, 0.85)";
         x.fillRect(0, 0, c.width, c.height);
 
         if (p.alive === false) {
           x.fillStyle = "rgba(255,255,255,.65)";
           x.fillRect(0, 0, c.width, c.height);
-          x.fillStyle = "#E0576B";
-          x.font = "900 40px sans-serif";
-          x.textAlign = "center";
-          x.textBaseline = "middle";
-          x.fillText("ELIMINATED", c.width / 2, c.height / 2);
         } else {
           x.save();
-          // ★ 鏡頭偏移魔法：把整個世界往上提 440 像素！
-          // 這樣原本在 Y=556 的擋板，就會出現在 160px 畫布的下方，上方保留空間給球掉落
-          x.translate(0, -440);
+          // ★ 終極魔法：把 800x600 的世界向上提 280 像素！
+          x.translate(0, -280);
 
-          // ==========================================
-          // ★ 畫擋板與狀態特效
-          // ==========================================
+          // ★ 簡化畫擋板：移除所有冰塊、護盾特效的判斷
           if (p.paddle && p.paddle.x !== undefined) {
             const pw = p.paddle.w || 120;
             const ph = p.paddle.h || 22;
             const px = p.paddle.x;
             const py = p.paddle.y || 556;
 
-            // 1. 畫出實體冰塊 (絕對凍結)
-            if (p.paddle.frozen) {
-              x.fillStyle = "rgba(165, 243, 252, 0.55)";
-              x.strokeStyle = "#22d3ee";
-              x.lineWidth = 2;
-              x.beginPath();
-              x.roundRect(px - 4, py - 4, pw + 8, ph + 8, 6);
-              x.fill();
-              x.stroke();
-            }
-
-            // 2. 畫基礎擋板
             x.fillStyle = "#9DD9E8";
             x.beginPath();
             x.roundRect(px, py, pw, ph, ph / 2);
             x.fill();
-
-            // 3. 畫出護盾或無敵狀態 (六角菱形光罩)
-            if (p.paddle.shield > 0 || p.paddle.invincible) {
-              x.strokeStyle = p.paddle.invincible ? "#FBBF24" : "#86EFAC";
-              x.lineWidth = 2;
-              x.beginPath();
-              x.moveTo(px - 10, py + ph / 2);
-              x.lineTo(px + 10, py - 8);
-              x.lineTo(px + pw - 10, py - 8);
-              x.lineTo(px + pw + 10, py + ph / 2);
-              x.lineTo(px + pw - 10, py + ph + 8);
-              x.lineTo(px + 10, py + ph + 8);
-              x.closePath();
-              x.stroke();
-              x.fillStyle = "rgba(255, 255, 255, 0.2)";
-              x.fill();
-            }
           }
 
-          // ==========================================
-          // ★ 畫球與旋轉大招特效
-          // ==========================================
+          // ★ 簡化畫球：移除所有螺旋丸、旋風特效的判斷
           if (p.ball && p.ball.x !== undefined && p.ball.y !== undefined) {
             const bx = p.ball.x;
             const by = p.ball.y;
 
-            if (p.ball.rasen) {
-              // 螺旋丸 (青色光球與殘影)
-              x.fillStyle = "rgba(56, 189, 248, 0.4)";
-              x.beginPath();
-              x.arc(bx, by, 18, 0, Math.PI * 2);
-              x.fill();
-              x.fillStyle = "#FFFFFF";
-              x.beginPath();
-              x.arc(bx, by, 10, 0, Math.PI * 2);
-              x.fill();
-            } else if (p.ball.spin === "left" || p.ball.spin === "right") {
-              // 旋風與電鑽 (左旋紫，右旋金)
-              const spinColor = p.ball.spin === "left" ? "#A78BFA" : "#FBBF24";
-              x.fillStyle = spinColor;
-              x.beginPath();
-              x.arc(bx, by, 14, 0, Math.PI * 2);
-              x.fill();
-              x.fillStyle = "#FFF";
-              x.beginPath();
-              x.arc(bx, by, 8, 0, Math.PI * 2);
-              x.fill();
-            } else {
-              // 一般球體
-              x.fillStyle = "#5D576B";
-              x.beginPath();
-              x.arc(bx, by, 11, 0, Math.PI * 2);
-              x.fill();
-            }
+            x.fillStyle = "#5D576B";
+            x.beginPath();
+            x.arc(bx, by, 11, 0, Math.PI * 2);
+            x.fill();
           }
           x.restore();
         }
