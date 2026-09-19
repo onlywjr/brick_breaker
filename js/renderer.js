@@ -1819,7 +1819,8 @@ export function drawGameEntities(ctx, cv, gameState, loadedImages) {
         : activeAction === "phase_piercing" ? "163, 158, 173"
         : b.isPiercing ? "216, 180, 254"
         : b.fire ? "249, 115, 22"
-        : pl.scoreMultiplier && pl.scoreMultiplier > 1 ? "253, 224, 71"
+        : pl.scoreMultiplier && pl.scoreMultiplier > 1 ?
+          "239, 68, 68" // ★ 修正 3：改為血紅色 (Red-500)
         : "134, 239, 172";
       for (let i = 0; i < b.history.length; i++) {
         let pt = b.history[i];

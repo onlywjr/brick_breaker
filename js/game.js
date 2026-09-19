@@ -1857,13 +1857,25 @@ export function updateGameState(dt, cv) {
     if (p1RankEl) p1RankEl.textContent = `🏆 #${myRank}`;
   }
 
-  // ★ 優化：加入元素存在判定，即使玩家刪除 HTML 進度條也不會當機
   // ★ 1P 分數與火紅狂暴狀態更新
   if (p1.score !== lastP1Score || p1.lastMultiplier !== p1.scoreMultiplier) {
     const el = document.getElementById("p1-score");
     if (el) {
       const mult = p1.scoreMultiplier || 1;
-      el.textContent = mult > 1 ? `${p1.score} (x${mult})` : p1.score;
+      const text = mult > 1 ? `${p1.score} (x${mult})` : p1.score.toString();
+      el.textContent = text;
+
+      // ★ 修正 1：動態縮小字體與最大寬度保護
+      const len = text.length;
+      // 基準大小為 24px，字數超過 5 個字後開始縮小，最小限制到 13px
+      const newSize = len > 5 ? Math.max(13, 24 - (len - 5) * 1.8) : 24;
+      el.style.fontSize = `${newSize}px`;
+      el.style.display = "inline-block";
+      el.style.maxWidth = "95px"; // 限制最大寬度，防止擠壓中央 HUD
+      el.style.overflow = "hidden";
+      el.style.textOverflow = "ellipsis";
+      el.style.whiteSpace = "nowrap";
+      el.style.verticalAlign = "middle";
 
       // 動態開關火紅燃燒樣式
       if (mult > 1) el.classList.add("score-fire-active");
@@ -1887,13 +1899,25 @@ export function updateGameState(dt, cv) {
     lastP1Energy = p1EnergyPercent;
   }
 
+  // ★ 2P 分數與火紅狂暴狀態更新
   if (mode === 2) {
-    // ★ 2P 分數與火紅狂暴狀態更新
     if (p2.score !== lastP2Score || p2.lastMultiplier !== p2.scoreMultiplier) {
       const el = document.getElementById("p2-score");
       if (el) {
         const mult = p2.scoreMultiplier || 1;
-        el.textContent = mult > 1 ? `${p2.score} (x${mult})` : p2.score;
+        const text = mult > 1 ? `${p2.score} (x${mult})` : p2.score.toString();
+        el.textContent = text;
+
+        // ★ 修正 1：動態縮小字體與最大寬度保護 (2P同步)
+        const len = text.length;
+        const newSize = len > 5 ? Math.max(13, 24 - (len - 5) * 1.8) : 24;
+        el.style.fontSize = `${newSize}px`;
+        el.style.display = "inline-block";
+        el.style.maxWidth = "95px";
+        el.style.overflow = "hidden";
+        el.style.textOverflow = "ellipsis";
+        el.style.whiteSpace = "nowrap";
+        el.style.verticalAlign = "middle";
 
         if (mult > 1) el.classList.add("score-fire-active");
         else el.classList.remove("score-fire-active");

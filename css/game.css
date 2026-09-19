@@ -607,23 +607,26 @@ body.single-layout .center-card > div:nth-child(2) {
   }
 }
 
-/* ★ 積分倍率生效時的火紅燃燒動畫 (純 GPU 加速，零 lag) */
+/* ★ 修正 2：積分翻倍狂暴特效 (收斂光暈、增加黑色極細描邊護體) */
 .score-fire-active {
-  color: #FF4D4D !important;
-  text-shadow: 
-    0 0 4px #FF4D4D,
-    0 0 10px #FF8000,
-    0 0 18px #CC0000 !important;
-  animation: scoreFirePulse 0.4s infinite alternate ease-in-out;
+  color: #ffffff !important; /* 確保字體本體絕對是白色 */
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8),
+    -1px 1px 0 rgba(0, 0, 0, 0.8),
+    1px 1px 0 rgba(0, 0, 0, 0.8),
+    /* 黑色極細描邊，把字跟紅光隔開 */ 0 0 6px #e0576b,
+    0 0 12px #e0576b !important; /* 拿掉過度發散的第三層光暈 */
+  animation: score-pulse 0.4s infinite alternate ease-in-out;
 }
 
-@keyframes scoreFirePulse {
+@keyframes score-pulse {
   from {
+    filter: brightness(1);
     transform: scale(1);
-    filter: drop-shadow(0 0 2px #FF4D4D);
   }
   to {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 8px #FF8000);
+    filter: brightness(1.2);
+    transform: scale(1.05);
   }
 }
