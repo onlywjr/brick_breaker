@@ -1807,11 +1807,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
         if (b.hp > 0) {
           b.hp = Math.max(0, b.hp - power);
           if (b.hp <= 0) b.killedBySkill = true;
-          burst(
-            b.x + b.w / 2,
-            b.y + b.h / 2,
-            power >= 10 ? "#e57373" : "#9dd9e8",
-          );
+          //burst(b.x + b.w / 2, b.y + b.h / 2, power >= 10 ? "#e57373" : "#9dd9e8", );
         }
       });
 
@@ -1832,13 +1828,17 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
       break;
 
     case "massive_explosion":
-      // ★ 修正 1：強制指定為 255, 100, 100 觸發紅色閃光，確保 renderer 畫出核爆衝擊波
       triggerVFX(15, "255, 100, 100", 0.6);
+
+      // ★ 優化：統一在畫面中央噴發大量火花，代替每顆磚塊各自噴發
+      burst(cv.width / 2, cv.height / 2, "#e57373");
+      burst(cv.width / 2, cv.height / 2, "#FFC107");
+
       gameState.bricks.forEach((b) => {
         if (b.hp > 0) {
           b.hp = Math.max(0, b.hp - power);
           if (b.hp <= 0) b.killedBySkill = true;
-          burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+          // ★ 刪除這行： burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
         }
       });
       break;
@@ -1858,7 +1858,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
           // ==========================================
           // ★ 修正：NaOH 強鹼高溫泡沫特效
           // ==========================================
-          const foamCount = 15 + Math.floor(Math.random() * 5);
+          const foamCount = 3 + Math.floor(Math.random() * 3);
           for (let j = 0; j < foamCount; j++) {
             const rawColor =
               Math.random() > 0.4 ? "186, 230, 253" : "255, 255, 255";
@@ -2030,7 +2030,7 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
             // ★ 避免鞭屍
             b.hp = Math.max(0, b.hp - power);
             if (b.hp <= 0) b.killedBySkill = true; // ★ 標記
-            burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
+            //burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
           }
         });
         pl.timers.delayed = null;
