@@ -244,6 +244,35 @@ export function applyDrop(
 }
 
 export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
+  // ★ 範圍傷害 (AOE) 專用 Boss 扣血工具
+  const applyAoeToBoss = (cx, cy, radius, dmg, color, player) => {
+    if (boss.active) {
+      // Boss 體積較大，判定半徑加上 Boss 的一半寬度
+      if (
+        Math.hypot(boss.x + boss.w / 2 - cx, boss.y + boss.h / 2 - cy)
+        < radius + boss.w / 2
+      ) {
+        boss.hp -= dmg;
+        boss.flashTimer = 0.15;
+        burst(boss.x + boss.w / 2, boss.y + boss.h / 2, color);
+        if (boss.hp <= 0) {
+          boss.active = false;
+          player.score += 500 * (player.scoreMultiplier || 1);
+          burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
+          floatTexts.push({
+            t: "BOSS DEFEATED! +500",
+            life: 2,
+            x: cv.width / 2,
+            y: boss.y,
+            c: "#DDA15E",
+            big: true,
+          });
+          // 如果有引入 playSfx，這裡可以呼叫 playSfx("brk");
+        }
+      }
+    }
+  };
+
   let {
     bricks,
     drops,
@@ -288,6 +317,26 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
           }
         }
       });
+      // ★ 新增：毒霧對 Boss 的傷害
+      if (boss.active) {
+        boss.hp -= globalDotState.power;
+        boss.flashTimer = 0.15;
+        burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#9C27B0");
+        if (boss.hp <= 0) {
+          boss.active = false;
+          p1.score += 500 * (p1.scoreMultiplier || 1);
+          burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
+          floatTexts.push({
+            t: "BOSS DEFEATED! +500",
+            life: 2,
+            x: cv.width / 2,
+            y: boss.y,
+            c: "#DDA15E",
+            big: true,
+          });
+          playSfx("brk");
+        }
+      }
     }
   }
 
@@ -381,6 +430,37 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
             if (br.symbol && chemDLCEnabled)
               addAtom(br.symbol, 1, gb.owner === p2 ? 1 : 0);
             gb.owner.score += 10 * (gb.owner.scoreMultiplier || 1);
+          }
+        }
+      }
+
+      // ★ 新增：幽靈球對 Boss 的獨立碰撞與扣血判定
+      if (boss.active && !gb.hitBricks.has(boss)) {
+        if (
+          gb.x > boss.x - gb.r
+          && gb.x < boss.x + boss.w + gb.r
+          && gb.y > boss.y - gb.r
+          && gb.y < boss.y + boss.h + gb.r
+        ) {
+          if (!gb.isFake) {
+            // 假球不造成傷害
+            boss.hp--;
+            gb.hitBricks.add(boss); // 記憶撞擊避免連扣
+            boss.flashTimer = 0.15;
+            burst(gb.x, gb.y, "rgba(200,200,200,0.5)");
+            if (boss.hp <= 0) {
+              boss.active = false;
+              gb.owner.score += 500 * (gb.owner.scoreMultiplier || 1);
+              burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
+              floatTexts.push({
+                t: "BOSS DEFEATED! +500",
+                life: 2,
+                x: cv.width / 2,
+                y: boss.y,
+                c: "#DDA15E",
+                big: true,
+              });
+            }
           }
         }
       }
@@ -595,6 +675,37 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               }
             }
           });
+
+          // ★ 新增：雷射對 Boss 的持續熔毀
+          if (
+            boss.active
+            && b.x + laserW > boss.x
+            && b.x - laserW < boss.x + boss.w
+          ) {
+            boss.laserDamagePool =
+              (boss.laserDamagePool || 0) + buff.power * dt * 0.15;
+            if (boss.laserDamagePool >= 1) {
+              const dmg = Math.floor(boss.laserDamagePool);
+              boss.hp -= dmg;
+              boss.laserDamagePool %= 1;
+              boss.flashTimer = 0.15;
+              burst(b.x, boss.y + boss.h, "#F6A6C1"); // 在擊中點產生火花
+              if (boss.hp <= 0) {
+                boss.active = false;
+                pl.score += 500 * (pl.scoreMultiplier || 1);
+                burst(boss.x + boss.w / 2, boss.y + boss.h / 2, "#DDA15E");
+                floatTexts.push({
+                  t: "BOSS DEFEATED! +500",
+                  life: 2,
+                  x: cv.width / 2,
+                  y: boss.y,
+                  c: "#DDA15E",
+                  big: true,
+                });
+                playSfx("brk");
+              }
+            }
+          }
         }
       }
     }
@@ -859,7 +970,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
 
         let isDrilling = b.spinType === "right" && Math.abs(b.spin) > 10;
 
-        if (!b.isRasengan && !isDrilling) {
+        // ★ 新增 !b.isPiercing 條件，讓貫穿技能可以直接穿透 Boss
+        if (!b.isRasengan && !isDrilling && !b.isPiercing) {
           if (overlapX > overlapY) b.dx *= -1;
           else b.dy *= -1;
         }
@@ -1013,6 +1125,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
               }
             }
           });
+          // ★ 補上：重擊球爆破波及 Boss
+          applyAoeToBoss(b.x, b.y, explosionRadius, 2, "#5D576B", pl);
         } else {
           // ★ 實裝真實物理增傷與撞擊震波 (shockwave / area_damage)
           let hitDmg = 1;
@@ -1095,6 +1209,8 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 }
               }
             });
+            // ★ 補上：螺旋丸餘波波及 Boss
+            applyAoeToBoss(br.x, br.y, 110, aoeDmg, "#38BDF8", pl);
             if (b.hitBricks) b.hitBricks.add(br);
           } else if (b.spinType === "left") {
             // 左旋：氣旋爆破 (範圍傷害提升！)
@@ -1142,6 +1258,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                   }
                 }
               });
+              applyAoeToBoss(br.x, br.y, 130, aoeDmg, "#A78BFA", pl);
             }
             // 左旋擊中後立刻釋放動能
             b.spin = 0;
@@ -1213,6 +1330,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 }
               }
             });
+            applyAoeToBoss(br.x, br.y, 70, shockPower, "#9DD9E8", pl);
           }
         }
 
@@ -1285,6 +1403,7 @@ export function handleCollisions(dt, cv, gameState, p1EnergyWrapEl) {
                 }
               }
             });
+            applyAoeToBoss(trapCx, trapCy, 90, 3, "#E0576B", targetPlayer);
           } else if (br.symbol) {
             // 一般元素收集
             if (chemDLCEnabled) {
@@ -1811,6 +1930,29 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
         }
       });
 
+      if (gameState.boss.active) {
+        gameState.boss.hp -= power;
+        gameState.boss.flashTimer = 0.15;
+        if (gameState.boss.hp <= 0) {
+          gameState.boss.active = false;
+          pl.score += 500 * (pl.scoreMultiplier || 1);
+          burst(
+            gameState.boss.x + gameState.boss.w / 2,
+            gameState.boss.y + gameState.boss.h / 2,
+            "#DDA15E",
+          );
+          gameState.floatTexts.push({
+            t: "BOSS DEFEATED! +500",
+            life: 2,
+            x: cv.width / 2,
+            y: gameState.boss.y,
+            c: "#DDA15E",
+            big: true,
+          });
+          playSfx("brk");
+        }
+      }
+
       // ==========================================
       // ★ 新增：由上而下的強鹼海浪 (作為一個巨型粒子)
       // ==========================================
@@ -1841,6 +1983,31 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
           // ★ 刪除這行： burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
         }
       });
+
+      // ★ 新增：核爆對 Boss 生效
+      if (gameState.boss.active) {
+        gameState.boss.hp -= power;
+        gameState.boss.flashTimer = 0.15;
+        if (gameState.boss.hp <= 0) {
+          gameState.boss.active = false;
+          pl.score += 500 * (pl.scoreMultiplier || 1);
+          burst(
+            gameState.boss.x + gameState.boss.w / 2,
+            gameState.boss.y + gameState.boss.h / 2,
+            "#DDA15E",
+          );
+          gameState.floatTexts.push({
+            t: "BOSS DEFEATED! +500",
+            life: 2,
+            x: cv.width / 2,
+            y: gameState.boss.y,
+            c: "#DDA15E",
+            big: true,
+          });
+          playSfx("brk");
+        }
+      }
+
       break;
 
     case "clear_rows":
@@ -2033,6 +2200,31 @@ export function executeSkillAction(skill, pl, gameState, cv, levelMult = 1) {
             //burst(b.x + b.w / 2, b.y + b.h / 2, "#e57373");
           }
         });
+
+        // ★ 新增：定時炸彈對 Boss 生效
+        if (gameState.boss.active) {
+          gameState.boss.hp -= power;
+          gameState.boss.flashTimer = 0.15;
+          if (gameState.boss.hp <= 0) {
+            gameState.boss.active = false;
+            pl.score += 500 * (pl.scoreMultiplier || 1);
+            burst(
+              gameState.boss.x + gameState.boss.w / 2,
+              gameState.boss.y + gameState.boss.h / 2,
+              "#DDA15E",
+            );
+            gameState.floatTexts.push({
+              t: "BOSS DEFEATED! +500",
+              life: 2,
+              x: cv.width / 2,
+              y: gameState.boss.y,
+              c: "#DDA15E",
+              big: true,
+            });
+            playSfx("brk");
+          }
+        }
+
         pl.timers.delayed = null;
       }, duration * 1000);
       break;
